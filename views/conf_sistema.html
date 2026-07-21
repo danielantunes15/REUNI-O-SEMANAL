@@ -1,0 +1,211 @@
+<div class="dashboard-grid">
+    <!-- Configurações de Apresentação (Originais) -->
+    <div class="kpi-card" style="grid-column: 1 / -1;">
+        <h3 class="nav-label" style="margin-bottom: 25px; font-size: 1rem;"><i class="fas fa-users-cog"></i> RESPONSÁVEIS PELA APRESENTAÇÃO GERAL</h3>
+        
+        <div class="form-grid">
+            <div class="input-group">
+                <label>Diretoria / Geral</label>
+                <input type="text" id="resp_geral" class="config-input" placeholder="Digite o nome...">
+            </div>
+            <div class="input-group">
+                <label>RH</label>
+                <input type="text" id="resp_rh" class="config-input" placeholder="Digite o nome...">
+            </div>
+            <div class="input-group">
+                <label>Operacional</label>
+                <input type="text" id="resp_operacional" class="config-input" placeholder="Digite o nome...">
+            </div>
+            <div class="input-group">
+                <label>Manutenção</label>
+                <input type="text" id="resp_manutencao" class="config-input" placeholder="Digite o nome...">
+            </div>
+            <div class="input-group">
+                <label>SSMA</label>
+                <input type="text" id="resp_ssma" class="config-input" placeholder="Digite o nome...">
+            </div>
+        </div>
+        <button class="btn-salvar" id="btn-salvar-config" onclick="salvarConfiguracoesNoBanco()">
+            <i class="fas fa-save"></i> Salvar Alterações
+        </button>
+        <span id="msg-status" style="margin-left: 15px; font-weight: bold;"></span>
+    </div>
+
+    <!-- CADASTRAR MEMBROS KANBAN -->
+    <div class="kpi-card" style="grid-column: 1 / -1; margin-top: 10px; border-left: 5px solid var(--amarelo);">
+        <h3 class="nav-label" style="margin-bottom: 25px; font-size: 1rem; color: var(--amarelo);"><i class="fas fa-id-badge"></i> CADASTRAR MEMBROS E SETORES (PARA O KANBAN)</h3>
+        
+        <div class="form-grid">
+            <div class="input-group">
+                <label>Nome do Colaborador</label>
+                <input type="text" id="novo_nome_kb" class="config-input" placeholder="Ex: João Silva">
+            </div>
+            <div class="input-group">
+                <label>Setor Associado</label>
+                <input type="text" id="novo_setor_kb" class="config-input" placeholder="Ex: Manutenção">
+            </div>
+        </div>
+        <button class="btn-salvar" style="background: var(--amarelo); color: var(--bg-dark);" onclick="adicionarMembroKanban()">
+            <i class="fas fa-plus"></i> Adicionar Membro
+        </button>
+        <span id="msg-kb-status" style="margin-left: 15px; font-weight: bold; color: var(--amarelo);"></span>
+        
+        <div class="table-box" style="margin-top: 30px;">
+            <table class="exec-table">
+                <thead>
+                    <tr>
+                        <th style="color: var(--text-dim);">Colaborador</th>
+                        <th style="color: var(--text-dim);">Setor</th>
+                        <th style="color: var(--text-dim); text-align: right;">Ação</th>
+                    </tr>
+                </thead>
+                <tbody id="tabela-membros-kb"></tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<script>
+    const chavesGlobais = ['resp_geral', 'resp_rh', 'resp_operacional', 'resp_manutencao', 'resp_ssma'];
+    let _supabase;
+    
+    if (typeof window.supabase !== 'undefined' && typeof SUPABASE_CONFIG !== 'undefined') {
+        _supabase = window.supabase.createClient(SUPABASE_CONFIG.url, SUPABASE_CONFIG.key);
+    }
+
+    window.membrosKanbanList = [];
+
+    async function buscarConfiguracoesDoBanco() {
+        if (_supabase) {
+            try {
+                const { data, error } = await _supabase.from('configuracoes').select('chave, valor');
+                if (error) throw error;
+                
+                if (data && data.length > 0) {
+                    data.forEach(item => {
+                        if (item.chave === 'membros_kanban') {
+                            window.membrosKanbanList = JSON.parse(item.valor);
+                            carregarTabelaMembros();
+                        } else {
+                            const input = document.getElementById(item.chave);
+                            if (input) {
+                                input.value = item.valor;
+                            }
+                        }
+                    });
+                }
+            } catch (err) {
+                console.warn('Erro ao buscar configurações no banco:', err);
+            }
+        }
+    }
+
+    async function salvarConfiguracoesNoBanco() {
+        const btn = document.getElementById('btn-salvar-config');
+        const status = document.getElementById('msg-status');
+        
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Salvando...';
+        status.innerText = '';
+        
+        const dadosParaSalvar = chavesGlobais.map(chave => {
+            const input = document.getElementById(chave);
+            return {
+                chave: chave,
+                valor: input ? input.value.trim() : ''
+            };
+        });
+
+        try {
+            if (_supabase) {
+                const { error } = await _supabase.from('configuracoes').upsert(dadosParaSalvar, { onConflict: 'chave' });
+                if (error) throw error;
+                
+                status.style.color = 'var(--verde)';
+                status.innerText = 'Salvo no banco de dados!';
+            } else {
+                throw new Error("Supabase não carregado.");
+            }
+        } catch (err) {
+            console.error('Erro no Supabase:', err);
+            status.style.color = 'var(--vermelho)';
+            status.innerText = 'Erro ao salvar!';
+        } finally {
+            btn.disabled = false;
+            btn.innerHTML = '<i class="fas fa-save"></i> Salvar Alterações';
+            
+            setTimeout(() => {
+                if (status.innerText.includes('Salvo')) {
+                    status.innerText = '';
+                }
+            }, 4000);
+        }
+    }
+
+    async function sincronizarMembrosNoBanco() {
+        if (!_supabase) return;
+        try {
+            const { error } = await _supabase.from('configuracoes').upsert([
+                { chave: 'membros_kanban', valor: JSON.stringify(window.membrosKanbanList) }
+            ], { onConflict: 'chave' });
+            
+            if (error) throw error;
+        } catch (err) {
+            console.error('Erro ao sincronizar membros do Kanban no banco:', err);
+        }
+    }
+
+    function carregarTabelaMembros() {
+        const tbody = document.getElementById('tabela-membros-kb');
+        
+        if (window.membrosKanbanList.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="3" style="text-align:center; padding:20px; color:var(--text-dim);">Nenhum membro cadastrado.</td></tr>';
+            return;
+        }
+        
+        tbody.innerHTML = window.membrosKanbanList.map((m, index) => `
+            <tr>
+                <td style="color: white; font-weight: bold;">${m.nome}</td>
+                <td style="color: var(--primary);">${m.setor}</td>
+                <td style="text-align: right;">
+                    <button class="btn-kanban" style="background: var(--vermelho);" onclick="removerMembroKanban(${index})">
+                        <i class="fas fa-trash"></i>
+                    </button>
+                </td>
+            </tr>
+        `).join('');
+    }
+
+    window.adicionarMembroKanban = async function() {
+        const nome = document.getElementById('novo_nome_kb').value.trim();
+        const setor = document.getElementById('novo_setor_kb').value.trim();
+        const msg = document.getElementById('msg-kb-status');
+        
+        if (!nome || !setor) {
+            msg.style.color = 'var(--vermelho)'; 
+            msg.innerText = 'Preencha nome e setor!';
+            return;
+        }
+        
+        window.membrosKanbanList.push({ nome, setor });
+        await sincronizarMembrosNoBanco();
+        
+        document.getElementById('novo_nome_kb').value = '';
+        document.getElementById('novo_setor_kb').value = '';
+        
+        msg.style.color = 'var(--verde)'; 
+        msg.innerText = 'Membro Adicionado!';
+        setTimeout(() => msg.innerText = '', 3000);
+        
+        carregarTabelaMembros();
+    };
+
+    window.removerMembroKanban = async function(index) {
+        if (!confirm("Remover este membro?")) return;
+        window.membrosKanbanList.splice(index, 1);
+        await sincronizarMembrosNoBanco();
+        carregarTabelaMembros();
+    };
+
+    buscarConfiguracoesDoBanco();
+</script>

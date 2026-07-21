@@ -1,0 +1,187 @@
+<div class="action-bar" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; background: rgba(15, 23, 42, 0.8); padding: 15px 20px; border-radius: 12px; border-left: 5px solid #ef4444; box-shadow: 0 4px 6px rgba(0,0,0,0.3);">
+    <h2 style="color: white; margin: 0; font-size: 1.2rem; display: flex; align-items: center; gap: 10px;">
+        <i class="fas fa-tasks" style="color: #ef4444;"></i> Gestão de Metas e Ações (Administrativo)
+    </h2>
+    <button onclick="carregarTabelaKanbanAdmin()" style="background: #3b82f6; color: white; padding: 10px 20px; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; display: flex; align-items: center; gap: 8px;">
+        <i class="fas fa-sync"></i> Atualizar Tabela
+    </button>
+</div>
+
+<div style="background: rgba(15, 23, 42, 0.8); border-radius: 12px; padding: 20px; box-shadow: 0 4px 6px rgba(0,0,0,0.3); overflow-x: auto;">
+    <table style="width: 100%; border-collapse: collapse; color: white; font-size: 0.9rem; min-width: 800px;">
+        <thead>
+            <tr style="border-bottom: 2px solid rgba(255,255,255,0.1); text-align: left;">
+                <th style="padding: 12px; width: 12%;">Status</th>
+                <th style="padding: 12px; width: 30%;">Meta / Ação</th>
+                <th style="padding: 12px; width: 15%;">Setor</th>
+                <th style="padding: 12px; width: 15%;">Responsável</th>
+                <th style="padding: 12px; width: 13%;">Prazo</th>
+                <th style="padding: 12px; width: 15%; text-align: center;">Ações</th>
+            </tr>
+        </thead>
+        <tbody id="tabela-kanban-body">
+            <tr><td colspan="6" style="text-align: center; padding: 20px;">Carregando dados do banco...</td></tr>
+        </tbody>
+    </table>
+</div>
+
+<div id="modal-editar-kanban" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); z-index: 9999; justify-content: center; align-items: center;">
+    <div style="background: #1e293b; padding: 30px; border-radius: 12px; width: 550px; max-width: 95%; border: 1px solid rgba(255,255,255,0.1); box-shadow: 0 20px 40px rgba(0,0,0,0.5);">
+        <h3 style="color: white; margin-top: 0; margin-bottom: 25px; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 15px;">Editar Ação</h3>
+        <input type="hidden" id="edit-kb-id">
+        
+        <div style="margin-bottom: 15px;">
+            <label style="color: #cbd5e1; font-size: 0.85rem; display: block; margin-bottom: 5px;">Ação</label>
+            <input type="text" id="edit-kb-meta" style="width: 100%; padding: 12px; background: #0f172a; border: 1px solid #334155; color: white; border-radius: 8px;">
+        </div>
+        
+        <div style="margin-bottom: 15px;">
+            <label style="color: #cbd5e1; font-size: 0.85rem; display: block; margin-bottom: 5px;">Detalhes / Considerações</label>
+            <textarea id="edit-kb-cons" rows="3" style="width: 100%; padding: 12px; background: #0f172a; border: 1px solid #334155; color: white; border-radius: 8px; resize: none;"></textarea>
+        </div>
+        
+        <div style="display: flex; gap: 15px; margin-bottom: 15px;">
+            <div style="flex: 1;">
+                <label style="color: #cbd5e1; font-size: 0.85rem; display: block; margin-bottom: 5px;">Responsável</label>
+                <input type="text" id="edit-kb-resp" style="width: 100%; padding: 12px; background: #0f172a; border: 1px solid #334155; color: white; border-radius: 8px;">
+            </div>
+            <div style="flex: 1;">
+                <label style="color: #cbd5e1; font-size: 0.85rem; display: block; margin-bottom: 5px;">Prazo</label>
+                <input type="date" id="edit-kb-prazo" style="width: 100%; padding: 12px; background: #0f172a; border: 1px solid #334155; color: white; border-radius: 8px;">
+            </div>
+        </div>
+        
+        <div style="margin-bottom: 25px;">
+            <label style="color: #cbd5e1; font-size: 0.85rem; display: block; margin-bottom: 5px;">Status</label>
+            <select id="edit-kb-status" style="width: 100%; padding: 12px; background: #0f172a; border: 1px solid #334155; color: white; border-radius: 8px;">
+                <option value="TODO">A Cumprir</option>
+                <option value="DOING">Em Andamento</option>
+                <option value="DONE">Concluído</option>
+                <option value="ARCHIVED">Arquivado</option>
+            </select>
+        </div>
+        
+        <div style="display: flex; justify-content: flex-end; gap: 12px;">
+            <button onclick="fecharModalEdicaoKanban()" style="padding: 10px 20px; background: transparent; color: #cbd5e1; border: 1px solid #334155; border-radius: 6px; cursor: pointer;">Cancelar</button>
+            <button onclick="salvarEdicaoKanbanAdmin()" style="padding: 10px 20px; background: #10b981; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: bold;">Salvar Alterações</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    window.dadosKanbanGlobais = {}; 
+
+    async function carregarTabelaKanbanAdmin() {
+        const tbody = document.getElementById('tabela-kanban-body');
+        if(!tbody) return;
+        tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; padding: 20px;"><i class="fas fa-spinner fa-spin"></i> Buscando dados...</td></tr>';
+        
+        try {
+            const _supa = window.supabaseClientGlobal || supabase.createClient(SUPABASE_CONFIG.url, SUPABASE_CONFIG.key);
+            const { data, error } = await _supa.from('kanban_metas').select('*').neq('status', 'ARCHIVED').order('data_criacao', { ascending: false });
+            
+            if (error) throw error;
+            tbody.innerHTML = '';
+            
+            if (!data || data.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; padding: 20px; color: #94a3b8;">Nenhuma ação ativa encontrada.</td></tr>';
+                return;
+            }
+
+            data.forEach(item => {
+                window.dadosKanbanGlobais[item.id] = item; 
+
+                const tr = document.createElement('tr');
+                tr.style.borderBottom = '1px solid rgba(255,255,255,0.05)';
+                
+                const formatData = (d) => {
+                    if (!d) return '-';
+                    const parts = d.split('-');
+                    return parts.length === 3 ? `${parts[2]}/${parts[1]}/${parts[0]}` : d;
+                };
+
+                let statusBadge = '';
+                if(item.status === 'TODO') statusBadge = '<span style="background: rgba(244, 63, 94, 0.2); color: #f43f5e; padding: 4px 8px; border-radius: 4px; font-size: 0.8rem; font-weight: bold;">A Cumprir</span>';
+                else if(item.status === 'DOING') statusBadge = '<span style="background: rgba(245, 158, 11, 0.2); color: #f59e0b; padding: 4px 8px; border-radius: 4px; font-size: 0.8rem; font-weight: bold;">Andamento</span>';
+                else if(item.status === 'DONE') statusBadge = '<span style="background: rgba(16, 185, 129, 0.2); color: #10b981; padding: 4px 8px; border-radius: 4px; font-size: 0.8rem; font-weight: bold;">Concluído</span>';
+                else statusBadge = '<span style="background: rgba(100, 116, 139, 0.2); color: #cbd5e1; padding: 4px 8px; border-radius: 4px; font-size: 0.8rem; font-weight: bold;">Arquivado</span>';
+
+
+                tr.innerHTML = `
+                    <td style="padding: 12px; vertical-align: middle;">${statusBadge}</td>
+                    <td style="padding: 12px; vertical-align: middle;">
+                        <strong style="color: white; display: block;">${item.meta}</strong>
+                        <small style="color: #94a3b8;">${item.consideracao || ''}</small>
+                    </td>
+                    <td style="padding: 12px; vertical-align: middle;">${item.setor || '-'}</td>
+                    <td style="padding: 12px; vertical-align: middle;">${item.responsavel || '-'}</td>
+                    <td style="padding: 12px; vertical-align: middle;">${formatData(item.data_previsao)}</td>
+                    <td style="padding: 12px; text-align: center; vertical-align: middle;">
+                        <button onclick="abrirModalEdicaoKanbanAdmin('${item.id}')" style="background: #3b82f6; color: white; border: none; padding: 6px 12px; border-radius: 6px; cursor: pointer; font-size: 0.8rem;">
+                            <i class="fas fa-edit"></i> Editar
+                        </button>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+        } catch(e) {
+            console.error(e);
+            tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; padding: 20px; color: #ef4444;">Erro ao carregar dados do banco.</td></tr>';
+        }
+    }
+
+    window.abrirModalEdicaoKanbanAdmin = function(id) {
+        const item = window.dadosKanbanGlobais[id];
+        if(!item) return;
+
+        document.getElementById('edit-kb-id').value = item.id;
+        document.getElementById('edit-kb-meta').value = item.meta || '';
+        document.getElementById('edit-kb-cons').value = item.consideracao || '';
+        document.getElementById('edit-kb-resp').value = item.responsavel || '';
+        document.getElementById('edit-kb-prazo').value = item.data_previsao || '';
+        document.getElementById('edit-kb-status').value = item.status;
+        document.getElementById('modal-editar-kanban').style.display = 'flex';
+    }
+
+    window.fecharModalEdicaoKanban = function() {
+        document.getElementById('modal-editar-kanban').style.display = 'none';
+    }
+
+    window.salvarEdicaoKanbanAdmin = async function() {
+        const id = document.getElementById('edit-kb-id').value;
+        const updates = {
+            meta: document.getElementById('edit-kb-meta').value,
+            consideracao: document.getElementById('edit-kb-cons').value,
+            responsavel: document.getElementById('edit-kb-resp').value,
+            data_previsao: document.getElementById('edit-kb-prazo').value,
+            status: document.getElementById('edit-kb-status').value
+        };
+
+        const btn = document.querySelector('#modal-editar-kanban button:nth-child(2)');
+        if(btn) {
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Salvando...';
+            btn.disabled = true;
+        }
+
+        try {
+            const _supa = window.supabaseClientGlobal || supabase.createClient(SUPABASE_CONFIG.url, SUPABASE_CONFIG.key);
+            const { error } = await _supa.from('kanban_metas').update(updates).eq('id', id);
+            if (error) throw error;
+            
+            fecharModalEdicaoKanban();
+            carregarTabelaKanbanAdmin();
+            if(typeof carregarKanbanDash === 'function') carregarKanbanDash();
+        } catch(e) {
+            alert('Erro ao salvar as alterações no banco de dados. Verifique a conexão.');
+            console.error(e);
+        } finally {
+            if(btn) {
+                btn.innerHTML = 'Salvar Alterações';
+                btn.disabled = false;
+            }
+        }
+    }
+
+    // Inicia o carregamento quando a página é montada
+    setTimeout(carregarTabelaKanbanAdmin, 100);
+</script>

@@ -1,0 +1,313 @@
+<div class="dashboard-grid" style="margin-top: 10px;">
+    <div class="kpi-card" style="border-left: 4px solid var(--verde);">
+        <p class="nav-label" style="color: var(--verde);">TOTAL COLABORADORES</p>
+        <div class="kpi-value status-verde" id="val-headcount">0</div>
+        <p class="status-msg"><i class="fas fa-users"></i> Número de funcionários</p>
+    </div>
+    <div class="kpi-card" style="border-left: 4px solid #f59e0b;">
+        <p class="nav-label" style="color: #f59e0b;">TOTAL DE ATESTADOS</p>
+        <div class="kpi-value status-amarelo" id="val-atestados">0</div>
+        <p class="status-msg"><i class="fas fa-file-medical"></i> Entregues no mês</p>
+    </div>
+    <div class="kpi-card" style="border-left: 4px solid #ef4444;">
+        <p class="nav-label" style="color: #ef4444;">AFASTAMENTOS</p>
+        <div class="kpi-value status-vermelho" id="val-afastamentos">0</div>
+        <p class="status-msg"><i class="fas fa-user-injured"></i> INSS / Acidentes</p>
+    </div>
+    <div class="kpi-card" style="border-left: 4px solid #0ea5e9;">
+        <p class="nav-label" style="color: #0ea5e9;">PROCESSOS DE ADMISSÃO</p>
+        <div class="kpi-value" id="val-admissoes" style="color: #0ea5e9;">0</div>
+        <p class="status-msg"><i class="fas fa-user-plus"></i> Em andamento</p>
+    </div>
+    <div class="kpi-card" style="border-left: 4px solid #8b5cf6;">
+        <p class="nav-label" style="color: #8b5cf6;">INTEGRAÇÕES</p>
+        <div class="kpi-value" id="val-integracoes" style="color: #8b5cf6;">0</div>
+        <p class="status-msg"><i class="fas fa-chalkboard-teacher"></i> Realizadas no mês</p>
+    </div>
+    <div class="kpi-card" style="border-left: 4px solid var(--amarelo);">
+        <p class="nav-label" style="color: var(--amarelo);">TOTAL DE VAGAS ABERTAS</p>
+        <div class="kpi-value status-amarelo" id="val-vagas">0</div>
+        <p class="status-msg"><i class="fas fa-briefcase"></i> Somatório de cargos pendentes</p>
+    </div>
+    <div class="kpi-card" style="border-left: 4px solid #06b6d4;">
+        <p class="nav-label" style="color: #06b6d4;">SGT</p>
+        <div class="kpi-value" style="color: #06b6d4; display: flex; align-items: baseline; gap: 5px;">
+            <span id="val-sgt">0</span>
+            <span id="val-sgt-pct" style="font-size: 0.45em; opacity: 0.8; font-weight: normal;">(0%)</span>
+        </div>
+        <p class="status-msg"><i class="fas fa-id-badge"></i> Cadastrados vs Efetivo</p>
+    </div>
+</div>
+
+<div class="content-panel kpi-card" style="margin-top: 25px; border-left: 5px solid var(--primary); padding: 25px;">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 15px;">
+        <h3 class="nav-label" style="color: var(--primary); margin: 0; font-size: 1rem;"><i class="fas fa-calendar-alt"></i> CALENDÁRIO DE EVENTOS E FERIADOS - <span id="mes-ano-calendario" style="color: white;"></span></h3>
+    </div>
+    
+    <div style="display: grid; grid-template-columns: 1fr 2fr; gap: 30px; align-items: start;">
+        <div style="background: rgba(0,0,0,0.2); padding: 15px; border-radius: 12px; border: 1px solid var(--border);">
+            <div id="calendario-grid" style="display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; text-align: center;"></div>
+        </div>
+        <div style="display: flex; flex-direction: column; gap: 15px;">
+            <h4 style="color: var(--text-dim); font-size: 0.85rem; text-transform: uppercase; font-weight: bold; margin: 0;"><i class="fas fa-list-ul"></i> Eventos Programados</h4>
+            <div id="calendario-legenda" style="display: flex; flex-direction: column; gap: 10px; max-height: 250px; overflow-y: auto;">
+                <p style="color: var(--text-dim); font-size: 0.9rem;">Carregando eventos...</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="dashboard-grid" style="grid-template-columns: 1fr 1fr; margin-top: 25px;">
+    <div class="content-panel kpi-card" style="border-left: 4px solid var(--amarelo); padding: 20px;">
+        <h3 class="nav-label" style="color: var(--amarelo); margin-bottom: 15px;"><i class="fas fa-bullhorn"></i> AVISOS GERAIS</h3>
+        <div id="mural-avisos-rh" style="min-height: 120px;">
+            <p style="color: #cbd5e1; font-size: 0.9rem;">Carregando...</p>
+        </div>
+    </div>
+
+    <div class="content-panel kpi-card" style="border-left: 4px solid #0ea5e9; padding: 20px;">
+        <h3 class="nav-label" style="color: #0ea5e9; margin-bottom: 15px;"><i class="fas fa-id-card"></i> LIBERAÇÕES DESTRA X PRAZOS</h3>
+        <div id="mural-liberacoes-rh" style="min-height: 120px;">
+            <p style="color: #cbd5e1; font-size: 0.9rem;">Carregando...</p>
+        </div>
+    </div>
+</div>
+
+<div class="dashboard-grid" style="grid-template-columns: 1fr; margin-top: 25px;">
+    <div class="content-panel kpi-card" style="border-left: 4px solid #ec4899; padding: 20px;">
+        <h3 class="nav-label" style="color: #ec4899; margin-bottom: 15px;"><i class="fas fa-birthday-cake"></i> ANIVERSARIANTES DO MÊS</h3>
+        <div id="mural-aniversariantes-rh" style="min-height: 100px;">
+            <p style="color: #cbd5e1; font-size: 0.9rem;">Carregando aniversariantes...</p>
+        </div>
+    </div>
+</div>
+
+<div class="content-panel" style="margin-top: 30px; border-left: 5px solid var(--amarelo); background: rgba(15, 23, 42, 0.8); border-radius: 16px;">
+    <div style="padding: 20px; border-bottom: 1px solid rgba(255,255,255,0.05);">
+        <h3 class="nav-label" style="margin: 0; color: var(--amarelo); font-size: 1rem;"><i class="fas fa-search"></i> VAGAS EM ABERTO DETALHADAS</h3>
+    </div>
+    <div class="table-box" style="padding: 20px;">
+        <table class="exec-table" style="width: 100%; border-collapse: collapse; margin-top: 0;">
+            <thead>
+                <tr>
+                    <th style="color: var(--text-dim); padding-bottom: 10px;">Cargo / Função</th>
+                    <th style="color: var(--text-dim); padding-bottom: 10px;">Setor / Departamento</th>
+                    <th style="text-align: center; color: var(--text-dim); padding-bottom: 10px;">Quantidade Pendente</th>
+                </tr>
+            </thead>
+            <tbody id="tabela-vagas-dash"></tbody>
+        </table>
+    </div>
+</div>
+
+<style>
+    @keyframes pulse-gift {
+        0% { transform: scale(1); }
+        50% { transform: scale(1.15); }
+        100% { transform: scale(1); }
+    }
+</style>
+
+<script>
+    window.renderizarListaApresentacaoRH = function(elId, strData, corPadrao) {
+        const el = document.getElementById(elId);
+        if (!el) return;
+        if (!strData || strData.trim() === '') { 
+            el.innerHTML = '<div style="background: rgba(0,0,0,0.2); padding: 15px; border-radius: 8px; color: var(--text-dim); font-size: 0.9rem;">Sem registros pendentes.</div>'; 
+            return; 
+        }
+        
+        function formataDataPTBR(d) {
+            if(!d) return ''; const [ano, mes, dia] = d.split('-'); return `${dia}/${mes}`;
+        }
+
+        try {
+            const arr = JSON.parse(strData);
+            if (Array.isArray(arr) && arr.length > 0) {
+                el.innerHTML = '<ul style="list-style:none; padding:0; margin:0; display:flex; flex-direction:column; gap:10px;">' +
+                    arr.map(i => `
+                    <li style="background: rgba(0,0,0,0.25); padding: 12px 15px; border-radius: 8px; border-left: 3px solid ${corPadrao}; font-size: 0.95rem; color: #cbd5e1; display: flex; flex-direction: column; gap: 4px;">
+                        <strong style="color: var(--text-dim); font-size: 0.8rem; text-transform: uppercase;"><i class="fas fa-calendar-day"></i> Registrado em: ${formataDataPTBR(i.data)}</strong>
+                        <span style="color: white;">${i.texto}</span>
+                    </li>`).join('') +
+                '</ul>';
+            } else {
+                el.innerHTML = '<div style="background: rgba(0,0,0,0.2); padding: 15px; border-radius: 8px; color: var(--text-dim); font-size: 0.9rem;">Sem registros pendentes.</div>';
+            }
+        } catch(e) {
+            el.innerHTML = `<div style="background: rgba(0,0,0,0.2); padding: 15px; border-radius: 8px; color: #cbd5e1; font-size: 0.9rem; white-space: pre-wrap;">${strData}</div>`;
+        }
+    };
+
+    window.gerarAniversariantesVisual = function(listaAnivs) {
+        const container = document.getElementById('mural-aniversariantes-rh');
+        if (!container) return;
+        
+        // Bloqueio de segurança se a tela tentar processar o texto antigo
+        if (typeof listaAnivs === 'string') {
+            container.innerHTML = `<div style="text-align: center; color: var(--text-dim); padding: 10px; background: rgba(0,0,0,0.2); border-radius: 8px;"><i class="fas fa-info-circle"></i> Migração concluída. Cadastre os aniversariantes na nova tela!</div>`;
+            return;
+        }
+        
+        const dataHoje = new Date();
+        const hojeDia = dataHoje.getDate(); 
+        const hojeMes = dataHoje.getMonth() + 1;
+
+        // Filtra para mostrar APENAS quem faz aniversário no mês atual
+        const aniversariantesDoMes = (listaAnivs || []).filter(a => a.mes === hojeMes);
+
+        if (aniversariantesDoMes.length === 0) {
+            container.innerHTML = `<div style="text-align: center; color: var(--text-dim); padding: 10px; background: rgba(0,0,0,0.2); border-radius: 8px;"><i class="fas fa-info-circle"></i> Nenhum aniversariante registrado para este mês.</div>`;
+            return;
+        }
+
+        let html = '<div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 15px;">';
+        
+        aniversariantesDoMes.forEach(a => {
+            // A comparação agora é EXATA e à prova de falhas: número com número!
+            const isHoje = (a.dia === hojeDia);
+            
+            const bgCard = isHoje ? 'rgba(236, 72, 153, 0.2)' : 'rgba(236, 72, 153, 0.05)';
+            const borderCard = isHoje ? '2px solid #ec4899' : '1px solid rgba(236, 72, 153, 0.3)';
+            const shadowCard = isHoje ? '0 0 15px rgba(236, 72, 153, 0.5)' : '0 4px 6px rgba(0,0,0,0.1)';
+            const transformCard = isHoje ? 'transform: scale(1.03); z-index: 10;' : '';
+            
+            const badgeHoje = isHoje ? `<span style="background: #ec4899; color: white; font-size: 0.65rem; font-weight: 900; padding: 4px 8px; border-radius: 6px; margin-left: auto; letter-spacing: 1px; display: inline-flex; align-items: center; gap: 5px; box-shadow: 0 0 10px rgba(236,72,153,0.5);"><i class="fas fa-gift" style="animation: pulse-gift 1.5s infinite;"></i> HOJE!</span>` : '';
+            
+            html += `
+            <div style="background: ${bgCard}; border: ${borderCard}; border-radius: 8px; padding: 12px; display: flex; align-items: center; gap: 15px; box-shadow: ${shadowCard}; transition: 0.3s; ${transformCard}">
+                <div style="background: #ec4899; color: white; min-width: 55px; height: 55px; border-radius: 8px; display: flex; flex-direction: column; align-items: center; justify-content: center; font-weight: bold; line-height: 1; ${isHoje ? 'box-shadow: 0 0 15px rgba(236, 72, 153, 0.8);' : ''}">
+                    <span style="font-size: 0.65rem; text-transform: uppercase; margin-bottom: 2px;">DIA</span>
+                    <span style="font-size: 1.4rem;">${String(a.dia).padStart(2, '0')}</span>
+                </div>
+                <div style="overflow: hidden; flex: 1; display: flex; flex-direction: column; justify-content: center;">
+                    <div style="display: flex; align-items: center; width: 100%;">
+                        <div style="color: white; font-weight: bold; font-size: 1.05rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: ${isHoje ? '60%' : '100%'};">
+                            ${a.nome}
+                        </div>
+                        ${badgeHoje}
+                    </div>
+                    <div style="color: var(--text-dim); font-size: 0.85rem; margin-top: 4px;"><i class="fas fa-building" style="color: #ec4899;"></i> ${a.setor || 'Não informado'}</div>
+                </div>
+            </div>`;
+        });
+        
+        html += '</div>';
+        container.innerHTML = html;
+    };
+
+    window.gerarCalendarioVisual = function(textoEventos) {
+        const grid = document.getElementById('calendario-grid');
+        const titulo = document.getElementById('mes-ano-calendario');
+        const legenda = document.getElementById('calendario-legenda');
+        if(!grid) return;
+
+        const hoje = new Date();
+        const ano = hoje.getFullYear();
+        const mes = hoje.getMonth();
+        
+        const nomesMeses = ["Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho", "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"];
+        titulo.innerText = `${nomesMeses[mes].toUpperCase()} ${ano}`;
+
+        const eventosMap = {};
+        if (textoEventos && textoEventos.trim() !== '') {
+            const linhas = textoEventos.split(/[\n,]+/);
+            linhas.forEach(linha => {
+                const match = linha.match(/\b(0?[1-9]|[12][0-9]|3[01])\b/);
+                if (match) {
+                    const dia = parseInt(match[1], 10);
+                    if (!eventosMap[dia]) eventosMap[dia] = [];
+                    eventosMap[dia].push(linha.replace(/^[\s-]+/, '').trim());
+                }
+            });
+        }
+
+        const primeiroDia = new Date(ano, mes, 1).getDay();
+        const diasNoMes = new Date(ano, mes + 1, 0).getDate();
+        const diasSemana = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'];
+        
+        let html = '';
+
+        diasSemana.forEach(d => {
+            html += `<div style="font-weight: 800; color: var(--text-dim); padding: 5px 0; font-size: 0.75rem; text-transform: uppercase;">${d}</div>`;
+        });
+
+        for (let i = 0; i < primeiroDia; i++) {
+            html += `<div style="padding: 10px; border-radius: 6px; background: rgba(255,255,255,0.01);"></div>`;
+        }
+
+        let legendaHtml = '';
+        let temAlgumEvento = false;
+
+        for (let dia = 1; dia <= diasNoMes; dia++) {
+            const ehHoje = dia === hoje.getDate();
+            const eventosDoDia = eventosMap[dia];
+            
+            let bg = 'rgba(255,255,255,0.03)';
+            let color = 'var(--text-dim)';
+            let border = '1px solid transparent';
+            
+            if (ehHoje) {
+                border = '1px solid var(--text-dim)';
+                color = 'white';
+            }
+
+            if (eventosDoDia) {
+                const temFeriado = eventosDoDia.some(ev => ev.toUpperCase().includes('FERIADO'));
+                
+                if (temFeriado) {
+                    bg = 'rgba(245, 158, 11, 0.15)'; color = 'var(--amarelo)'; border = '1px solid var(--amarelo)';
+                } else {
+                    bg = 'rgba(16, 185, 129, 0.15)'; color = 'var(--verde)'; border = '1px solid var(--verde)';
+                }
+                temAlgumEvento = true;
+                
+                eventosDoDia.forEach(ev => {
+                    const isFeriadoEv = ev.toUpperCase().includes('FERIADO');
+                    const corLegenda = isFeriadoEv ? 'var(--amarelo)' : 'var(--verde)';
+                    const bgLegenda = isFeriadoEv ? 'rgba(245, 158, 11, 0.1)' : 'rgba(16, 185, 129, 0.1)';
+                    
+                    legendaHtml += `
+                        <div style="background: ${bgLegenda}; padding: 10px 15px; border-radius: 8px; border-left: 4px solid ${corLegenda}; display: flex; align-items: center; gap: 10px;">
+                            <span style="background: ${corLegenda}; color: #0f172a; font-weight: 900; font-size: 0.8rem; padding: 4px 8px; border-radius: 6px; min-width: 45px; text-align: center;">DIA ${String(dia).padStart(2, '0')}</span>
+                            <span style="color: white; font-size: 0.9rem; font-weight: 600;">${ev}</span>
+                        </div>
+                    `;
+                });
+            }
+
+            html += `<div style="padding: 8px 0; background: ${bg}; color: ${color}; border: ${border}; border-radius: 6px; font-weight: bold; font-size: 0.9rem; transition: 0.2s; ${eventosDoDia ? 'transform: scale(1.05); box-shadow: 0 0 10px rgba(16,185,129,0.1);' : ''}">${dia}</div>`;
+        }
+
+        grid.innerHTML = html;
+        
+        if (temAlgumEvento) { legenda.innerHTML = legendaHtml; } 
+        else { legenda.innerHTML = `<div style="padding: 15px; background: rgba(0,0,0,0.2); border-radius: 8px; border: 1px dashed var(--border); color: var(--text-dim); text-align: center;"><i class="fas fa-info-circle" style="margin-bottom: 10px; font-size: 1.5rem; display: block; opacity: 0.5;"></i>Nenhum evento ou feriado registrado.</div>`; }
+    };
+
+    window.atualizarPorcentagemSGT = function() {
+        const sgtEl = document.getElementById('val-sgt');
+        const headcountEl = document.getElementById('val-headcount');
+        const pctEl = document.getElementById('val-sgt-pct');
+        
+        if(sgtEl && headcountEl && pctEl) {
+            const sgt = parseInt(sgtEl.innerText.replace(/\D/g, '')) || 0;
+            const headcount = parseInt(headcountEl.innerText.replace(/\D/g, '')) || 0;
+            
+            if(headcount > 0) {
+                const pct = ((sgt / headcount) * 100).toFixed(1);
+                pctEl.innerText = `(${pct}%)`;
+            } else {
+                pctEl.innerText = `(0%)`;
+            }
+        }
+    };
+
+    setInterval(window.atualizarPorcentagemSGT, 1000);
+
+    setTimeout(function() {
+        if (typeof window.carregarDadosRH === 'function') {
+            window.carregarDadosRH();
+        }
+    }, 150);
+</script>

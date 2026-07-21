@@ -1,0 +1,686 @@
+<div class="action-bar" style="display: flex; justify-content: space-between; align-items: center; position: relative; margin-bottom: 25px; padding: 10px 0;">
+    <h2 style="color: #fff; margin: 0; font-weight: 800; letter-spacing: 1px; text-transform: uppercase;">
+        <i class="fas fa-shield-alt" style="color: var(--primary); margin-right: 10px;"></i> Painel Executivo - SSMA
+    </h2>
+    <div style="color: var(--text-dim); font-size: 0.85rem;" id="status-att-ssma">Sincronizando dados com o banco...</div>
+</div>
+
+<div class="dashboard-grid" style="grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); margin-bottom: 25px; gap: 15px;">
+    <div class="kpi-card" style="padding: 20px; border-left: 4px solid var(--verde); display: flex; flex-direction: column; justify-content: space-between;">
+        <p class="nav-label" style="color: var(--verde); margin-bottom: 5px;">DIAS SEM ACIDENTES</p>
+        <div class="kpi-value status-verde" id="val-dias-sem-acidentes" style="font-size: 2.8rem; margin: 5px 0;">0</div>
+        <p class="status-msg" style="font-weight: bold;"><i class="fas fa-hard-hat"></i> Com afastamento</p>
+    </div>
+    
+    <div class="kpi-card" style="padding: 20px; border-left: 4px solid var(--amarelo); display: flex; flex-direction: column; justify-content: space-between;">
+        <p class="nav-label" style="color: var(--amarelo); margin-bottom: 5px;">INCIDENTES RECENTES</p>
+        <div class="kpi-value status-amarelo" id="val-incidentes" style="font-size: 2.8rem; margin: 5px 0;">0</div>
+        <p class="status-msg"><i class="fas fa-user-injured"></i> Sem afastamento (Geral)</p>
+    </div>
+    
+    <div class="kpi-card" style="padding: 20px; border-left: 4px solid #0ea5e9; display: flex; flex-direction: column; justify-content: space-between;">
+        <p class="nav-label" style="color: #0ea5e9; margin-bottom: 5px;">DNAs ABERTOS (META: <span id="label-meta-diaria">0</span>/DIA)</p>
+        <div style="display: flex; justify-content: space-between; align-items: flex-end; margin: 5px 0;">
+            <div class="kpi-value" id="val-dnas-mes" style="font-size: 2.8rem; margin: 0; color: #0ea5e9;">0</div>
+            <div style="text-align: right;">
+                <p style="font-size: 0.75rem; color: var(--text-dim); font-weight: bold; margin-bottom: 2px;">META DO MÊS</p>
+                <p id="val-meta-mes" style="font-size: 1.2rem; font-weight: 800; color: white; margin: 0;">0</p>
+            </div>
+        </div>
+        <div style="width: 100%; height: 6px; background: rgba(0,0,0,0.3); border-radius: 10px; overflow: hidden; margin-top: 10px; margin-bottom: 8px;">
+            <div id="bar-dnas" style="height: 100%; width: 0%; background: #0ea5e9; transition: 0.5s;"></div>
+        </div>
+        <p class="status-msg" id="msg-dnas-indice" style="font-size: 0.8rem; font-weight: bold;">-</p>
+    </div>
+    
+    <div class="kpi-card" style="padding: 20px; border-left: 4px solid #8b5cf6; display: flex; flex-direction: column; justify-content: space-between;">
+        <p class="nav-label" style="color: #8b5cf6; margin-bottom: 5px;">ÍNDICE DE TRATAMENTO</p>
+        <div class="kpi-value" style="font-size: 2.8rem; margin: 5px 0; color: #8b5cf6;"><span id="val-indice-dna">0</span><span style="font-size: 1.2rem;">%</span></div>
+        <p class="status-msg" id="msg-dnas-concluidos" style="font-weight: bold;"><i class="fas fa-check-double"></i> Concluídos: 0 / Abertos: 0</p>
+    </div>
+    
+    <div class="kpi-card" style="padding: 20px; border-left: 4px solid #f43f5e; display: flex; flex-direction: column; justify-content: space-between;">
+        <p class="nav-label" style="color: #f43f5e; margin-bottom: 5px;">VISITAS DE CAMPO</p>
+        <div class="kpi-value" id="val-visitas" style="font-size: 2.8rem; margin: 5px 0; color: #f43f5e;">0</div>
+        <p class="status-msg"><i class="fas fa-search-location"></i> Realizadas</p>
+    </div>
+</div>
+
+<div class="dashboard-grid" style="grid-template-columns: 2fr 1fr; margin-bottom: 25px;">
+    
+    <div class="content-panel" style="border: 1px solid rgba(14, 165, 233, 0.3); background: rgba(15, 23, 42, 0.6); backdrop-filter: blur(10px); border-radius: 16px; padding: 20px;">
+        <h3 class="nav-label" style="color: #0ea5e9; margin: 0;"><i class="fas fa-chart-area"></i> EVOLUÇÃO DE ABERTURA DE DNA (MÊS ATUAL)</h3>
+        <div id="chart-dna" style="width: 100%; height: 280px; margin-top: 15px;"></div>
+    </div>
+    
+    <div style="display: flex; flex-direction: column; gap: 20px;">
+        <div id="card-campanha-mes" class="content-panel" style="background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); border-radius: 16px; padding: 25px; color: white; display: flex; align-items: center; gap: 20px; box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.3); position: relative; overflow: hidden;">
+            <i class="fas fa-ribbon" style="font-size: 4rem; opacity: 0.2; position: absolute; right: 20px; top: 15px;"></i>
+            <div style="z-index: 2;">
+                <h4 style="margin: 0; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 1px; opacity: 0.9; font-weight: 800;"><i class="fas fa-bullhorn"></i> Campanha do Mês</h4>
+                <h2 id="val-campanha-titulo" style="margin: 5px 0 0 0; font-size: 2rem; font-weight: 900; text-shadow: 1px 1px 2px rgba(0,0,0,0.2);">Aguardando...</h2>
+                <p id="val-campanha-tema" style="margin: 5px 0 0 0; font-size: 0.95rem; opacity: 0.9; font-weight: 600;">-</p>
+            </div>
+        </div>
+
+        <div class="content-panel" style="border: 1px solid var(--border); background: rgba(15, 23, 42, 0.6); border-radius: 16px; padding: 20px; flex: 1;">
+            <h3 class="nav-label" style="color: var(--primary); margin: 0;"><i class="fas fa-flag-checkered"></i> METAS PROGRAMADAS SSMA</h3>
+            <ul style="list-style: none; padding: 0; margin-top: 20px; display: flex; flex-direction: column; gap: 18px;">
+                <li style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px dashed rgba(255,255,255,0.05); padding-bottom: 8px;">
+                    <span style="color: white; font-size: 0.9rem; font-weight: 600;"><i class="fas fa-check-circle" style="color: var(--verde); margin-right: 8px;"></i> Índice Frequência (IF) < 2.0</span>
+                    <span class="badge bg-verde">No Alvo</span>
+                </li>
+                <li style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px dashed rgba(255,255,255,0.05); padding-bottom: 8px;">
+                    <span style="color: white; font-size: 0.9rem; font-weight: 600;"><i class="fas fa-exclamation-triangle" style="color: var(--amarelo); margin-right: 8px;"></i> 100% Tratamento DNAs</span>
+                    <span class="badge bg-amarelo">Apurando</span>
+                </li>
+            </ul>
+        </div>
+    </div>
+</div>
+
+<div class="dashboard-grid" style="grid-template-columns: 1fr 1fr; margin-bottom: 25px;">
+    <div class="content-panel kpi-card" style="border-left: 4px solid var(--vermelho); padding: 20px;">
+        <h3 class="nav-label" style="color: var(--vermelho); margin-bottom: 15px;"><i class="fas fa-car-crash"></i> APRESENTAÇÃO DE OCORRÊNCIAS</h3>
+        <div id="mural-ocorrencias" style="min-height: 120px;">
+            <p style="color: var(--text-dim); font-size: 0.9rem;">Carregando ocorrências...</p>
+        </div>
+    </div>
+    
+    <div class="content-panel kpi-card" style="border-left: 4px solid #3b82f6; padding: 20px;">
+        <h3 class="nav-label" style="color: #3b82f6; margin-bottom: 15px;"><i class="fas fa-toolbox"></i> STATUS DAS FERRAMENTAS DE SEGURANÇA</h3>
+        <div id="mural-ferramentas" style="min-height: 120px;">
+            <p style="color: var(--text-dim); font-size: 0.9rem;">Carregando status...</p>
+        </div>
+    </div>
+</div>
+
+<div class="dashboard-grid" style="grid-template-columns: 1fr 1fr; margin-bottom: 25px;">
+    <div class="content-panel kpi-card" style="border-left: 4px solid var(--primary); padding: 20px;">
+        <h3 class="nav-label" style="color: var(--primary); margin-bottom: 15px;"><i class="fas fa-tasks"></i> AÇÕES DE SEGURANÇA</h3>
+        <div id="mural-acoes" style="min-height: 120px;">
+            <p style="color: var(--text-dim); font-size: 0.9rem;">Carregando ações...</p>
+        </div>
+    </div>
+    
+    <div class="content-panel kpi-card" style="border-left: 4px solid var(--amarelo); padding: 20px; background: linear-gradient(135deg, rgba(245,158,11,0.05) 0%, rgba(15,23,42,0.8) 100%);">
+        <h3 class="nav-label" style="color: var(--amarelo); margin-bottom: 15px;"><i class="fas fa-bullhorn"></i> DEMAIS AVISOS</h3>
+        <div id="mural-avisos" style="min-height: 120px;">
+            <p style="color: var(--text-dim); font-size: 0.9rem;">Carregando avisos...</p>
+        </div>
+    </div>
+</div>
+
+<div class="content-panel kpi-card" style="border-left: 4px solid #10b981; padding: 20px; margin-bottom: 40px; background: rgba(15,23,42,0.6);">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; border-bottom: 1px solid var(--border); padding-bottom: 10px;">
+        <h3 class="nav-label" style="color: #10b981; margin: 0;"><i class="fas fa-camera-retro"></i> MURAL DE IMAGENS E EVIDÊNCIAS (SSMA)</h3>
+        <span id="msg-mural-img-ssma" style="font-size: 0.8rem; font-weight: bold;"></span>
+    </div>
+    
+    <div style="display: flex; gap: 15px; margin-bottom: 25px; background: rgba(0,0,0,0.2); padding: 15px; border-radius: 8px; flex-wrap: wrap; align-items: center; border: 1px solid rgba(255,255,255,0.05);">
+        <input type="text" id="txt-img-ssma" style="flex: 1; min-width: 250px; background: rgba(15,23,42,0.8); border: 1px solid var(--border); color: white; padding: 12px; border-radius: 6px; font-size: 0.9rem;" placeholder="Digite o título ou descrição da imagem...">
+        
+        <label for="file-img-ssma" style="background: rgba(15,23,42,0.8); color: #0ea5e9; border: 1px solid var(--border); padding: 12px 15px; border-radius: 6px; cursor: pointer; font-size: 0.9rem; font-weight: bold; display: flex; align-items: center; gap: 8px; transition: 0.2s;">
+            <i class="fas fa-image"></i> Escolher Imagem
+        </label>
+        <input type="file" id="file-img-ssma" accept="image/*" style="display: none;" onchange="document.getElementById('lbl-file-ssma').innerText = this.files[0]?.name || ''">
+        <span id="lbl-file-ssma" style="color: var(--text-dim); font-size: 0.8rem; max-width: 150px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: bold;"></span>
+
+        <button onclick="window.adicionarImagemSSMA()" style="background: #10b981; color: white; border: none; padding: 12px 25px; border-radius: 6px; font-weight: bold; cursor: pointer; transition: 0.2s; box-shadow: 0 4px 6px rgba(0,0,0,0.2);"><i class="fas fa-plus"></i> Publicar</button>
+    </div>
+
+    <div id="grid-imagens-ssma" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px;">
+        <div style="grid-column: 1 / -1; color: var(--text-dim); text-align: center; padding: 20px;"><i class="fas fa-spinner fa-spin"></i> Carregando mural...</div>
+    </div>
+</div>
+<div class="dashboard-grid" style="grid-template-columns: 1fr 1fr; margin-bottom: 40px;">
+    <div class="table-box">
+        <h3 class="nav-label"><i class="fas fa-user-graduate" style="color: var(--verde);"></i> TREINAMENTOS REALIZADOS (HISTÓRICO RECENTE)</h3>
+        <table class="exec-table">
+            <thead>
+                <tr><th>Treinamento</th><th>Data</th><th>Localização</th><th style="text-align: center;">Colab.</th></tr>
+            </thead>
+            <tbody id="lista-treinamentos-realizados">
+                <tr><td colspan="4" style="text-align:center; color: var(--text-dim);">Carregando...</td></tr>
+            </tbody>
+        </table>
+    </div>
+
+    <div class="table-box">
+        <h3 class="nav-label"><i class="fas fa-calendar-alt" style="color: #38bdf8;"></i> TREINAMENTOS PROGRAMADOS (PRÓXIMOS)</h3>
+        <table class="exec-table">
+            <thead>
+                <tr><th>Treinamento</th><th>Previsão</th><th>Localização</th><th style="text-align: right;">Status</th></tr>
+            </thead>
+            <tbody id="lista-treinamentos-programados">
+                <tr><td colspan="4" style="text-align:center; color: var(--text-dim);">Carregando...</td></tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<div style="border-bottom: 2px solid var(--border); margin-bottom: 20px; padding-bottom: 10px; margin-top: 40px;">
+    <h3 class="nav-label" style="color: white; font-size: 1.1rem; margin: 0;">
+        <i class="fas fa-users-cog" style="color: var(--text-dim); margin-right: 10px;"></i> 
+        ACOMPANHAMENTO GERAL: FERRAMENTAS DE SEGURANÇA SUZANO
+    </h3>
+</div>
+
+<div class="dashboard-grid" style="grid-template-columns: 1fr 2fr; margin-bottom: 25px; gap: 15px;">
+    <div class="kpi-card" style="padding: 20px; display: flex; flex-direction: column; justify-content: center; align-items: center; background: rgba(0,0,0,0.2); border: 1px solid var(--border); border-radius: 12px; box-shadow: inset 0 0 20px rgba(0,0,0,0.5);">
+        <p class="nav-label" style="color: var(--text-dim); margin-bottom: 10px; text-align: center; font-size: 0.85rem;"><i class="fas fa-chart-line"></i> ADERÊNCIA GERAL DA LIDERANÇA</p>
+        <div style="display: flex; align-items: baseline; gap: 5px;">
+            <span id="gauge-aderencia" style="font-size: 4rem; font-weight: 900; color: #10b981; text-shadow: 0 0 15px rgba(16, 185, 129, 0.4);">0</span>
+            <span style="font-size: 1.5rem; color: #10b981; font-weight: bold;">%</span>
+        </div>
+    </div>
+    
+    <div class="content-panel" style="padding: 25px; display: flex; flex-direction: column; justify-content: center; background: rgba(0,0,0,0.2); border: 1px solid var(--border); border-radius: 12px;">
+        <div style="display: flex; justify-content: space-between; margin-bottom: 15px;">
+            <span style="color: var(--text-dim); font-size: 0.95rem; font-weight: bold;"><i class="fas fa-clipboard-check"></i> TOTAL REALIZADO: <span id="tot-realizado" style="color: white; font-size: 1.3rem; margin-left: 5px;">0</span></span>
+            <span style="color: var(--text-dim); font-size: 0.95rem; font-weight: bold;"><i class="fas fa-bullseye"></i> META GLOBAL: <span id="tot-programado" style="color: #10b981; font-size: 1.3rem; margin-left: 5px;">0</span></span>
+        </div>
+        <div style="width: 100%; height: 20px; background: rgba(255,255,255,0.05); border-radius: 20px; overflow: hidden; box-shadow: inset 0 2px 5px rgba(0,0,0,0.5);">
+            <div id="bar-aderencia-geral" style="height: 100%; width: 0%; transition: 1.5s ease-out; border-radius: 20px;"></div>
+        </div>
+        <p style="color: var(--text-dim); font-size: 0.85rem; margin-top: 15px; text-align: right; font-style: italic;" id="msg-aderencia-geral">Analisando dados...</p>
+    </div>
+</div>
+
+<div class="kpi-card" style="border-left: 5px solid #10b981; padding: 15px; margin-bottom: 50px;">
+    <div class="table-box" style="overflow-x: auto;">
+        <table class="exec-table" style="width: 100%; text-align: left; margin-top: 0;">
+            <thead>
+                <tr style="background: rgba(255,255,255,0.05);">
+                    <th style="padding: 12px; width: 25%; border-right: 1px solid var(--border);">COLABORADOR / FUNÇÃO</th>
+                    <th style="padding: 12px; width: 60%; border-right: 1px solid var(--border);">STATUS DAS FERRAMENTAS (Realizado / Programado)</th>
+                    <th style="padding: 12px; width: 15%; text-align: center;">CONCLUSÃO</th>
+                </tr>
+            </thead>
+            <tbody id="dash-tb-ferramentas-dinamica">
+                <tr><td colspan="3" style="text-align:center; color: var(--text-dim); padding: 15px;">Carregando ferramentas...</td></tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<script>
+    (async function initSSMADashReal() {
+
+        // --- FUNÇÃO GLOBAL: MODAL DE IMAGEM ---
+        window.abrirModalImagem = function(src) {
+            let modal = document.getElementById('modal-imagem-global');
+            if (!modal) {
+                modal = document.createElement('div');
+                modal.id = 'modal-imagem-global';
+                modal.style.cssText = 'display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.85); z-index: 999999; justify-content: center; align-items: center; backdrop-filter: blur(5px);';
+                modal.onclick = function(e) { if(e.target.id === 'modal-imagem-global') modal.style.display = 'none'; };
+                
+                modal.innerHTML = `
+                    <div style="position: relative; max-width: 90vw; max-height: 90vh; display: flex; justify-content: center; align-items: center;">
+                        <button onclick="document.getElementById('modal-imagem-global').style.display='none'" style="position: absolute; top: -15px; right: -15px; background: rgba(239, 68, 68, 0.9); border: 2px solid white; color: white; width: 40px; height: 40px; border-radius: 50%; font-size: 1.2rem; cursor: pointer; z-index: 100000; display: flex; justify-content: center; align-items: center; box-shadow: 0 4px 10px rgba(0,0,0,0.5); transition: 0.2s;" onmouseover="this.style.background='#ef4444'" onmouseout="this.style.background='rgba(239, 68, 68, 0.9)'"><i class="fas fa-times"></i></button>
+                        <img id="img-modal-src-global" src="" style="max-width: 90vw; max-height: 85vh; border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.8); object-fit: contain;">
+                    </div>
+                `;
+                document.body.appendChild(modal);
+            }
+            document.getElementById('img-modal-src-global').src = src;
+            modal.style.display = 'flex';
+        };
+
+        if (!window.supabaseClientGlobal) {
+            window.supabaseClientGlobal = supabase.createClient(SUPABASE_CONFIG.url, SUPABASE_CONFIG.key);
+        }
+        const _supa = window.supabaseClientGlobal;
+        const statusEl = document.getElementById('status-att-ssma');
+        
+        const safeSet = (id, valor, isHTML = false) => {
+            const el = document.getElementById(id);
+            if (el) {
+                if (isHTML) el.innerHTML = valor;
+                else el.innerText = valor;
+            }
+        };
+
+        function formatarData(dataIso) {
+            if(!dataIso) return '-';
+            const [a, m, d] = dataIso.split('-');
+            return `${d}/${m}/${a}`;
+        }
+
+        async function renderizarMatrizDashboardDinamica() {
+            try {
+                const { data: configData } = await _supa.from('ssma_cad_ferramentas').select('*');
+                const ferramentasConfig = configData || [];
+
+                const { data: colabData } = await _supa.from('ssma_fs_colab').select('*').order('nome', { ascending: true });
+                const colaboradores = colabData || [];
+
+                const tb = document.getElementById('dash-tb-ferramentas-dinamica');
+                if (!tb) return;
+                tb.innerHTML = '';
+
+                if (colaboradores.length === 0) {
+                    tb.innerHTML = '<tr><td colspan="3" style="text-align:center; color: var(--text-dim); padding: 15px;">Nenhum colaborador cadastrado. Vá em Lançar Ocorrências.</td></tr>';
+                    return;
+                }
+
+                let globalProg = 0;
+                let globalReal = 0;
+
+                colaboradores.forEach(colab => {
+                    const ferrDaFuncao = ferramentasConfig.filter(f => f.funcao === colab.funcao);
+                    let jsonRealizado = colab.realizado || {};
+
+                    let painelFerramentasHTML = '';
+                    let totalProg = 0;
+                    let totalReal = 0;
+
+                    if (ferrDaFuncao.length === 0) {
+                        painelFerramentasHTML = `<span style="color: var(--vermelho); font-size: 0.8rem;"><i class="fas fa-exclamation-triangle"></i> Nenhuma ferramenta exigida.</span>`;
+                    } else {
+                        painelFerramentasHTML = `<div style="display: flex; flex-wrap: wrap; gap: 8px;">`;
+                        ferrDaFuncao.forEach(ferr => {
+                            const real = jsonRealizado[ferr.nome] || 0;
+                            const prog = ferr.meta;
+                            
+                            totalProg += prog;
+                            totalReal += Math.min(real, prog); 
+                            
+                            const isOk = real >= prog && prog > 0;
+                            const cor = isOk ? 'var(--verde)' : (real > 0 ? 'var(--amarelo)' : 'var(--vermelho)');
+                            const icone = isOk ? '<i class="fas fa-check-circle"></i>' : (real > 0 ? '<i class="fas fa-exclamation-circle"></i>' : '<i class="fas fa-times-circle"></i>');
+
+                            painelFerramentasHTML += `
+                                <div style="background: rgba(0,0,0,0.3); border: 1px solid ${cor}; padding: 6px 10px; border-radius: 6px; font-size: 0.85rem; display: flex; align-items: center; gap: 6px; color: #cbd5e1;">
+                                    <span style="color: ${cor}; font-size: 1rem;">${icone}</span>
+                                    <span>${ferr.nome}:</span>
+                                    <strong style="color: white; font-size: 0.95rem;">${real} / ${prog}</strong>
+                                </div>
+                            `;
+                        });
+                        painelFerramentasHTML += `</div>`;
+                    }
+
+                    globalProg += totalProg;
+                    globalReal += totalReal;
+
+                    const percGeral = totalProg > 0 ? Math.round((totalReal / totalProg) * 100) : 0;
+                    const corPerc = percGeral === 100 ? 'var(--verde)' : (percGeral >= 50 ? 'var(--amarelo)' : 'var(--vermelho)');
+
+                    tb.insertAdjacentHTML('beforeend', `
+                        <tr style="background: rgba(255,255,255,0.02); border-bottom: 1px solid var(--border);">
+                            <td style="padding: 12px; border-right: 1px solid var(--border);">
+                                <div style="font-weight: bold; color: white; font-size: 0.95rem;">${colab.nome}</div>
+                                <div style="color: var(--text-dim); font-size: 0.8rem; margin-top: 3px;"><i class="fas fa-id-badge"></i> ${colab.funcao}</div>
+                            </td>
+                            <td style="padding: 12px; border-right: 1px solid var(--border);">
+                                ${painelFerramentasHTML}
+                            </td>
+                            <td style="padding: 12px; text-align: center; vertical-align: middle;">
+                                <div style="font-size: 1.5rem; font-weight: 800; color: ${corPerc};">${percGeral}%</div>
+                            </td>
+                        </tr>
+                    `);
+                });
+
+                const percGlobal = globalProg > 0 ? Math.round((globalReal / globalProg) * 100) : 0;
+                
+                safeSet('tot-programado', globalProg);
+                safeSet('tot-realizado', globalReal);
+                
+                const gaugeEl = document.getElementById('gauge-aderencia');
+                if (gaugeEl) {
+                    let start = 0;
+                    const end = percGlobal;
+                    const duration = 1500;
+                    const increment = end / (duration / 16); 
+                    const timer = setInterval(() => {
+                        start += increment;
+                        if (start >= end) {
+                            clearInterval(timer);
+                            gaugeEl.innerText = end;
+                        } else {
+                            gaugeEl.innerText = Math.round(start);
+                        }
+                    }, 16);
+                }
+
+                const bar = document.getElementById('bar-aderencia-geral');
+                const msg = document.getElementById('msg-aderencia-geral');
+                const gaugeText = document.getElementById('gauge-aderencia');
+
+                if (bar) {
+                    bar.style.width = `${percGlobal}%`;
+                    if (percGlobal >= 80) {
+                        bar.style.background = 'linear-gradient(90deg, #10b981, #34d399)';
+                        gaugeText.style.color = '#10b981';
+                        gaugeText.style.textShadow = '0 0 15px rgba(16, 185, 129, 0.4)';
+                        if(msg) msg.innerHTML = '<i class="fas fa-trophy" style="color: #10b981;"></i> Excelente! Aderência altíssima das ferramentas pela equipe.';
+                    } else if (percGlobal >= 40) {
+                        bar.style.background = 'linear-gradient(90deg, #f59e0b, #fbbf24)';
+                        gaugeText.style.color = '#f59e0b';
+                        gaugeText.style.textShadow = '0 0 15px rgba(245, 158, 11, 0.4)';
+                        if(msg) msg.innerHTML = '<i class="fas fa-exclamation-triangle" style="color: #f59e0b;"></i> Atenção: Estamos no caminho, mas existem ferramentas pendentes.';
+                    } else {
+                        bar.style.background = 'linear-gradient(90deg, #ef4444, #f87171)';
+                        gaugeText.style.color = '#ef4444';
+                        gaugeText.style.textShadow = '0 0 15px rgba(239, 68, 68, 0.4)';
+                        if(msg) msg.innerHTML = '<i class="fas fa-exclamation-circle" style="color: #ef4444;"></i> Alerta Crítico: Baixíssima adesão nas ferramentas de segurança.';
+                    }
+                }
+
+            } catch (e) {
+                console.error("Erro ao renderizar matriz dinâmica no Dashboard", e);
+            }
+        }
+
+        try {
+            let META_DIARIA_DNA = 2;
+            let dataUltimoAcidente = null;
+            
+            try {
+                // NOVA LÓGICA: Busca tanto a meta quanto a Data do Acidente do banco de configurações
+                const { data: confData } = await _supa.from('configuracoes').select('chave, valor').in('chave', ['meta_diaria_dna', 'data_ultimo_acidente']);
+                if (confData && confData.length > 0) { 
+                    const mDna = confData.find(c => c.chave === 'meta_diaria_dna');
+                    if (mDna) META_DIARIA_DNA = parseInt(mDna.valor, 10) || 2; 
+
+                    const dAcidente = confData.find(c => c.chave === 'data_ultimo_acidente');
+                    if (dAcidente) dataUltimoAcidente = dAcidente.valor;
+                }
+            } catch(e) { }
+            
+            safeSet('label-meta-diaria', META_DIARIA_DNA);
+            
+            // --- CÁLCULO INTELIGENTE DOS DIAS SEM ACIDENTES ---
+            let diasSemAcidentesCalc = 0;
+            if (dataUltimoAcidente) {
+                const hojeCalc = new Date();
+                hojeCalc.setHours(0,0,0,0);
+                const dAcidCalc = new Date(dataUltimoAcidente + 'T00:00:00');
+                dAcidCalc.setHours(0,0,0,0);
+                
+                if (hojeCalc >= dAcidCalc) {
+                    const diffTime = Math.abs(hojeCalc - dAcidCalc);
+                    diasSemAcidentesCalc = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+                }
+            }
+            safeSet('val-dias-sem-acidentes', diasSemAcidentesCalc);
+            // ----------------------------------------------------
+            
+            let dnasConcluidosMes = 0;
+            
+            const { data: indData } = await _supa.from('ssma_indicadores_gerais')
+                .select('*')
+                .neq('data_registro', '2099-12-31') 
+                .order('data_registro', { ascending: false })
+                .limit(1);
+            
+            function renderizarListaApresentacao(elId, strData, corPadrao) {
+                const el = document.getElementById(elId);
+                if (!el) return;
+                
+                if (!strData || strData.trim() === '') { 
+                    el.innerHTML = '<div style="background: rgba(0,0,0,0.2); padding: 15px; border-radius: 8px; color: var(--text-dim); font-size: 0.9rem;">Sem registros pendentes.</div>'; 
+                    return; 
+                }
+                
+                function formataDataPTBR(d) {
+                    if(!d) return ''; const [ano, mes, dia] = d.split('-'); return `${dia}/${mes}`;
+                }
+
+                try {
+                    const arr = JSON.parse(strData);
+                    if (Array.isArray(arr) && arr.length > 0) {
+                        el.innerHTML = '<ul style="list-style:none; padding:0; margin:0; display:flex; flex-direction:column; gap:10px;">' +
+                            arr.map(i => `
+                            <li style="background: rgba(0,0,0,0.25); padding: 12px 15px; border-radius: 8px; border-left: 3px solid ${corPadrao}; font-size: 0.95rem; color: #cbd5e1; display: flex; flex-direction: column; gap: 4px;">
+                                <strong style="color: var(--text-dim); font-size: 0.8rem; text-transform: uppercase;"><i class="fas fa-calendar-day"></i> Registrado em: ${formataDataPTBR(i.data)}</strong>
+                                <span style="color: white;">${i.texto}</span>
+                            </li>`).join('') +
+                        '</ul>';
+                    } else {
+                        el.innerHTML = '<div style="background: rgba(0,0,0,0.2); padding: 15px; border-radius: 8px; color: var(--text-dim); font-size: 0.9rem;">Sem registros pendentes.</div>';
+                    }
+                } catch(e) {
+                    el.innerHTML = `<div style="background: rgba(0,0,0,0.2); padding: 15px; border-radius: 8px; color: #cbd5e1; font-size: 0.9rem; white-space: pre-wrap;">${strData}</div>`;
+                }
+            }
+
+            if (indData && indData.length > 0) {
+                const ind = indData[0];
+                safeSet('val-incidentes', ind.incidentes_sem_afastamento || 0);
+                safeSet('val-visitas', ind.visitas_campo || 0);
+                safeSet('val-campanha-titulo', ind.campanha_mes || 'Não Definido');
+                safeSet('val-campanha-tema', ind.campanha_tema || '-');
+                
+                const corCampanha = ind.campanha_cor || '#f59e0b';
+                const elCardCamp = document.getElementById('card-campanha-mes');
+                if (elCardCamp) elCardCamp.style.background = `linear-gradient(135deg, ${corCampanha}cc 0%, ${corCampanha} 100%)`;
+                
+                dnasConcluidosMes = ind.dnas_concluidos || 0;
+                
+                renderizarListaApresentacao('mural-ocorrencias', ind.mural_ocorrencias, 'var(--vermelho)');
+                renderizarListaApresentacao('mural-ferramentas', ind.mural_ferramentas, '#3b82f6');
+                renderizarListaApresentacao('mural-acoes', ind.mural_acoes, 'var(--primary)');
+                renderizarListaApresentacao('mural-avisos', ind.mural_avisos, 'var(--amarelo)');
+            } else {
+                renderizarListaApresentacao('mural-ocorrencias', '', 'var(--vermelho)');
+                renderizarListaApresentacao('mural-ferramentas', '', '#3b82f6');
+                renderizarListaApresentacao('mural-acoes', '', 'var(--primary)');
+                renderizarListaApresentacao('mural-avisos', '', 'var(--amarelo)');
+            }
+            
+            const hoje = new Date();
+            const mesAtualNum = hoje.getMonth() + 1;
+            const anoAtualNum = hoje.getFullYear();
+            const diaAtualNum = hoje.getDate();
+            
+            const ultimoDiaDoMes = new Date(anoAtualNum, mesAtualNum, 0).getDate();
+            const metaMesAtual = META_DIARIA_DNA * ultimoDiaDoMes;
+            const metaProporcionalAteHoje = META_DIARIA_DNA * diaAtualNum;
+            
+            safeSet('val-meta-mes', metaMesAtual);
+            
+            const { data: dnasData } = await _supa.from('ssma_dnas').select('*');
+            let dnasMesAtual = 0;
+            const mapDnasPorDia = {};
+            
+            if (dnasData) {
+                dnasData.forEach(dna => {
+                    const dData = new Date(dna.data_abertura + 'T00:00:00');
+                    if(dData.getMonth() + 1 === mesAtualNum && dData.getFullYear() === anoAtualNum) {
+                        dnasMesAtual++;
+                    }
+                    const dataStr = dna.data_abertura;
+                    mapDnasPorDia[dataStr] = (mapDnasPorDia[dataStr] || 0) + 1;
+                });
+            }
+            
+            safeSet('val-dnas-mes', dnasMesAtual);
+            
+            const percentAtingido = metaMesAtual > 0 ? Math.min((dnasMesAtual / metaMesAtual) * 100, 100) : 0;
+            const barDna = document.getElementById('bar-dnas');
+            const msgIndice = document.getElementById('msg-dnas-indice');
+            const txtValDnas = document.getElementById('val-dnas-mes');
+            
+            if (barDna && txtValDnas && msgIndice) {
+                barDna.style.width = `${percentAtingido}%`;
+                if (dnasMesAtual >= metaProporcionalAteHoje) {
+                    barDna.style.background = 'var(--verde)';
+                    txtValDnas.style.color = 'var(--verde)';
+                    msgIndice.innerHTML = `<i class="fas fa-check-circle" style="color: var(--verde);"></i> Meta Atingida (Esperado até hoje: ${metaProporcionalAteHoje})`;
+                } else {
+                    barDna.style.background = 'var(--amarelo)';
+                    txtValDnas.style.color = 'var(--amarelo)';
+                    msgIndice.innerHTML = `<i class="fas fa-exclamation-triangle" style="color: var(--amarelo);"></i> Abaixo do volume esperado (${dnasMesAtual}/${metaProporcionalAteHoje})`;
+                }
+            }
+            
+            const taxaDNA = dnasMesAtual > 0 ? ((dnasConcluidosMes / dnasMesAtual) * 100).toFixed(1) : 0;
+            safeSet('val-indice-dna', taxaDNA);
+            safeSet('msg-dnas-concluidos', `<i class="fas fa-check-double"></i> Concluídos: ${dnasConcluidosMes} / Abertos: ${dnasMesAtual}`, true);
+            
+            if (typeof echarts !== 'undefined') {
+                const chartDom = document.getElementById('chart-dna');
+                if (chartDom) {
+                    let myChart = echarts.getInstanceByDom(chartDom) || echarts.init(chartDom);
+                    
+                    const dataLabels = []; const dataValues = [];
+                    for(let dia = 1; dia <= ultimoDiaDoMes; dia++) {
+                        const mesStr = String(mesAtualNum).padStart(2, '0');
+                        const diaStr = String(dia).padStart(2, '0');
+                        const isoKey = `${anoAtualNum}-${mesStr}-${diaStr}`;
+                        dataLabels.push(`${diaStr}/${mesStr}`);
+                        dataValues.push(mapDnasPorDia[isoKey] || 0);
+                    }
+                    
+                    myChart.setOption({
+                        backgroundColor: 'transparent',
+                        tooltip: { trigger: 'axis' },
+                        grid: { left: '2%', right: '5%', bottom: '5%', top: '15%', containLabel: true },
+                        xAxis: { type: 'category', boundaryGap: false, data: dataLabels, axisLabel: { color: '#94a3b8' } },
+                        yAxis: { type: 'value', minInterval: 1, axisLabel: { color: '#94a3b8' }, splitLine: { lineStyle: { color: 'rgba(255,255,255,0.05)' } } },
+                        series: [{
+                            name: 'DNAs Abertos', type: 'line', data: dataValues, smooth: true, symbolSize: 8, itemStyle: { color: '#0ea5e9' },
+                            label: { show: true, position: 'top', color: '#fff', fontWeight: 'bold', fontSize: 12, formatter: function(params) { return params.value > 0 ? params.value : ''; } },
+                            areaStyle: { color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [{ offset: 0, color: 'rgba(14, 165, 233, 0.4)' }, { offset: 1, color: 'rgba(14, 165, 233, 0)' }]) },
+                            markLine: { silent: true, symbol: 'none', data: [{ yAxis: META_DIARIA_DNA, lineStyle: { color: 'var(--verde)', type: 'dashed', width: 2 }, label: { show: true, position: 'end', formatter: 'Meta ({value})', color: 'var(--verde)', fontWeight: 'bold' } }] }
+                        }]
+                    });
+                    setTimeout(() => myChart.resize(), 100);
+                }
+            }
+            
+            const { data: treiData } = await _supa.from('ssma_treinamentos').select('*').order('data_previsao', { ascending: false });
+            const tbodyRealizado = document.getElementById('lista-treinamentos-realizados');
+            const tbodyProgramado = document.getElementById('lista-treinamentos-programados');
+            
+            if (tbodyRealizado && tbodyProgramado && treiData) {
+                tbodyRealizado.innerHTML = ''; tbodyProgramado.innerHTML = '';
+                const realizados = treiData.filter(t => t.status === 'Realizado');
+                const programados = treiData.filter(t => t.status === 'Programado');
+                
+                if(realizados.length === 0) tbodyRealizado.innerHTML = '<tr><td colspan="4" style="text-align:center; color: var(--text-dim);">Nenhum recente.</td></tr>';
+                realizados.forEach(t => {
+                    tbodyRealizado.insertAdjacentHTML('beforeend', `<tr style="background: rgba(255,255,255,0.02);"><td><strong style="color: white;">${t.nome_treinamento}</strong></td><td style="color: var(--text-dim);">${formatarData(t.data_previsao)}</td><td style="color: var(--text-dim);"><i class="fas fa-map-marker-alt"></i> ${t.localizacao}</td><td style="text-align: center;"><span style="color: var(--verde); font-weight: bold; background: rgba(16, 185, 129, 0.1); padding: 4px 10px; border-radius: 20px;">${t.quantidade_colaboradores}</span></td></tr>`);
+                });
+                
+                if(programados.length === 0) tbodyProgramado.innerHTML = '<tr><td colspan="4" style="text-align:center; color: var(--text-dim);">Nenhum programado.</td></tr>';
+                programados.forEach(t => {
+                    tbodyProgramado.insertAdjacentHTML('beforeend', `<tr style="background: rgba(255,255,255,0.02);"><td><strong style="color: white;">${t.nome_treinamento}</strong></td><td style="color: var(--amarelo); font-weight: bold;">${formatarData(t.data_previsao)}</td><td style="color: var(--text-dim);"><i class="fas fa-map-marker-alt"></i> ${t.localizacao}</td><td style="text-align: right;"><span class="badge bg-amarelo"><i class="far fa-clock"></i> Agendado</span></td></tr>`);
+                });
+            }
+            
+            await renderizarMatrizDashboardDinamica();
+            window.carregarImagensSSMA();
+            
+            if(statusEl) statusEl.innerHTML = '<i class="fas fa-check-circle" style="color: var(--verde);"></i> Atualizado agora';
+
+        } catch (e) {
+            console.error("Erro ao puxar SSMA:", e);
+            if(statusEl) statusEl.innerHTML = '<i class="fas fa-exclamation-triangle" style="color: var(--vermelho);"></i> Erro na conexão';
+        }
+    })();
+
+    window.muralImagensSSMA = [];
+
+    window.carregarImagensSSMA = async function() {
+        try {
+            const client = window.supabaseClientGlobal;
+            if(!client) return;
+            const { data } = await client.from('configuracoes').select('valor').eq('chave', 'mural_imagens_ssma').limit(1);
+            if(data && data.length > 0 && data[0].valor) {
+                window.muralImagensSSMA = JSON.parse(data[0].valor);
+            } else {
+                window.muralImagensSSMA = [];
+            }
+            window.renderizarImagensSSMA();
+        } catch(e) { console.error("Erro Imagens SSMA:", e); }
+    };
+
+    window.renderizarImagensSSMA = function() {
+        const grid = document.getElementById('grid-imagens-ssma');
+        if(!grid) return;
+        
+        if(window.muralImagensSSMA.length === 0) {
+            grid.innerHTML = '<div style="grid-column: 1 / -1; color: var(--text-dim); text-align: center; padding: 20px;">Nenhuma imagem ou evidência publicada.</div>';
+            return;
+        }
+
+        grid.innerHTML = window.muralImagensSSMA.map(item => `
+            <div style="background: rgba(0,0,0,0.3); border: 1px solid var(--border); border-radius: 8px; overflow: hidden; display: flex; flex-direction: column; transition: 0.3s; box-shadow: 0 4px 6px rgba(0,0,0,0.2);">
+                <div style="height: 200px; width: 100%; background: #0f172a; display: flex; align-items: center; justify-content: center; overflow: hidden;">
+                    ${item.imagem 
+                        ? `<img src="${item.imagem}" style="width: 100%; height: 100%; object-fit: cover; cursor: pointer; transition: 0.3s;" onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'" onclick="window.abrirModalImagem('${item.imagem}')">` 
+                        : '<i class="fas fa-image" style="font-size: 3rem; color: #334155;"></i>'}
+                </div>
+                <div style="padding: 15px; flex: 1; display: flex; flex-direction: column; justify-content: space-between;">
+                    <p style="color: white; font-size: 0.9rem; margin: 0 0 15px 0; line-height: 1.4; font-weight: 500;">${item.texto}</p>
+                    <div style="display: flex; justify-content: space-between; align-items: center; border-top: 1px solid rgba(255,255,255,0.05); padding-top: 10px;">
+                        <span style="color: var(--text-dim); font-size: 0.75rem; font-weight: bold;"><i class="fas fa-calendar-alt text-emerald-500"></i> ${item.data}</span>
+                        <button onclick="window.removerImagemSSMA(${item.id})" style="background: rgba(239, 68, 68, 0.15); border: 1px solid rgba(239, 68, 68, 0.3); color: #ef4444; padding: 6px 10px; border-radius: 6px; cursor: pointer; transition: 0.2s;" onmouseover="this.style.background='#ef4444'; this.style.color='white';" onmouseout="this.style.background='rgba(239, 68, 68, 0.15)'; this.style.color='#ef4444';" title="Excluir Evidência"><i class="fas fa-trash"></i></button>
+                    </div>
+                </div>
+            </div>
+        `).join('');
+    };
+
+    window.adicionarImagemSSMA = async function() {
+        const txt = document.getElementById('txt-img-ssma').value.trim();
+        const fileInput = document.getElementById('file-img-ssma');
+        const msg = document.getElementById('msg-mural-img-ssma');
+
+        if(!txt && (!fileInput.files || fileInput.files.length === 0)) {
+            msg.style.color = '#ef4444'; msg.innerText = 'Insira uma descrição e uma imagem!';
+            setTimeout(()=>msg.innerText='', 3000);
+            return;
+        }
+
+        msg.style.color = 'var(--text-dim)'; msg.innerText = 'Processando...';
+
+        const finalizar = async (base64) => {
+            const dataAtual = new Date().toLocaleDateString('pt-BR');
+            window.muralImagensSSMA.unshift({
+                id: Date.now(),
+                texto: txt || 'Evidência Fotográfica',
+                imagem: base64,
+                data: dataAtual
+            });
+
+            document.getElementById('txt-img-ssma').value = '';
+            document.getElementById('lbl-file-ssma').innerText = '';
+            fileInput.value = '';
+
+            window.renderizarImagensSSMA();
+
+            try {
+                const client = window.supabaseClientGlobal;
+                await client.from('configuracoes').upsert([{ chave: 'mural_imagens_ssma', valor: JSON.stringify(window.muralImagensSSMA) }], { onConflict: 'chave' });
+                msg.style.color = '#10b981'; msg.innerText = 'Publicado com sucesso!';
+            } catch(e) {
+                msg.style.color = '#ef4444'; msg.innerText = 'Erro ao salvar!';
+            }
+            setTimeout(()=>msg.innerText='', 3000);
+        };
+
+        if(fileInput.files && fileInput.files[0]) {
+            const reader = new FileReader();
+            reader.onload = e => finalizar(e.target.result);
+            reader.readAsDataURL(fileInput.files[0]);
+        } else {
+            finalizar(null);
+        }
+    };
+
+    window.removerImagemSSMA = async function(id) {
+        if(!confirm("Tem certeza que deseja remover esta evidência?")) return;
+        window.muralImagensSSMA = window.muralImagensSSMA.filter(i => i.id !== id);
+        window.renderizarImagensSSMA();
+        try {
+            const client = window.supabaseClientGlobal;
+            await client.from('configuracoes').upsert([{ chave: 'mural_imagens_ssma', valor: JSON.stringify(window.muralImagensSSMA) }], { onConflict: 'chave' });
+        } catch(e) { console.error(e); }
+    };
+</script>

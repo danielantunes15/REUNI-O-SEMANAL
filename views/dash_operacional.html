@@ -1,0 +1,360 @@
+<script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.2.0"></script>
+<script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
+
+<div class="max-w-[96rem] mx-auto py-2" style="font-family: 'Inter', sans-serif;">
+    <div class="flex justify-between items-center mb-6 bg-slate-800/40 p-4 rounded-2xl border border-slate-700/50 backdrop-blur-sm flex-wrap gap-4">
+        <div class="flex items-center gap-4 flex-wrap">
+            <div>
+                <h1 class="text-2xl font-extrabold text-white m-0">Dashboard Analítico</h1>
+                <p class="text-sm text-slate-400 font-medium m-0">Análise do histórico acumulado de viagens</p>
+            </div>
+            <div id="indicadorAtualizacao" class="hidden flex items-center gap-2 px-3 py-1.5 rounded-full border text-[10px] sm:text-xs font-bold uppercase tracking-widest shadow-inner transition-all duration-500">
+                <i id="iconeAtualizacao" class="fas fa-sync fa-spin"></i>
+                <span id="textoAtualizacao">Verificando...</span>
+            </div>
+        </div>
+    </div>
+
+    <section class="animate-fade-in space-y-6">
+        
+        <div class="flex flex-col gap-4 mb-6">
+            <div class="flex items-center gap-4 bg-slate-900/80 p-2 rounded-xl border border-sky-800 shadow-lg shadow-sky-900/20 flex-wrap">
+                <div class="flex items-center gap-2 border-r border-slate-700/50 pr-4">
+                    <label for="filterMesOp" class="text-xs font-bold text-sky-400 uppercase tracking-widest pl-2"><i class="fas fa-calendar-alt mr-1"></i> Mês:</label>
+                    <select id="filterMesOp" class="bg-slate-800 text-white text-sm font-bold rounded-lg border border-slate-600 px-4 py-2 focus:outline-none focus:border-sky-500 cursor-pointer shadow-inner">
+                        <option value="ALL">TODOS OS MESES</option>
+                    </select>
+                </div>
+                <div class="flex items-center gap-2 border-r border-slate-700/50 pr-4">
+                    <label for="opDatePicker" class="text-xs font-bold text-sky-400 uppercase tracking-widest pl-2"><i class="fas fa-calendar-day mr-1"></i> Dia:</label>
+                    <input type="date" id="opDatePicker" class="bg-slate-800 text-white text-sm font-bold rounded-lg border border-slate-600 px-4 py-2 focus:outline-none focus:border-sky-500 cursor-pointer shadow-inner">
+                </div>
+                <div class="flex items-center gap-1 bg-slate-800/80 p-1 rounded-lg border border-slate-700/50 shadow-inner" id="quickFiltersGroup">
+                    <button data-op-qf="D-1" class="btn-op-qf border border-transparent text-[10px] font-bold text-slate-400 hover:text-sky-300 hover:bg-slate-700/50 px-2 py-1.5 rounded transition-all">D-1</button>
+                    <button data-op-qf="D-2" class="btn-op-qf border border-transparent text-[10px] font-bold text-slate-400 hover:text-sky-300 hover:bg-slate-700/50 px-2 py-1.5 rounded transition-all">D-2</button>
+                    <button data-op-qf="D-3" class="btn-op-qf border border-transparent text-[10px] font-bold text-slate-400 hover:text-sky-300 hover:bg-slate-700/50 px-2 py-1.5 rounded transition-all">D-3</button>
+                    <button data-op-qf="D-7" class="btn-op-qf border border-transparent text-[10px] font-bold text-slate-400 hover:text-sky-300 hover:bg-slate-700/50 px-2 py-1.5 rounded transition-all">D-7</button>
+                    <button data-op-qf="D-30" class="btn-op-qf border border-transparent text-[10px] font-bold text-slate-400 hover:text-sky-300 hover:bg-slate-700/50 px-2 py-1.5 rounded transition-all">D-30</button>
+                    <div class="w-px h-4 bg-slate-700 mx-1"></div>
+                    <button data-op-qf="ALL" class="btn-op-qf active bg-sky-900/50 text-sky-400 border border-sky-800/50 text-[10px] font-bold px-2 py-1.5 rounded transition-all shadow-[0_0_10px_rgba(14,165,233,0.2)]"><i class="fas fa-times"></i></button>
+                </div>
+                <div class="flex items-center gap-2 border-l border-slate-700/50 pl-4">
+                    <label for="filterTransportadora" class="text-xs font-bold text-sky-400 uppercase tracking-widest pl-2"><i class="fas fa-truck mr-1"></i> Transp:</label>
+                    <select id="filterTransportadora" class="bg-slate-800 text-white text-sm font-bold rounded-lg border border-slate-600 px-4 py-2 focus:outline-none focus:border-sky-500 cursor-pointer shadow-inner">
+                        <option value="ALL">TODAS AS TRANSPORTADORAS</option>
+                    </select>
+                </div>
+            </div>
+            <div class="flex items-center gap-4">
+                <button onclick="window.exportarTopVolume()" class="bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-2 px-4 rounded-lg shadow-lg transition-colors text-sm flex items-center gap-2">
+                    <i class="fas fa-file-excel"></i> Exportar
+                </button>
+                <div class="bg-slate-900 border border-slate-700 rounded-full px-5 py-2 shadow-inner text-sm font-mono text-sky-300 flex items-center">
+                    <span id="opStatusFetch">Carregando dados...</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-5 mb-5">
+            <div class="glass-card rounded-2xl p-5 glow-border-blue card-hover flex flex-col justify-between relative overflow-hidden">
+                <div class="relative z-10">
+                    <p class="text-slate-400 text-[11px] font-bold uppercase tracking-widest m-0 mb-1">Viagens</p>
+                    <div class="flex items-center gap-2">
+                        <p id="totalViagens" class="text-[32px] font-extrabold text-white leading-none m-0 transition-all">0</p>
+                        <span id="iconeMetaViagens"></span>
+                    </div>
+                    <p id="metaViagensText" class="text-[10.5px] font-bold text-white mt-1 m-0 hidden">Calculando meta...</p>
+                </div>
+                <i class="fas fa-route text-blue-500 text-[36px] absolute right-3 bottom-3 opacity-30 z-0"></i>
+            </div>
+            
+            <div class="glass-card rounded-2xl p-5 glow-border-cyan card-hover flex flex-col justify-between relative overflow-hidden">
+                <div class="relative z-10">
+                    <p class="text-slate-400 text-[11px] font-bold uppercase tracking-widest m-0 mb-2">Média de PBTC</p>
+                    <p id="totalPesoLiq" class="text-[32px] font-extrabold text-white leading-none m-0 flex items-center gap-2">0 t</p>
+                </div>
+                <i class="fas fa-weight-hanging text-cyan-400 text-[36px] absolute right-3 bottom-3 opacity-30 z-0"></i>
+            </div>
+            
+            <div class="glass-card rounded-2xl p-5 glow-border-indigo card-hover flex flex-col justify-between relative overflow-hidden">
+                <div class="relative z-10">
+                    <p class="text-slate-400 text-[11px] font-bold uppercase tracking-widest m-0 mb-1">Média de Vol (m³)</p>
+                    <div class="flex items-center gap-2">
+                        <p id="mediaVolumeViagem" class="text-[32px] font-extrabold text-white leading-none m-0 transition-all">0 m³</p>
+                        <span id="iconeMetaVolMedia"></span>
+                    </div>
+                    <p id="metaVolMediaText" class="text-[10.5px] font-bold text-white mt-1 m-0 hidden">Meta: --</p>
+                </div>
+                <i class="fas fa-box-open text-indigo-400 text-[36px] absolute right-3 bottom-3 opacity-30 z-0"></i>
+            </div>
+
+            <div class="glass-card rounded-2xl p-5 glow-border-purple card-hover flex flex-col justify-between relative overflow-hidden">
+                <div class="relative z-10">
+                    <p class="text-slate-400 text-[11px] font-bold uppercase tracking-widest m-0 mb-1">Média de RPV</p>
+                    <div class="flex items-center gap-2">
+                        <p id="mediaRPV" class="text-[32px] font-extrabold text-white leading-none m-0 transition-all">0</p>
+                    </div>
+                    <p class="text-[10px] font-bold text-white mt-1 m-0">kg / m³</p>
+                </div>
+                <i class="fas fa-balance-scale-right text-purple-400 text-[36px] absolute right-3 bottom-3 opacity-30 z-0"></i>
+            </div>
+            
+            <div class="glass-card rounded-2xl p-5 glow-border-amber card-hover flex flex-col justify-between relative overflow-hidden">
+                <div class="relative z-10">
+                    <p class="text-slate-400 text-[11px] font-bold uppercase tracking-widest m-0 mb-1">Volume Total</p>
+                    <div class="flex items-center gap-2">
+                        <p id="totalVolumeReal" class="text-[32px] font-extrabold text-white leading-none m-0 transition-all">0 m³</p>
+                        <span id="iconeMetaVolTotal"></span>
+                    </div>
+                    <p id="metaVolTotalText" class="text-[10.5px] font-bold text-white mt-1 m-0 hidden">Calculando meta...</p>
+                </div>
+                <i class="fas fa-cubes text-amber-500 text-[36px] absolute right-3 bottom-3 opacity-30 z-0"></i>
+            </div>
+            
+            <div class="glass-card rounded-2xl p-5 glow-border-emerald card-hover flex flex-col justify-between relative">
+                <div>
+                    <p class="text-slate-400 text-[11px] font-bold uppercase tracking-widest m-0 mb-2">Dist. Média</p>
+                    <p id="mediaDistancia" class="text-[28px] font-extrabold text-white leading-none m-0 mb-3">0 km</p>
+                </div>
+                <div class="flex flex-col gap-1 w-full text-xs font-bold mt-auto pb-1 border-t border-slate-700/50 pt-2">
+                    <div class="flex justify-between items-center"><span class="text-slate-400 text-[11px]">Asfalto:</span> <span id="mediaAsfalto" class="text-sky-300 bg-sky-900/30 px-2 py-0.5 rounded border border-sky-800/30">0</span></div>
+                    <div class="flex justify-between items-center"><span class="text-slate-400 text-[11px]">Terra:</span> <span id="mediaTerra" class="text-amber-400 bg-amber-900/30 px-2 py-0.5 rounded border border-amber-800/30">0</span></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 mb-6">
+            <div class="glass-card rounded-2xl p-5 glow-border-blue card-hover flex flex-col h-full relative">
+                <div class="flex justify-between items-start mb-4">
+                    <p class="text-sky-400 text-[11px] font-bold uppercase tracking-widest m-0">Ciclo Médio</p>
+                    <i class="fas fa-stopwatch text-sky-500/50 text-[24px]"></i>
+                </div>
+                <div id="cicloMedio" class="flex-1 flex flex-col justify-between">
+                    <div class="flex items-center gap-3 mb-2">
+                        <span class="text-[38px] font-black text-rose-500 leading-none m-0">0h 0m</span>
+                    </div>
+                    <div class="w-full mt-auto pt-3 border-t border-slate-700/50 flex justify-between items-center">
+                        <p class="text-[11px] text-slate-400 font-bold uppercase tracking-widest m-0">Padrão</p>
+                        <span class="text-[13px] font-black text-white">10H 05M</span>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="glass-card rounded-2xl p-5 glow-border-amber card-hover flex flex-col h-full relative">
+                <div class="flex justify-between items-start mb-4">
+                    <p class="text-amber-400 text-[11px] font-bold uppercase tracking-widest m-0">Tempo de Campo</p>
+                    <i class="fas fa-tractor text-amber-500/50 text-[24px]"></i>
+                </div>
+                <div id="filaCampo" class="flex-1 flex flex-col justify-between">
+                    <div class="flex items-center gap-3 mb-2">
+                        <span class="text-[38px] font-black text-emerald-400 leading-none m-0">0m</span>
+                    </div>
+                    <div class="w-full mt-auto pt-3 border-t border-slate-700/50 flex justify-between items-center">
+                        <p class="text-[11px] text-slate-400 font-bold uppercase tracking-widest m-0">Padrão</p>
+                        <span class="text-[13px] font-black text-white">1H 20M</span>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="glass-card rounded-2xl p-5 glow-border-emerald card-hover flex flex-col h-full relative">
+                <div class="flex justify-between items-start mb-4">
+                    <p class="text-emerald-400 text-[11px] font-bold uppercase tracking-widest m-0">Tempo Médio de Carga</p>
+                    <i class="fas fa-truck-loading text-emerald-500/50 text-[24px]"></i>
+                </div>
+                <div id="tempoCarregamento" class="flex-1 flex flex-col justify-between">
+                    <div class="flex items-center gap-3 mb-2">
+                        <span class="text-[38px] font-black text-rose-500 leading-none m-0">0m</span>
+                    </div>
+                    <div class="w-full mt-auto pt-3 border-t border-slate-700/50 flex justify-between items-center">
+                        <p class="text-[11px] text-slate-400 font-bold uppercase tracking-widest m-0">Padrão</p>
+                        <span class="text-[13px] font-black text-white">30M</span>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="glass-card rounded-2xl p-5 glow-border-rose card-hover flex flex-col h-full relative">
+                <div class="flex justify-between items-start mb-4">
+                    <p class="text-rose-400 text-[11px] font-bold uppercase tracking-widest m-0">Tempo Médio de Fábrica</p>
+                    <i class="fas fa-industry text-rose-500/50 text-[24px]"></i>
+                </div>
+                <div id="filaFabrica" class="flex-1 flex flex-col justify-between">
+                    <div class="flex items-center gap-3 mb-2">
+                        <span class="text-[38px] font-black text-emerald-400 leading-none m-0">0m</span>
+                    </div>
+                    <div class="w-full mt-auto pt-3 border-t border-slate-700/50 flex justify-between items-center">
+                        <p class="text-[11px] text-slate-400 font-bold uppercase tracking-widest m-0">Padrão</p>
+                        <span class="text-[13px] font-black text-white">30M</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="comparativoContainer" class="glass-card rounded-xl border border-slate-700/50 shadow-xl overflow-hidden mb-6 bg-slate-900 relative">
+            <div class="bg-slate-800/90 px-6 py-5 border-b border-slate-700 flex flex-col sm:flex-row justify-between items-center gap-4">
+                <h3 class="font-extrabold text-white tracking-wide uppercase text-sm flex items-center m-0">
+                    <i class="fas fa-balance-scale text-sky-400 mr-3 text-lg"></i> Comparativo de Desempenho Operacional por Cenários
+                </h3>
+            </div>
+            <div class="overflow-x-auto">
+                <table class="min-w-full text-left m-0">
+                    <thead class="bg-slate-900/95 text-white font-semibold uppercase text-[12px] tracking-wider border-b border-slate-700">
+                        <tr>
+                            <th class="px-6 py-4 text-slate-300">Indicador de Performance</th>
+                            <th class="px-6 py-4 text-emerald-400 bg-emerald-900/10 text-right"><i class="fas fa-star mr-1"></i> C1: Serrana - Fr. 05</th>
+                            <th class="px-6 py-4 text-emerald-400 bg-emerald-900/10 text-right"><i class="fas fa-star mr-1"></i> C2: Serrana - Fr. 06</th>
+                            <th class="px-6 py-4 text-purple-400 bg-purple-900/10 text-right"><i class="fas fa-truck-moving mr-1"></i> ASN: Transp. ASN</th>
+                            <th class="px-6 py-4 text-amber-400 bg-amber-900/10 text-right"><i class="fas fa-tree mr-1"></i> C3: Reflorestar</th>
+                            <th class="px-6 py-4 text-indigo-400 bg-indigo-900/10 text-right"><i class="fas fa-leaf mr-1"></i> C4: JSL</th>
+                            <th class="px-6 py-4 text-sky-400 bg-sky-900/10 text-right"><i class="fas fa-globe mr-1"></i> Total (Geral)</th>
+                        </tr>
+                    </thead>
+                    <tbody id="comparativoBody" class="divide-y divide-slate-800/80 text-slate-300">
+                        <tr><td colspan="7" class="px-6 py-6 text-center text-[15px] text-slate-500">Aguardando dados...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 gap-6 mb-6">
+            <div class="glass-card rounded-xl shadow-2xl p-5 border border-slate-700/50 flex flex-col w-full">
+                <div class="flex justify-between items-center mb-2 border-b border-slate-700/50 pb-3">
+                    <h3 class="font-bold text-white tracking-wide flex items-center text-[13px] uppercase m-0">
+                        <i class="fas fa-chart-line text-emerald-400 mr-2 text-lg"></i> Evolução Diária de Carregamento
+                    </h3>
+                </div>
+                <div class="w-full relative h-[250px]">
+                    <canvas id="evolucaoCarregamentoChart"></canvas>
+                </div>
+            </div>
+            
+            <div class="glass-card rounded-xl shadow-2xl p-5 border border-slate-700/50 flex flex-col w-full">
+                <div class="flex justify-between items-center mb-2 border-b border-slate-700/50 pb-3">
+                    <h3 class="font-bold text-white tracking-wide flex items-center text-[13px] uppercase m-0">
+                        <i class="fas fa-truck text-sky-400 mr-2 text-lg"></i> Evolução Diária de Transporte
+                    </h3>
+                </div>
+                <div class="w-full relative h-[250px]">
+                    <canvas id="evolucaoTransporteChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+            <div class="glass-card rounded-xl shadow-2xl overflow-hidden border border-slate-700/50 flex flex-col">
+                <div class="bg-slate-800/80 px-6 py-4 border-b border-slate-700 flex justify-between items-center">
+                    <h3 class="font-bold text-white tracking-wide flex items-center text-[13px] uppercase m-0">
+                        <i class="fas fa-trophy text-emerald-400 mr-2 text-lg"></i> Volume por Veículo (Serrana)
+                    </h3>
+                    <button onclick="window.exportarTopVolume()" class="text-[11px] bg-slate-700 hover:bg-emerald-600 text-white px-3 py-1.5 rounded-lg border border-slate-600 hover:border-emerald-500 transition-all flex items-center gap-2 font-bold shadow-md">
+                        <i class="fas fa-file-csv"></i> Exportar
+                    </button>
+                </div>
+                <div class="overflow-x-auto max-h-[350px] overflow-y-auto custom-scrollbar">
+                    <table class="min-w-full text-xs text-left m-0">
+                        <thead class="bg-slate-900/95 text-slate-400 font-semibold uppercase text-[10px] tracking-wider border-b border-slate-700 sticky top-0 z-10 shadow-md backdrop-blur-sm">
+                            <tr>
+                                <th class="px-4 py-3 w-10 text-center">Pos</th>
+                                <th class="px-4 py-3">Placa</th>
+                                <th class="px-4 py-3">Transp.</th>
+                                <th class="px-4 py-3 text-center">Viagens</th>
+                                <th class="px-4 py-3 text-right">Vol (m³)</th>
+                                <th class="px-4 py-3 text-center">Meta >= 2</th>
+                            </tr>
+                        </thead>
+                        <tbody id="leaderboardBody" class="divide-y divide-slate-800/80 text-slate-300"></tbody>
+                    </table>
+                </div>
+            </div>
+            
+            <div class="glass-card rounded-xl shadow-2xl overflow-hidden border border-slate-700/50 flex flex-col">
+                <div class="bg-slate-800/80 px-6 py-4 border-b border-slate-700 flex justify-between items-center">
+                    <h3 class="font-bold text-white tracking-wide flex items-center text-[13px] uppercase m-0">
+                        <i class="fas fa-stopwatch text-sky-400 mr-2 text-lg"></i> Ciclo Médio por Veículo
+                    </h3>
+                    <button onclick="window.exportarTopCiclo()" class="text-[11px] bg-slate-700 hover:bg-sky-600 text-white px-3 py-1.5 rounded-lg border border-slate-600 hover:border-sky-500 transition-all flex items-center gap-2 font-bold shadow-md">
+                        <i class="fas fa-file-csv"></i> Exportar
+                    </button>
+                </div>
+                <div class="overflow-x-auto max-h-[350px] overflow-y-auto custom-scrollbar">
+                    <table class="min-w-full text-xs text-left m-0">
+                        <thead class="bg-slate-900/95 text-slate-400 font-semibold uppercase text-[10px] tracking-wider border-b border-slate-700 sticky top-0 z-10 shadow-md backdrop-blur-sm">
+                            <tr>
+                                <th class="px-4 py-3 w-10 text-center">Pos</th>
+                                <th class="px-4 py-3">Placa</th>
+                                <th class="px-4 py-3">Transp.</th>
+                                <th class="px-4 py-3 text-center">Viagens</th>
+                                <th class="px-4 py-3 text-right">T. Médio</th>
+                            </tr>
+                        </thead>
+                        <tbody id="leaderboardCicloBody" class="divide-y divide-slate-800/80 text-slate-300"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <div class="glass-card rounded-xl border border-slate-700/50 shadow-xl overflow-hidden mb-6 bg-slate-900 relative">
+            <div class="bg-slate-800/90 px-6 py-4 border-b border-slate-700 flex justify-between items-center">
+                <h3 class="font-extrabold text-white tracking-wide uppercase text-[13px] flex items-center m-0">
+                    <i class="fas fa-bullhorn text-sky-400 mr-2 text-lg"></i> Mural de Informações e Avisos (Operacional)
+                </h3>
+                <span id="msg-mural-setor" class="font-bold text-xs"></span>
+            </div>
+            <div class="p-5">
+                <div class="flex flex-wrap gap-3 mb-4 bg-slate-900/50 p-3 rounded-lg border border-slate-700/50 items-center">
+                    <input type="date" id="data-mural-setor" class="bg-slate-800 text-white text-sm font-bold rounded-lg border border-slate-600 px-3 py-2 focus:outline-none focus:border-sky-500">
+                    <input type="text" id="txt-mural-setor" class="bg-slate-800 text-white text-sm font-bold rounded-lg border border-slate-600 px-3 py-2 focus:outline-none focus:border-sky-500 flex-1 min-w-[200px]" placeholder="Digite a informação, aviso ou lembrete do setor...">
+                    
+                    <label for="img-mural-setor" class="bg-slate-800 hover:bg-slate-700 text-sky-400 border border-slate-600 px-3 py-2 rounded-lg cursor-pointer transition-colors text-sm font-bold flex items-center gap-2">
+                        <i class="fas fa-image"></i> Imagem
+                    </label>
+                    <input type="file" id="img-mural-setor" accept="image/*" class="hidden" onchange="document.getElementById('lbl-nome-arquivo').innerText = this.files[0]?.name || ''">
+                    <span id="lbl-nome-arquivo" class="text-xs text-slate-400 font-bold max-w-[120px] truncate" title="Nome do arquivo anexo"></span>
+
+                    <button type="button" class="bg-sky-600 hover:bg-sky-500 text-white font-bold py-2 px-4 rounded-lg shadow-lg transition-colors text-sm" onclick="window.addMuralSetor()">
+                        <i class="fas fa-plus"></i> Adicionar
+                    </button>
+                </div>
+                <div id="lista-mural-setor" class="flex flex-col gap-3 max-h-[450px] overflow-y-auto custom-scrollbar pr-2"></div>
+            </div>
+        </div>
+        <div class="glass-card rounded-xl border border-slate-700/50 shadow-xl overflow-hidden mb-6 bg-slate-900 relative" style="border-left: 5px solid var(--amber-500);">
+            <div class="bg-slate-800/90 px-6 py-4 border-b border-slate-700 flex justify-between items-center">
+                <h3 class="font-extrabold text-amber-400 tracking-wide uppercase text-[13px] flex items-center m-0">
+                    <i class="fas fa-clipboard-check mr-2 text-lg"></i> Visor de Pendências da Frota (Check-list)
+                </h3>
+                <span id="msg-frota" class="font-bold text-xs text-slate-400">O cadastro é feito no menu de Pendências</span>
+            </div>
+            <div class="p-5">
+                <div class="overflow-x-auto custom-scrollbar">
+                    <table class="min-w-full text-left m-0">
+                        <thead class="bg-slate-900/95 text-white font-semibold uppercase text-[10px] tracking-wider border-b border-slate-700">
+                            <tr>
+                                <th class="px-4 py-3">Placa</th>
+                                <th class="px-2 py-3 text-center">CRLVe</th>
+                                <th class="px-2 py-3 text-center">Crono.</th>
+                                <th class="px-2 py-3 text-center">ANTT</th>
+                                <th class="px-2 py-3 text-center">AET FED.</th>
+                                <th class="px-2 py-3 text-center">AET EST.</th>
+                                <th class="px-2 py-3 text-center">APR</th>
+                                <th class="px-2 py-3 text-center">Floresta</th>
+                                <th class="px-2 py-3 text-center">Estrada</th>
+                                <th class="px-2 py-3 text-center">Hosp.</th>
+                                <th class="px-2 py-3 text-center">Eletromec.</th>
+                            </tr>
+                        </thead>
+                        <tbody id="lista-caminhoes-pendentes" class="divide-y divide-slate-800/80 text-slate-300 text-xs font-bold">
+                            <tr><td colspan="11" style="text-align: center; padding: 20px;"><i class="fas fa-spinner fa-spin"></i> Carregando dados...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+    </section>
+</div>
+
+<script>
+    if(typeof window.initNovoDashboardOperacional === 'function') {
+        window.initNovoDashboardOperacional();
+    }
+</script>

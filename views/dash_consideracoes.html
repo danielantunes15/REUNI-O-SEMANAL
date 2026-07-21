@@ -1,0 +1,886 @@
+<div class="action-bar" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; background: rgba(15, 23, 42, 0.8); padding: 15px 20px; border-radius: 12px; border-left: 5px solid #eab308; box-shadow: 0 4px 6px rgba(0,0,0,0.3);">
+    <h2 style="color: white; margin: 0; font-size: 1.2rem; display: flex; align-items: center; gap: 10px;">
+        <i class="fas fa-clipboard-list" style="color: #eab308;"></i> Painel Executivo e Considerações do Dia
+    </h2>
+    <button class="btn-salvar" onclick="window.gerarPDFConsideracoes(event)" style="background: #eab308; color: #0f172a; padding: 10px 20px; font-size: 0.9rem; font-weight: bold; border: none; border-radius: 8px; cursor: pointer; display: flex; align-items: center; gap: 8px; transition: 0.2s;">
+        <i class="fas fa-file-pdf"></i> Gerar Relatório PDF
+    </button>
+</div>
+
+<div class="content-panel" style="margin-bottom: 25px; border-left: 5px solid #0ea5e9; background: rgba(15, 23, 42, 0.8); border-radius: 12px; overflow: hidden; box-shadow: 0 4px 6px rgba(0,0,0,0.3);">
+    <div style="padding: 15px 20px; border-bottom: 1px solid rgba(255,255,255,0.05); display: flex; justify-content: space-between; align-items: center;">
+        <h3 class="nav-label" style="font-size: 1rem; color: white; margin: 0;">
+            <i class="fas fa-chart-pie" style="color: #0ea5e9;"></i> DESEMPENHO OPERACIONAL E MANUTENÇÃO <span id="label-d1-data" style="color: var(--text-dim); font-size: 0.8rem; margin-left: 10px;">(D-1: Calculando...)</span>
+        </h3>
+        <span id="status-load-d1" style="font-size: 0.8rem; color: var(--amarelo); font-weight: bold;"><i class="fas fa-sync fa-spin"></i> Buscando dados...</span>
+    </div>
+
+    <div style="padding: 20px; background: rgba(0,0,0,0.2);">
+        <h4 style="color: #10b981; font-size: 0.85rem; margin-bottom: 15px; text-transform: uppercase; font-weight: 800;"><i class="fas fa-truck"></i> Operacional (D-1)</h4>
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 15px;">
+            <div style="background: rgba(255,255,255,0.03); padding: 12px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.05); text-align: center;">
+                <div style="color: var(--text-dim); font-size: 0.7rem; font-weight: bold; text-transform: uppercase;">Viagens</div>
+                <div id="d1-viagens" style="color: white; font-size: 1.5rem; font-weight: 900; margin-top: 5px;">0</div>
+            </div>
+            <div style="background: rgba(255,255,255,0.03); padding: 12px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.05); text-align: center;">
+                <div style="color: var(--text-dim); font-size: 0.7rem; font-weight: bold; text-transform: uppercase;">Média PBTC</div>
+                <div id="d1-pbtc" style="color: #0ea5e9; font-size: 1.5rem; font-weight: 900; margin-top: 5px;">0 t</div>
+            </div>
+            <div style="background: rgba(255,255,255,0.03); padding: 12px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.05); text-align: center;">
+                <div style="color: var(--text-dim); font-size: 0.7rem; font-weight: bold; text-transform: uppercase;">Média Vol.</div>
+                <div id="d1-med-vol" style="color: #8b5cf6; font-size: 1.5rem; font-weight: 900; margin-top: 5px;">0 m³</div>
+            </div>
+            <div style="background: rgba(255,255,255,0.03); padding: 12px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.05); text-align: center;">
+                <div style="color: var(--text-dim); font-size: 0.7rem; font-weight: bold; text-transform: uppercase;">Vol. Total</div>
+                <div id="d1-vol-tot" style="color: #f59e0b; font-size: 1.5rem; font-weight: 900; margin-top: 5px;">0 m³</div>
+            </div>
+            <div style="background: rgba(255,255,255,0.03); padding: 12px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.05); text-align: center;">
+                <div style="color: var(--text-dim); font-size: 0.7rem; font-weight: bold; text-transform: uppercase;">Dist. Média</div>
+                <div id="d1-dist" style="color: #10b981; font-size: 1.5rem; font-weight: 900; margin-top: 5px;">0 km</div>
+            </div>
+            <div style="background: rgba(255,255,255,0.03); padding: 12px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.05); text-align: center;">
+                <div style="color: var(--text-dim); font-size: 0.7rem; font-weight: bold; text-transform: uppercase;">Ciclo Médio</div>
+                <div id="d1-ciclo" style="color: #ef4444; font-size: 1.5rem; font-weight: 900; margin-top: 5px;">0h 0m</div>
+            </div>
+            <div style="background: rgba(255,255,255,0.03); padding: 12px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.05); text-align: center;">
+                <div style="color: var(--text-dim); font-size: 0.7rem; font-weight: bold; text-transform: uppercase;">T. Campo</div>
+                <div id="d1-campo" style="color: white; font-size: 1.5rem; font-weight: 900; margin-top: 5px;">0h 0m</div>
+            </div>
+            <div style="background: rgba(255,255,255,0.03); padding: 12px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.05); text-align: center;">
+                <div style="color: var(--text-dim); font-size: 0.7rem; font-weight: bold; text-transform: uppercase;">T. Carga</div>
+                <div id="d1-carga" style="color: white; font-size: 1.5rem; font-weight: 900; margin-top: 5px;">0h 0m</div>
+            </div>
+            <div style="background: rgba(255,255,255,0.03); padding: 12px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.05); text-align: center;">
+                <div style="color: var(--text-dim); font-size: 0.7rem; font-weight: bold; text-transform: uppercase;">T. Fábrica</div>
+                <div id="d1-fabrica" style="color: white; font-size: 1.5rem; font-weight: 900; margin-top: 5px;">0h 0m</div>
+            </div>
+        </div>
+    </div>
+
+    <div style="padding: 20px; border-top: 1px solid rgba(255,255,255,0.05);">
+        <h4 style="color: #f59e0b; font-size: 0.85rem; margin-bottom: 15px; text-transform: uppercase; font-weight: 800;"><i class="fas fa-tools"></i> Manutenção (D-1)</h4>
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 15px;">
+            <div style="background: rgba(255,255,255,0.03); padding: 15px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.05); text-align: center; border-bottom: 3px solid #10b981;">
+                <div style="color: var(--text-dim); font-size: 0.75rem; font-weight: bold; text-transform: uppercase;">Média DM Geral</div>
+                <div id="d1-dm" style="color: #10b981; font-size: 2rem; font-weight: 900; margin-top: 5px;">0%</div>
+            </div>
+            <div style="background: rgba(255,255,255,0.03); padding: 15px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.05); text-align: center; border-bottom: 3px solid #3b82f6;">
+                <div style="color: var(--text-dim); font-size: 0.75rem; font-weight: bold; text-transform: uppercase;">Média Disponíveis</div>
+                <div id="d1-ativos" style="color: white; font-size: 2rem; font-weight: 900; margin-top: 5px;">0</div>
+            </div>
+            <div style="background: rgba(255,255,255,0.03); padding: 15px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.05); text-align: center; border-bottom: 3px solid #ef4444;">
+                <div style="color: var(--text-dim); font-size: 0.75rem; font-weight: bold; text-transform: uppercase;">Total de O.S. (D-1)</div>
+                <div id="d1-manut" style="color: #ef4444; font-size: 2rem; font-weight: 900; margin-top: 5px;">0</div>
+            </div>
+            <div style="background: rgba(255,255,255,0.03); padding: 15px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.05); text-align: center; border-bottom: 3px solid #8b5cf6;">
+                <div style="color: var(--text-dim); font-size: 0.75rem; font-weight: bold; text-transform: uppercase;">Tempo Médio O.S.</div>
+                <div id="d1-tmos" style="color: #8b5cf6; font-size: 2rem; font-weight: 900; margin-top: 5px;">0h 0m</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="content-panel" style="margin-bottom: 25px; border-left: 5px solid #8b5cf6; background: rgba(15, 23, 42, 0.8); border-radius: 12px; overflow: hidden; box-shadow: 0 4px 6px rgba(0,0,0,0.3);">
+    <div style="padding: 15px 20px; border-bottom: 1px solid rgba(255,255,255,0.05);">
+        <h3 class="nav-label" style="font-size: 1rem; color: white; margin: 0;"><i class="fas fa-bullhorn" style="color: #8b5cf6;"></i> MURAIS DE INFORMAÇÕES DOS SETORES</h3>
+    </div>
+    
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; padding: 20px;">
+        
+        <div style="background: rgba(0,0,0,0.2); border: 1px solid var(--border); border-radius: 8px; padding: 15px;">
+            <h4 style="color: #10b981; font-size: 0.9rem; margin-bottom: 15px; font-weight: bold; border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 8px;"><i class="fas fa-shield-alt"></i> Mural SSMA</h4>
+            <div id="mural-global-ssma" style="display: flex; flex-direction: column; gap: 8px; max-height: 250px; overflow-y: auto;">
+                <span style="color: var(--text-dim); font-size: 0.8rem;">Carregando...</span>
+            </div>
+        </div>
+
+        <div style="background: rgba(0,0,0,0.2); border: 1px solid var(--border); border-radius: 8px; padding: 15px;">
+            <h4 style="color: #ec4899; font-size: 0.9rem; margin-bottom: 15px; font-weight: bold; border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 8px;"><i class="fas fa-users"></i> Mural RH</h4>
+            <div id="mural-global-rh" style="display: flex; flex-direction: column; gap: 8px; max-height: 250px; overflow-y: auto;">
+                <span style="color: var(--text-dim); font-size: 0.8rem;">Carregando...</span>
+            </div>
+        </div>
+
+        <div style="background: rgba(0,0,0,0.2); border: 1px solid var(--border); border-radius: 8px; padding: 15px;">
+            <h4 style="color: #0ea5e9; font-size: 0.9rem; margin-bottom: 15px; font-weight: bold; border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 8px;"><i class="fas fa-truck"></i> Mural Operacional</h4>
+            <div id="mural-global-op" style="display: flex; flex-direction: column; gap: 8px; max-height: 250px; overflow-y: auto;">
+                <span style="color: var(--text-dim); font-size: 0.8rem;">Carregando...</span>
+            </div>
+        </div>
+
+        <div style="background: rgba(0,0,0,0.2); border: 1px solid var(--border); border-radius: 8px; padding: 15px;">
+            <h4 style="color: #f59e0b; font-size: 0.9rem; margin-bottom: 15px; font-weight: bold; border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 8px;"><i class="fas fa-tools"></i> Mural Manutenção</h4>
+            <div id="mural-global-man" style="display: flex; flex-direction: column; gap: 8px; max-height: 250px; overflow-y: auto;">
+                <span style="color: var(--text-dim); font-size: 0.8rem;">Carregando...</span>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<div class="content-panel kanban-container" style="margin-top: 10px; border-top: 5px solid var(--primary); padding-top: 20px;">
+    <h3 class="nav-label" style="font-size: 1rem; color: white;"><i class="fas fa-columns" style="color: var(--primary);"></i> QUADRO KANBAN - METAS E AÇÕES DAS REUNIÕES</h3>
+    
+    <div id="resumo-dia-lista" style="margin-bottom: 20px; padding: 15px; background: rgba(0,0,0,0.2); border-radius: 8px; display: flex; flex-direction: column; gap: 10px;">
+        <p style="color: var(--text-dim); font-size: 0.85rem;">Carregando metas do dia...</p>
+    </div>
+
+    <div class="kanban-board">
+        <div class="kanban-col" data-status="TODO" ondragover="window.permitirDrop(event)" ondragleave="window.sairDrop(event)" ondrop="window.soltarDrop(event)">
+            <div class="kanban-col-header todo">A CUMPRIR</div>
+            <div class="kanban-cards" id="kb-col-todo"></div>
+        </div>
+        <div class="kanban-col" data-status="DOING" ondragover="window.permitirDrop(event)" ondragleave="window.sairDrop(event)" ondrop="window.soltarDrop(event)">
+            <div class="kanban-col-header doing">EM ANDAMENTO</div>
+            <div class="kanban-cards" id="kb-col-doing"></div>
+        </div>
+        <div class="kanban-col" data-status="DONE" ondragover="window.permitirDrop(event)" ondragleave="window.sairDrop(event)" ondrop="window.soltarDrop(event)">
+            <div class="kanban-col-header done">CONCLUÍDO</div>
+            <div class="kanban-cards" id="kb-col-done"></div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // --- FUNÇÕES UTILITÁRIAS ---
+    window.formatarDataBR = function(dataIso) {
+        if (!dataIso) return '';
+        const [ano, mes, dia] = dataIso.split('-');
+        return `${dia}/${mes}/${ano}`;
+    };
+
+    window.formatarHorasMinutos = function(horasDecimais) {
+        if (horasDecimais === null || horasDecimais === undefined || isNaN(horasDecimais) || horasDecimais <= 0) return '-';
+        let horas = Math.floor(horasDecimais);
+        let minutos = Math.round((horasDecimais - horas) * 60);
+        if (minutos === 60) { horas += 1; minutos = 0; }
+        if (horas === 0 && minutos === 0) return '0m';
+        if (horas === 0) return `${minutos}m`;
+        if (minutos === 0) return `${horas}h`;
+        return `${horas}h ${minutos.toString().padStart(2, '0')}m`;
+    };
+
+    function formatDataMural(d) {
+        if(!d) return ''; 
+        if(d.includes('/')) return d; 
+        const p = d.split('-'); 
+        if(p.length === 3) return `${p[2]}/${p[1]}`;
+        return d;
+    }
+
+    const parseDateTime = function(dateVal) {
+        if (!dateVal) return null;
+        const str = String(dateVal).trim();
+        if (str === 'Desconhecida') return null;
+        let baseDate = null;
+        if (str.includes('/')) {
+            const parts = str.split(' ')[0].split('/');
+            if (parts.length >= 3) {
+                let year = parseInt(parts[2], 10);
+                if (year < 100) year += 2000;
+                baseDate = new Date(year, parseInt(parts[1], 10) - 1, parseInt(parts[0], 10));
+            }
+        } else if (str.includes('-')) {
+            const parts = str.split(' ')[0].split('-');
+            if(parts.length >= 3) {
+                let year = parseInt(parts[0], 10);
+                if (year < 100) year += 2000;
+                baseDate = new Date(year, parseInt(parts[1], 10) - 1, parseInt(parts[2], 10));
+            }
+        }
+        if (!baseDate || isNaN(baseDate.getTime())) return null;
+        baseDate.setHours(0, 0, 0, 0);
+        return baseDate;
+    };
+
+    // --- FUNÇÕES DE FILTRAGEM SEGURAS ---
+    const isSerranaTransp = function(d) {
+        let valTransp = String(d.transportadora || d['Nome da Transportadora'] || d.nomeTransportadora || '').toUpperCase().replace(/\s+/g, '');
+        if (valTransp.includes('SERRANALOG') || valTransp.includes('SERRANA')) return true;
+
+        for (let key in d) {
+            if (d[key] && typeof d[key] === 'string') {
+                let val = d[key].toUpperCase().replace(/\s+/g, '');
+                if (val.includes('SERRANALOG') || val.includes('SERRANATRANSPORTES')) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    };
+
+    const normalizarCiclos = function(dataArr) {
+        const pMap = new Map();
+        dataArr.forEach(d => {
+            if (d.cicloHorasOriginal === undefined) { d.cicloHorasOriginal = d.cicloHoras; }
+            if (d.cicloHorasOriginal > 0 && d.cicloHorasOriginal <= 12) { 
+                const pl = d.placa || 'N/A';
+                if (!pMap.has(pl)) pMap.set(pl, { ciclos: 0, count: 0 });
+                pMap.get(pl).ciclos += d.cicloHorasOriginal;
+                pMap.get(pl).count++;
+            }
+        });
+        
+        const frotas = Array.from(pMap.values()).map(x => x.ciclos / x.count).sort((a, b) => a - b).slice(0, 20);
+        if (frotas.length === 0) return;
+        const mediaMenores = frotas.reduce((a, b) => a + b, 0) / frotas.length;
+        
+        dataArr.forEach(d => {
+            if (d.cicloHorasOriginal > 12) { d.cicloHoras = mediaMenores; } 
+            else { d.cicloHoras = d.cicloHorasOriginal; }
+        });
+    };
+
+    // --- LÓGICA DE GESTÃO DO D-1 E MURAIS ---
+    window.carregarResumoD1EMurais = async function() {
+        const statEl = document.getElementById('status-load-d1');
+        
+        if (!window.supabaseClientGlobal) {
+            window.supabaseClientGlobal = supabase.createClient(SUPABASE_CONFIG.url, SUPABASE_CONFIG.key);
+        }
+        if (!window.supabaseClientFrota) {
+            window.supabaseClientFrota = supabase.createClient(SUPABASE_CONFIG_FROTA.url, SUPABASE_CONFIG_FROTA.key);
+        }
+
+        const supaGlobal = window.supabaseClientGlobal;
+        const supaFrota = window.supabaseClientFrota;
+
+        const hoje = new Date();
+        const ontem = new Date(hoje);
+        ontem.setDate(hoje.getDate() - 1);
+        ontem.setHours(0,0,0,0);
+        
+        const d1Iso = ontem.toISOString().split('T')[0];
+        const d1StrBR = `${String(ontem.getDate()).padStart(2,'0')}/${String(ontem.getMonth()+1).padStart(2,'0')}/${ontem.getFullYear()}`;
+        document.getElementById('label-d1-data').innerText = `(D-1: ${d1StrBR})`;
+
+        try {
+            // ================= 1. OPERACIONAL D-1 =================
+            let opData = [];
+            let from = 0;
+            const step = 1000;
+            let fetchMore = true;
+            
+            while (fetchMore) {
+                const { data, error } = await supaFrota.from('historico_viagens').select('*').range(from, from + step - 1);
+                if (error) break;
+                if (data && data.length > 0) {
+                    opData = opData.concat(data);
+                    from += step;
+                }
+                if (!data || data.length < step) fetchMore = false;
+            }
+
+            if (opData.length > 0) {
+                normalizarCiclos(opData);
+
+                const fOp = opData.filter(d => {
+                    const motorista = String(d.motorista || '').toUpperCase();
+                    if(motorista.includes('JULIO CESAR ALMEIDA NUNES') || motorista === '-') return false;
+                    
+                    let pDate = parseDateTime(d.dataDaBaseExcel || d.data || d.Data);
+                    
+                    if(pDate && pDate.getTime() === ontem.getTime()) {
+                        return isSerranaTransp(d);
+                    }
+                    return false;
+                });
+
+                const viagens = fOp.length;
+                const volTot = fOp.reduce((s,d) => s + (parseFloat(String(d.volumeReal).replace(',','.'))||0), 0);
+                const pTotKg = fOp.reduce((s,d) => s + (parseFloat(String(d.pesoLiquido).replace(',','.'))||0), 0);
+                
+                const medPbtc = viagens > 0 ? (pTotKg / 1000) / viagens : 0;
+                const medVol = viagens > 0 ? volTot / viagens : 0;
+                
+                const medAsfalto = viagens > 0 ? fOp.reduce((s, d) => s + (d.distanciaAsfalto || 0), 0) / viagens : 0;
+                const medTerra = viagens > 0 ? fOp.reduce((s, d) => s + (d.distanciaTerra || 0), 0) / viagens : 0;
+                const distMed = medAsfalto + medTerra;
+
+                const calcMed = (arr, field) => {
+                    const v = arr.filter(x => x[field] > 0);
+                    return v.length > 0 ? v.reduce((s,x) => s + x[field], 0) / v.length : 0;
+                };
+
+                document.getElementById('d1-viagens').innerText = viagens;
+                document.getElementById('d1-pbtc').innerText = medPbtc.toLocaleString('pt-PT', {maximumFractionDigits:1}) + ' t';
+                document.getElementById('d1-med-vol').innerText = medVol.toLocaleString('pt-PT', {maximumFractionDigits:1}) + ' m³';
+                document.getElementById('d1-vol-tot').innerText = volTot.toLocaleString('pt-PT', {maximumFractionDigits:1}) + ' m³';
+                document.getElementById('d1-dist').innerText = distMed.toLocaleString('pt-PT', {maximumFractionDigits:1}) + ' km';
+                document.getElementById('d1-ciclo').innerText = window.formatarHorasMinutos(calcMed(fOp, 'cicloHoras'));
+                document.getElementById('d1-campo').innerText = window.formatarHorasMinutos(calcMed(fOp, 'filaCampoHoras'));
+                document.getElementById('d1-carga').innerText = window.formatarHorasMinutos(calcMed(fOp, 'tempoCarregamentoHoras'));
+                document.getElementById('d1-fabrica').innerText = window.formatarHorasMinutos(calcMed(fOp, 'filaFabricaHoras'));
+            }
+
+            // ================= 2. MANUTENÇÃO D-1 =================
+            // Corrigindo paginação para Manutenção (O.S)
+            let osData = [];
+            let fromOs = 0;
+            const stepOs = 1000;
+            let fetchMoreOs = true;
+            
+            while (fetchMoreOs) {
+                const { data, error } = await supaFrota.from('ordens_servico').select('*').range(fromOs, fromOs + stepOs - 1);
+                if (error) break;
+                if (data && data.length > 0) {
+                    osData = osData.concat(data);
+                    fromOs += stepOs;
+                }
+                if (!data || data.length < stepOs) fetchMoreOs = false;
+            }
+
+            const { data: frotasData } = await supaFrota.from('frotas_manutencao').select('*').limit(1000);
+            
+            if (osData && frotasData) {
+                const fimOntem = new Date(ontem);
+                fimOntem.setHours(23, 59, 59, 999);
+                
+                // Filtro idêntico ao painel principal: Somente TRITREM Ativos
+                let frotasValidas = frotasData.filter(f => (f.status || '').toUpperCase() === 'ATIVO' && (f.categoria || '').toUpperCase() === 'TRITREM');
+
+                let msTotalDia = 24 * 60 * 60 * 1000;
+                let totalMsDisponivel = 0;
+                let msManutencao = 0;
+                let totalOSDia = 0;
+
+                frotasValidas.forEach(frota => {
+                    let frotaInicioStr = frota.data_inicial ? frota.data_inicial : '2026-04-01';
+                    let dtEntradaVeiculo = new Date(frotaInicioStr + 'T00:00:00');
+                    
+                    let overlapDispInicio = dtEntradaVeiculo > ontem ? dtEntradaVeiculo : ontem;
+                    if (overlapDispInicio < fimOntem) {
+                        totalMsDisponivel += (fimOntem - overlapDispInicio);
+                    }
+
+                    const osCavalo = osData.filter(o => o.placa === frota.cavalo && o.status !== 'Agendada' && o.tipo !== 'Cavalo Disponível S/ Carreta');
+                    
+                    osCavalo.forEach(os => {
+                        let osInStr = os.data_abertura;
+                        if(!osInStr) return;
+                        if(!osInStr.includes('T')) osInStr += 'T00:00:00';
+                        const osInicio = new Date(osInStr.replace('Z','').replace('+00:00',''));
+                        
+                        let osFim = new Date(); 
+                        if(os.data_conclusao) {
+                            let osFimStr = os.data_conclusao;
+                            if(!osFimStr.includes('T')) osFimStr += 'T00:00:00';
+                            osFim = new Date(osFimStr.replace('Z','').replace('+00:00',''));
+                        }
+                        
+                        let inicioValido = osInicio > dtEntradaVeiculo ? osInicio : dtEntradaVeiculo;
+                        const oIn = inicioValido > ontem ? inicioValido : ontem;
+                        const oOut = osFim < fimOntem ? osFim : fimOntem;
+                        
+                        if (oIn < oOut) {
+                            msManutencao += (oOut - oIn);
+                            totalOSDia++;
+                        }
+                    });
+                });
+
+                let dispMs = totalMsDisponivel - msManutencao;
+                if(dispMs < 0) dispMs = 0;
+                let percDM = totalMsDisponivel > 0 ? (dispMs / totalMsDisponivel) * 100 : 100;
+                let medDisp = msTotalDia > 0 ? Math.round(dispMs / msTotalDia) : 0;
+
+                let osTempoMs = 0;
+                let qtdOsTempo = 0;
+                const placasValidas = frotasValidas.map(f => f.cavalo);
+
+                osData.forEach(os => {
+                    if (!os.placa || !placasValidas.includes(os.placa)) return;
+                    if (os.status === 'Agendada' || os.tipo === 'Cavalo Disponível S/ Carreta') return;
+                    
+                    let osInStr = os.data_abertura;
+                    if(!osInStr) return;
+                    if(!osInStr.includes('T')) osInStr += 'T00:00:00';
+                    const dtAb = new Date(osInStr.replace('Z','').replace('+00:00',''));
+                    
+                    let dtCon = new Date();
+                    if(os.data_conclusao) {
+                        let osFimStr = os.data_conclusao;
+                        if(!osFimStr.includes('T')) osFimStr += 'T00:00:00';
+                        dtCon = new Date(osFimStr.replace('Z','').replace('+00:00',''));
+                    }
+
+                    if (dtAb <= fimOntem && dtCon >= ontem) {
+                        const st = (os.status || '').toUpperCase();
+                        if (st === 'CONCLUÍDA' || st === 'CONCLUIDA' || st === 'RESOLVIDO') {
+                            if (os.data_conclusao) {
+                                osTempoMs += (dtCon - dtAb);
+                                qtdOsTempo++;
+                            }
+                        }
+                    }
+                });
+
+                let tmosStr = '0h 0m';
+                if(qtdOsTempo > 0) {
+                    let mediaMs = osTempoMs / qtdOsTempo;
+                    let hrs = Math.floor(mediaMs / (1000 * 60 * 60));
+                    let mins = Math.floor((mediaMs % (1000 * 60 * 60)) / (1000 * 60));
+                    tmosStr = `${hrs}h ${mins}m`;
+                }
+
+                document.getElementById('d1-dm').innerText = percDM.toFixed(1) + '%';
+                document.getElementById('d1-ativos').innerText = medDisp;
+                document.getElementById('d1-manut').innerText = totalOSDia;
+                document.getElementById('d1-tmos').innerText = tmosStr;
+            }
+
+            // ================= 3. MURAIS GLOBAIS =================
+            const buildHtmlMural = (arr, color) => {
+                if(!arr || arr.length === 0) return `<div style="color: var(--text-dim); font-size: 0.8rem; padding: 5px;">Nenhum registro.</div>`;
+                return arr.map(i => `
+                    <div style="background: rgba(255,255,255,0.03); border-left: 3px solid ${color}; padding: 8px 10px; border-radius: 4px; font-size: 0.85rem;">
+                        <span style="color: var(--text-dim); font-weight: bold; font-size: 0.75rem; margin-right: 5px;">[${formatDataMural(i.data)}]</span> 
+                        <span style="color: #e2e8f0;">${i.texto}</span>
+                    </div>
+                `).join('');
+            };
+
+            const parseArr = (str) => {
+                if(!str) return [];
+                try { return JSON.parse(str); } catch(e) { return []; }
+            };
+
+            const { data: configs } = await supaGlobal.from('configuracoes').select('chave, valor').in('chave', ['mural_operacional', 'mural_manutencao']);
+            if (configs) {
+                configs.forEach(c => {
+                    if(c.chave === 'mural_operacional') document.getElementById('mural-global-op').innerHTML = buildHtmlMural(parseArr(c.valor), '#0ea5e9');
+                    if(c.chave === 'mural_manutencao') document.getElementById('mural-global-man').innerHTML = buildHtmlMural(parseArr(c.valor), '#f59e0b');
+                });
+            }
+
+            const { data: ssmaData } = await supaGlobal.from('ssma_indicadores_gerais').select('*').neq('data_registro', '2099-12-31').order('data_registro', {ascending: false}).limit(1);
+            if(ssmaData && ssmaData.length > 0) {
+                const s = ssmaData[0];
+                let allSsma = [
+                    ...parseArr(s.mural_ocorrencias).map(x => ({...x, texto: `[Ocorrência] ${x.texto}`})),
+                    ...parseArr(s.mural_ferramentas).map(x => ({...x, texto: `[Ferramenta] ${x.texto}`})),
+                    ...parseArr(s.mural_acoes).map(x => ({...x, texto: `[Ação] ${x.texto}`})),
+                    ...parseArr(s.mural_avisos).map(x => ({...x, texto: `[Aviso] ${x.texto}`}))
+                ];
+                allSsma.sort((a,b) => new Date(b.data) - new Date(a.data));
+                document.getElementById('mural-global-ssma').innerHTML = buildHtmlMural(allSsma, '#10b981');
+            }
+
+            const { data: rhData } = await supaGlobal.from('rh_indicadores').select('*').order('data_registro', {ascending: false}).limit(1);
+            if(rhData && rhData.length > 0) {
+                const r = rhData[0];
+                let allRh = [
+                    ...parseArr(r.mural_avisos).map(x => ({...x, texto: `[Aviso] ${x.texto}`})),
+                    ...parseArr(r.mural_liberacoes).map(x => ({...x, texto: `[Liberação] ${x.texto}`}))
+                ];
+                allRh.sort((a,b) => new Date(b.data) - new Date(a.data));
+                document.getElementById('mural-global-rh').innerHTML = buildHtmlMural(allRh, '#ec4899');
+            }
+
+            statEl.innerHTML = `<i class="fas fa-check-circle" style="color: var(--verde);"></i> Atualizado`;
+            setTimeout(() => statEl.innerText = '', 3000);
+
+        } catch (e) {
+            console.error("Erro D-1:", e);
+            statEl.innerHTML = `<i class="fas fa-times-circle" style="color: var(--vermelho);"></i> Erro ao carregar dados`;
+        }
+    };
+
+    // --- LÓGICA DO DRAG AND DROP DO KANBAN ---
+    window.draggedItemId = null;
+    window.dragStart = function(event) {
+        window.draggedItemId = event.currentTarget.getAttribute('data-id');
+        event.currentTarget.classList.add('dragging');
+    };
+    window.dragEnd = function(event) {
+        event.currentTarget.classList.remove('dragging');
+        document.querySelectorAll('.kanban-col').forEach(col => col.classList.remove('drag-over'));
+    };
+    window.permitirDrop = function(event) {
+        event.preventDefault();
+        event.currentTarget.classList.add('drag-over');
+    };
+    window.sairDrop = function(event) {
+        event.currentTarget.classList.remove('drag-over');
+    };
+    window.soltarDrop = function(event) {
+        event.preventDefault();
+        const coluna = event.currentTarget;
+        coluna.classList.remove('drag-over');
+        const novoStatus = coluna.getAttribute('data-status');
+        
+        if (window.draggedItemId && novoStatus) {
+            window.moverKanban(window.draggedItemId, novoStatus);
+        }
+    };
+
+    window.carregarKanbanDash = async function() {
+        const colTodo = document.getElementById('kb-col-todo');
+        const colDoing = document.getElementById('kb-col-doing');
+        const colDone = document.getElementById('kb-col-done');
+        const resumoDia = document.getElementById('resumo-dia-lista');
+        
+        if(colTodo) colTodo.innerHTML = '<div style="text-align:center; padding: 20px;"><i class="fas fa-spinner fa-spin"></i></div>';
+        if(colDoing) colDoing.innerHTML = '';
+        if(colDone) colDone.innerHTML = '';
+        if(resumoDia) resumoDia.innerHTML = '';
+        
+        if (!window.supabaseClientGlobal) {
+            window.supabaseClientGlobal = supabase.createClient(SUPABASE_CONFIG.url, SUPABASE_CONFIG.key);
+        }
+        
+        let dadosKanban = [];
+        try {
+            const supaGlobal = window.supabaseClientGlobal;
+            
+            const { data, error } = await supaGlobal.from('kanban_metas').select('*').neq('status', 'ARCHIVED').order('data_criacao', { ascending: false });
+            if (error) throw error;
+            dadosKanban = data || [];
+        } catch(e) {
+            console.error("Falha ao puxar dados do Kanban do banco.");
+            return;
+        }
+
+        if(colTodo) colTodo.innerHTML = '';
+        
+        const hojeStr = new Date().toISOString().split('T')[0];
+        let itensCriadosHoje = 0;
+        
+        dadosKanban.forEach(item => {
+            if (item.data_criacao && item.data_criacao.startsWith(hojeStr) && resumoDia) {
+                itensCriadosHoje++;
+                let badgeStatus = '';
+                if(item.status === 'TODO') badgeStatus = '<span style="color:#f43f5e; font-weight:bold;">[A CUMPRIR]</span>';
+                if(item.status === 'DOING') badgeStatus = '<span style="color:#f59e0b; font-weight:bold;">[EM ANDAMENTO]</span>';
+                if(item.status === 'DONE') badgeStatus = '<span style="color:#10b981; font-weight:bold;">[CONCLUÍDO]</span>';
+                
+                resumoDia.insertAdjacentHTML('beforeend', `
+                    <div style="background: rgba(255,255,255,0.05); padding: 12px 15px; border-radius: 8px; border-left: 3px solid #0ea5e9; display: flex; flex-direction: column; gap: 5px;">
+                        <div>${badgeStatus} <strong style="color: white; font-size: 1.05rem;">${item.meta}</strong></div>
+                        ${item.consideracao ? `<div style="font-size: 0.9rem; color: #cbd5e1; margin-top: 2px; margin-bottom: 2px;"><i>${item.consideracao}</i></div>` : ''}
+                        <div style="font-size: 0.85rem; color: var(--text-dim);">
+                            <i class="fas fa-users"></i> Resp: <span style="color: var(--primary);">${item.responsavel}</span> &nbsp;|&nbsp; 
+                            <i class="fas fa-building"></i> Setor: ${item.setor}
+                        </div>
+                    </div>
+                `);
+            }
+
+            const card = `
+            <div class="kanban-card" draggable="true" data-id="${item.id}" ondragstart="window.dragStart(event)" ondragend="window.dragEnd(event)">
+                <div class="kanban-card-title">${item.meta}</div>
+                ${item.consideracao ? `<div class="kanban-card-desc">${item.consideracao}</div>` : ''}
+                <div class="kanban-card-meta">
+                    <span class="badge-setor"><i class="fas fa-building"></i> ${item.setor}</span>
+                    <span style="color: var(--primary);"><i class="fas fa-users"></i> ${item.responsavel}</span>
+                    ${item.data_previsao ? `<span class="badge-data"><i class="fas fa-calendar-alt"></i> ${window.formatarDataBR(item.data_previsao)}</span>` : ''}
+                </div>
+                
+                <div class="kanban-actions">
+                    ${item.status !== 'TODO' ? `<button class="btn-kanban" onclick="window.moverKanban('${item.id}', 'TODO')"><i class="fas fa-arrow-left"></i> A Fazer</button>` : ''}
+                    ${item.status !== 'DOING' ? `<button class="btn-kanban" onclick="window.moverKanban('${item.id}', 'DOING')">${item.status==='TODO' ? 'Iniciar <i class="fas fa-arrow-right"></i>' : 'Voltar'}</button>` : ''}
+                    ${item.status !== 'DONE' ? `<button class="btn-kanban" onclick="window.moverKanban('${item.id}', 'DONE')"><i class="fas fa-check"></i> Concluir</button>` : ''}
+                    ${item.status === 'DONE' ? `<button class="btn-kanban archive" onclick="window.arquivarKanban('${item.id}')"><i class="fas fa-archive"></i> Arquivar</button>` : ''}
+                    <button class="btn-kanban delete" onclick="window.excluirKanban('${item.id}')"><i class="fas fa-trash"></i></button>
+                </div>
+            </div>`;
+            
+            if(item.status === 'TODO' && colTodo) colTodo.insertAdjacentHTML('beforeend', card);
+            else if(item.status === 'DOING' && colDoing) colDoing.insertAdjacentHTML('beforeend', card);
+            else if(item.status === 'DONE' && colDone) colDone.insertAdjacentHTML('beforeend', card);
+        });
+
+        if (itensCriadosHoje === 0 && resumoDia) {
+            resumoDia.innerHTML = '<p style="color: var(--text-dim); font-size: 0.85rem;"><i class="fas fa-info-circle"></i> Nenhuma meta ou ação foi lançada hoje até o momento.</p>';
+        }
+
+        if(colTodo && !colTodo.innerHTML) colTodo.innerHTML = '<p style="color:var(--text-dim);text-align:center;font-size:0.85rem;">Solte cartões aqui</p>';
+        if(colDoing && !colDoing.innerHTML) colDoing.innerHTML = '<p style="color:var(--text-dim);text-align:center;font-size:0.85rem;">Solte cartões aqui</p>';
+        if(colDone && !colDone.innerHTML) colDone.innerHTML = '<p style="color:var(--text-dim);text-align:center;font-size:0.85rem;">Solte cartões aqui</p>';
+    };
+
+    window.moverKanban = async function(id, novoStatus) {
+        try {
+            const supaGlobal = window.supabaseClientGlobal || supabase.createClient(SUPABASE_CONFIG.url, SUPABASE_CONFIG.key);
+            const { error } = await supaGlobal.from('kanban_metas').update({ status: novoStatus }).eq('id', id);
+            if (error) throw error;
+        } catch(e) { console.error("Falha ao mover kanban."); }
+        window.carregarKanbanDash();
+    };
+
+    window.arquivarKanban = async function(id) {
+        if(!confirm('Deseja arquivar esta meta? Ela irá para o Histórico.')) return;
+        window.moverKanban(id, 'ARCHIVED');
+    };
+
+    window.excluirKanban = async function(id) {
+        if(!confirm('Excluir definitivamente esta meta?')) return;
+        try {
+            const supaGlobal = window.supabaseClientGlobal || supabase.createClient(SUPABASE_CONFIG.url, SUPABASE_CONFIG.key);
+            const { error } = await supaGlobal.from('kanban_metas').delete().eq('id', id);
+            if (error) throw error;
+        } catch(e) { console.error("Falha ao excluir Kanban."); }
+        window.carregarKanbanDash();
+    };
+
+    // --- LÓGICA DE GERAÇÃO DO PDF EXECUTIVO ---
+    window.gerarPDFConsideracoes = async function(event) {
+        if (!window.jspdf || !window.jspdf.jsPDF) { alert("Biblioteca de PDF não carregou corretamente. Recarregue a página."); return; }
+        
+        const btn = event.currentTarget;
+        const btnOriginalHTML = btn.innerHTML;
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Gerando Relatório...';
+        btn.disabled = true;
+        
+        let reportDiv = null;
+        
+        try {
+            const supaGlobal = window.supabaseClientGlobal || supabase.createClient(SUPABASE_CONFIG.url, SUPABASE_CONFIG.key);
+            
+            // Kanban
+            const { data: dataK } = await supaGlobal.from('kanban_metas').select('*').neq('status', 'ARCHIVED').order('data_criacao', { ascending: false });
+            const dadosKanban = dataK || [];
+
+            // Murais
+            const parseArrPdf = (str) => { if(!str) return []; try { return JSON.parse(str); } catch(e) { return []; } };
+            let arrOp = [], arrMan = [], arrSsma = [], arrRh = [];
+
+            const { data: configs } = await supaGlobal.from('configuracoes').select('chave, valor').in('chave', ['mural_operacional', 'mural_manutencao']);
+            if (configs) {
+                configs.forEach(c => {
+                    if(c.chave === 'mural_operacional') arrOp = parseArrPdf(c.valor);
+                    if(c.chave === 'mural_manutencao') arrMan = parseArrPdf(c.valor);
+                });
+            }
+
+            const { data: ssmaData } = await supaGlobal.from('ssma_indicadores_gerais').select('*').neq('data_registro', '2099-12-31').order('data_registro', {ascending: false}).limit(1);
+            if(ssmaData && ssmaData.length > 0) {
+                const s = ssmaData[0];
+                arrSsma = [
+                    ...parseArrPdf(s.mural_ocorrencias).map(x => ({...x, texto: `[Ocorrência] ${x.texto}`})),
+                    ...parseArrPdf(s.mural_ferramentas).map(x => ({...x, texto: `[Ferramenta] ${x.texto}`})),
+                    ...parseArrPdf(s.mural_acoes).map(x => ({...x, texto: `[Ação] ${x.texto}`})),
+                    ...parseArrPdf(s.mural_avisos).map(x => ({...x, texto: `[Aviso] ${x.texto}`}))
+                ].sort((a,b) => new Date(b.data) - new Date(a.data));
+            }
+
+            const { data: rhData } = await supaGlobal.from('rh_indicadores').select('*').order('data_registro', {ascending: false}).limit(1);
+            if(rhData && rhData.length > 0) {
+                const r = rhData[0];
+                arrRh = [
+                    ...parseArrPdf(r.mural_avisos).map(x => ({...x, texto: `[Aviso] ${x.texto}`})),
+                    ...parseArrPdf(r.mural_liberacoes).map(x => ({...x, texto: `[Liberação] ${x.texto}`}))
+                ].sort((a,b) => new Date(b.data) - new Date(a.data));
+            }
+            
+            reportDiv = document.createElement('div');
+            reportDiv.id = 'relatorio-pdf-temp';
+            reportDiv.style.width = '800px';
+            reportDiv.style.padding = '40px';
+            reportDiv.style.backgroundColor = '#ffffff';
+            reportDiv.style.color = '#000000';
+            reportDiv.style.fontFamily = 'Arial, sans-serif';
+            reportDiv.style.position = 'absolute';
+            reportDiv.style.top = '-9999px';
+            reportDiv.style.left = '-9999px';
+            reportDiv.style.zIndex = '-1';
+            
+            const dataHoje = new Date().toLocaleDateString('pt-BR');
+            const horaAtual = new Date().toLocaleTimeString('pt-BR').slice(0, 5);
+            
+            const opViagens = document.getElementById('d1-viagens').innerText;
+            const opPbtc = document.getElementById('d1-pbtc').innerText;
+            const opVol = document.getElementById('d1-med-vol').innerText;
+            const manDm = document.getElementById('d1-dm').innerText;
+            const manAtivos = document.getElementById('d1-ativos').innerText;
+
+            const buildPdfMural = (title, arr) => {
+                let html = `<div style="margin-bottom: 15px; background: #ffffff; padding: 10px; border: 1px solid #333; border-radius: 4px;">
+                    <h4 style="color: #000; font-size: 13px; margin: 0 0 8px 0; text-transform: uppercase;">${title}</h4>`;
+                if(!arr || arr.length === 0) {
+                    html += `<p style="margin: 0; font-size: 11px; color: #555;">Nenhum registro.</p>`;
+                } else {
+                    html += `<ul style="list-style: none; padding: 0; margin: 0; font-size: 11px; color: #000;">`;
+                    arr.forEach(i => {
+                        html += `<li style="margin-bottom: 4px; border-bottom: 1px dashed #ccc; padding-bottom: 4px;"><strong>[${formatDataMural(i.data)}]</strong> ${i.texto}</li>`;
+                    });
+                    html += `</ul>`;
+                }
+                html += `</div>`;
+                return html;
+            };
+
+            let htmlContent = `
+                <div style="border-bottom: 2px solid #000; padding-bottom: 15px; margin-bottom: 25px; display: flex; justify-content: space-between; align-items: flex-end;">
+                    <div style="display: flex; align-items: center; gap: 20px;">
+                        <img src="./assets/logoverde.png" alt="Logo Serrana" style="height: 55px; object-fit: contain;">
+                        <div>
+                            <h1 style="color: #000; font-size: 24px; font-weight: bold; margin: 0; text-transform: uppercase;">Serrana Florestal</h1>
+                            <h2 style="color: #333; font-size: 15px; margin: 5px 0 0 0;">Ata Executiva de Reunião Diária</h2>
+                        </div>
+                    </div>
+                    <div style="text-align: right;">
+                        <p style="font-size: 14px; font-weight: bold; margin: 0; color: #000;">Data: ${dataHoje}</p>
+                        <p style="font-size: 12px; margin: 2px 0 0 0; color: #555;">Gerado às: ${horaAtual}</p>
+                    </div>
+                </div>
+
+                <div style="margin-bottom: 25px;">
+                    <h3 style="color: #000; font-size: 16px; margin-bottom: 10px; text-transform: uppercase; border-bottom: 1px solid #000; padding-bottom: 5px;">1. Destaques D-1</h3>
+                    <div style="display: flex; justify-content: space-between; background: #fff; padding: 15px; border-radius: 4px; border: 1px solid #333;">
+                        <div style="text-align: center;">
+                            <div style="font-size: 11px; color: #333; font-weight: bold; text-transform: uppercase;">Viagens (Op)</div>
+                            <div style="font-size: 18px; font-weight: bold; color: #000; margin-top: 4px;">${opViagens}</div>
+                        </div>
+                        <div style="text-align: center; border-left: 1px solid #ccc; padding-left: 20px;">
+                            <div style="font-size: 11px; color: #333; font-weight: bold; text-transform: uppercase;">PBTC Médio</div>
+                            <div style="font-size: 18px; font-weight: bold; color: #000; margin-top: 4px;">${opPbtc}</div>
+                        </div>
+                        <div style="text-align: center; border-left: 1px solid #ccc; padding-left: 20px;">
+                            <div style="font-size: 11px; color: #333; font-weight: bold; text-transform: uppercase;">Vol. Médio</div>
+                            <div style="font-size: 18px; font-weight: bold; color: #000; margin-top: 4px;">${opVol}</div>
+                        </div>
+                        <div style="text-align: center; border-left: 1px solid #ccc; padding-left: 20px;">
+                            <div style="font-size: 11px; color: #333; font-weight: bold; text-transform: uppercase;">DM Geral (Man)</div>
+                            <div style="font-size: 18px; font-weight: bold; color: #000; margin-top: 4px;">${manDm}</div>
+                        </div>
+                        <div style="text-align: center; border-left: 1px solid #ccc; padding-left: 20px;">
+                            <div style="font-size: 11px; color: #333; font-weight: bold; text-transform: uppercase;">Ativos Médio</div>
+                            <div style="font-size: 18px; font-weight: bold; color: #000; margin-top: 4px;">${manAtivos}</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div style="margin-bottom: 25px;">
+                    <h3 style="color: #000; font-size: 16px; margin-bottom: 10px; text-transform: uppercase; border-bottom: 1px solid #000; padding-bottom: 5px;">2. Comunicações e Avisos Setoriais</h3>
+                    <div style="display: flex; flex-wrap: wrap; gap: 20px;">
+                        <div style="flex: 1; min-width: 300px;">
+                            ${buildPdfMural('Mural SSMA', arrSsma)}
+                            ${buildPdfMural('Mural Operacional', arrOp)}
+                        </div>
+                        <div style="flex: 1; min-width: 300px;">
+                            ${buildPdfMural('Mural RH', arrRh)}
+                            ${buildPdfMural('Mural Manutenção', arrMan)}
+                        </div>
+                    </div>
+                </div>
+                
+                <div style="margin-bottom: 20px;">
+                    <h3 style="color: #000; font-size: 16px; margin-bottom: 10px; text-transform: uppercase; border-bottom: 1px solid #000; padding-bottom: 5px;">3. Plano de Ação e Metas (Kanban)</h3>
+                </div>
+            `;
+            
+            if (dadosKanban.length === 0) {
+                htmlContent += `<p style="color: #333; font-size: 14px; text-align: center; margin-top: 20px;">Nenhuma meta ou ação registrada.</p>`;
+            } else {
+                htmlContent += `<table style="width: 100%; border-collapse: collapse; font-size: 13px; text-align: left; border: 1px solid #000;">
+                    <thead>
+                        <tr style="background-color: #f2f2f2; border-bottom: 2px solid #000;">
+                            <th style="padding: 10px; color: #000; border-right: 1px solid #000;">Status</th>
+                            <th style="padding: 10px; color: #000; border-right: 1px solid #000;">Ação / Meta</th>
+                            <th style="padding: 10px; color: #000; border-right: 1px solid #000;">Responsável</th>
+                            <th style="padding: 10px; color: #000; border-right: 1px solid #000;">Setor</th>
+                            <th style="padding: 10px; color: #000;">Prazo</th>
+                        </tr>
+                    </thead>
+                    <tbody>`;
+                    
+                const ordenacao = { 'TODO': 1, 'DOING': 2, 'DONE': 3 };
+                dadosKanban.sort((a, b) => ordenacao[a.status] - ordenacao[b.status]);
+                
+                dadosKanban.forEach((item) => {
+                    let statusText = item.status === 'TODO' ? 'A Cumprir' : (item.status === 'DOING' ? 'Em Andamento' : 'Concluído');
+                    
+                    htmlContent += `
+                        <tr style="background-color: #fff; border-bottom: 1px solid #000;">
+                            <td style="padding: 10px; font-weight: bold; color: #000; width: 15%; vertical-align: top; border-right: 1px solid #000;">${statusText}</td>
+                            <td style="padding: 10px; color: #000; width: 40%; vertical-align: top; border-right: 1px solid #000;">
+                                <strong style="display: block; margin-bottom: 4px;">${item.meta}</strong>
+                                ${item.consideracao ? `<span style="color: #555; font-size: 11px; line-height: 1.4; display: block;">${item.consideracao}</span>` : ''}
+                            </td>
+                            <td style="padding: 10px; color: #000; width: 15%; vertical-align: top; border-right: 1px solid #000;">${item.responsavel}</td>
+                            <td style="padding: 10px; color: #000; width: 15%; vertical-align: top; border-right: 1px solid #000;">${item.setor}</td>
+                            <td style="padding: 10px; color: #000; font-weight: bold; width: 15%; vertical-align: top;">${window.formatarDataBR(item.data_previsao) || '-'}</td>
+                        </tr>
+                    `;
+                });
+                htmlContent += `</tbody></table>`;
+            }
+            
+            htmlContent += `
+                <div style="margin-top: 80px; display: flex; justify-content: space-around; text-align: center;">
+                    <div>
+                        <div style="border-top: 1px solid #000; width: 220px; margin: 0 auto 5px auto;"></div>
+                        <p style="margin: 0; font-size: 12px; color: #000; font-weight: bold;">Diretoria Executiva</p>
+                    </div>
+                    <div>
+                        <div style="border-top: 1px solid #000; width: 220px; margin: 0 auto 5px auto;"></div>
+                        <p style="margin: 0; font-size: 12px; color: #000; font-weight: bold;">Gestão de Operações</p>
+                    </div>
+                </div>
+                
+                <div style="margin-top: 50px; display: flex; justify-content: space-between; text-align: center; gap: 20px;">
+                    <div style="flex: 1;">
+                        <div style="border-top: 1px solid #000; width: 180px; margin: 0 auto 5px auto;"></div>
+                        <p style="margin: 0; font-size: 12px; color: #000; font-weight: bold;">Gestão de Manutenção</p>
+                    </div>
+                    <div style="flex: 1;">
+                        <div style="border-top: 1px solid #000; width: 180px; margin: 0 auto 5px auto;"></div>
+                        <p style="margin: 0; font-size: 12px; color: #000; font-weight: bold;">Recursos Humanos (RH)</p>
+                    </div>
+                    <div style="flex: 1;">
+                        <div style="border-top: 1px solid #000; width: 180px; margin: 0 auto 5px auto;"></div>
+                        <p style="margin: 0; font-size: 12px; color: #000; font-weight: bold;">SSMA</p>
+                    </div>
+                </div>
+                
+                <div style="margin-top: 40px; text-align: center; border-top: 1px solid #000; padding-top: 10px;">
+                    <p style="margin: 0; font-size: 10px; color: #555;">Documento gerado automaticamente pelo Sistema de Gestão Serrana Florestal.</p>
+                </div>
+            `;
+            
+            reportDiv.innerHTML = htmlContent;
+            document.body.appendChild(reportDiv);
+            
+            await new Promise(resolve => setTimeout(resolve, 500));
+            
+            const canvas = await html2canvas(reportDiv, { scale: 2, backgroundColor: '#ffffff', useCORS: true });
+            const imgData = canvas.toDataURL('image/png');
+            
+            const pdf = new window.jspdf.jsPDF('p', 'mm', 'a4');
+            const pdfWidth = pdf.internal.pageSize.getWidth();
+            const pdfHeight = pdf.internal.pageSize.getHeight();
+            const imgProps = pdf.getImageProperties(imgData);
+            const totalImgHeight = (imgProps.height * pdfWidth) / imgProps.width;
+            
+            let heightLeft = totalImgHeight;
+            let position = 0;
+            
+            pdf.addImage(imgData, 'PNG', 0, position, pdfWidth, totalImgHeight);
+            heightLeft -= pdfHeight;
+            
+            while (heightLeft > 0) {
+                position = heightLeft - totalImgHeight; 
+                pdf.addPage();
+                pdf.addImage(imgData, 'PNG', 0, position, pdfWidth, totalImgHeight);
+                heightLeft -= pdfHeight;
+            }
+            
+            pdf.save(`Ata_Reuniao_Serrana_${dataHoje.replace(/\//g, '-')}.pdf`);
+            
+        } catch (error) {
+            console.error("Erro na geração do PDF: ", error);
+            alert("Houve um erro ao tentar gerar o PDF.");
+        } finally {
+            if (reportDiv && reportDiv.parentNode) { reportDiv.parentNode.removeChild(reportDiv); }
+            btn.innerHTML = btnOriginalHTML;
+            btn.disabled = false;
+        }
+    };
+
+    setTimeout(() => {
+        window.carregarResumoD1EMurais();
+        window.carregarKanbanDash();
+    }, 300);
+
+</script>

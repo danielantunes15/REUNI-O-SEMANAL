@@ -1,0 +1,208 @@
+<div class="content-panel kpi-card" style="border-left: 5px solid var(--amarelo);">
+    <h3 class="nav-label" style="color: var(--amarelo); margin-bottom: 20px; font-size: 1rem;">
+        <i class="fas fa-clipboard-check"></i> CADASTRO DE NOVA FROTA (PENDÊNCIAS CHECK-LIST)
+    </h3>
+    <div class="form-grid">
+        <div class="input-group">
+            <label style="color: var(--text-dim); font-size: 0.8rem; margin-bottom: 5px; display: block;">Placa do Cavalo / Frota</label>
+            <input type="text" id="novo-caminhao-placa" class="config-input" placeholder="Ex: ABC-1234">
+        </div>
+    </div>
+    
+    <div class="checklist-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 15px; margin-top: 15px;">
+        <label class="check-container"><input type="checkbox" id="chk-crlve"> CRLVe</label>
+        <label class="check-container"><input type="checkbox" id="chk-crono"> Certificado Cronotacógrafo</label>
+        <label class="check-container"><input type="checkbox" id="chk-antt"> Registro de ANTT</label>
+        <label class="check-container"><input type="checkbox" id="chk-aet-fed"> AET FED.</label>
+        <label class="check-container"><input type="checkbox" id="chk-aet-est"> AET EST.</label>
+        <label class="check-container"><input type="checkbox" id="chk-apr"> APR</label>
+        <label class="check-container"><input type="checkbox" id="chk-floresta"> PG.12.00.0044 - Floresta Segura</label>
+        <label class="check-container"><input type="checkbox" id="chk-estrada"> PG.12.00.0021 - Estrada Segura</label>
+        <label class="check-container"><input type="checkbox" id="chk-hosp"> Mapeamento Hospitalar</label>
+        <label class="check-container"><input type="checkbox" id="chk-eletromecanica"> Eletromecânica</label>
+    </div>
+    
+    <div style="margin-top: 25px; display: flex; justify-content: space-between; align-items: center;">
+        <span id="msg-frota" style="font-weight: bold; font-size: 0.9rem;"></span>
+        <button class="btn-salvar" onclick="adicionarFrotaSupabase()"><i class="fas fa-save"></i> Lançar Frota no Visor</button>
+    </div>
+</div>
+
+<div class="table-box" style="margin-top: 20px;">
+    <h3 class="nav-label">VISOR PRINCIPAL - PENDÊNCIAS DA FROTA</h3>
+    <div style="overflow-x: auto;">
+        <table class="exec-table" id="tabela-caminhoes-pendentes">
+            <thead>
+                <tr>
+                    <th>Placa</th>
+                    <th style="text-align:center; font-size: 0.7rem;">CRLVe</th>
+                    <th style="text-align:center; font-size: 0.7rem;">Crono.</th>
+                    <th style="text-align:center; font-size: 0.7rem;">ANTT</th>
+                    <th style="text-align:center; font-size: 0.7rem;">AET FED.</th>
+                    <th style="text-align:center; font-size: 0.7rem;">AET EST.</th>
+                    <th style="text-align:center; font-size: 0.7rem;">APR</th>
+                    <th style="text-align:center; font-size: 0.7rem;">Flo. Segura</th>
+                    <th style="text-align:center; font-size: 0.7rem;">Est. Segura</th>
+                    <th style="text-align:center; font-size: 0.7rem;">Map. Hosp.</th>
+                    <th style="text-align:center; font-size: 0.7rem;">Eletromec.</th>
+                    <th style="text-align:center; font-size: 0.7rem;">Ações</th>
+                </tr>
+            </thead>
+            <tbody id="lista-caminhoes-pendentes">
+                <tr><td colspan="12" style="text-align: center;"><i class="fas fa-spinner fa-spin"></i> Carregando dados...</td></tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<script>
+    // Referência global aos dados para facilitar renderização
+    window.frotaPendenciasData = [];
+
+    async function carregarFrotaSupabase() {
+        if (!window.supabaseClientGlobal) return;
+        
+        try {
+            const { data, error } = await window.supabaseClientGlobal
+                .from('frota_pendencias')
+                .select('*')
+                .order('data_criacao', { ascending: false });
+                
+            if (error) throw error;
+            
+            window.frotaPendenciasData = data || [];
+            renderizarTabelaCaminhoes();
+        } catch (e) {
+            console.error("Erro ao carregar frota:", e);
+            document.getElementById('lista-caminhoes-pendentes').innerHTML = '<tr><td colspan="12" class="status-vermelho" style="text-align:center;">Erro ao carregar dados do banco.</td></tr>';
+        }
+    }
+
+    async function adicionarFrotaSupabase() {
+        const placa = document.getElementById('novo-caminhao-placa').value.toUpperCase().trim();
+        const msg = document.getElementById('msg-frota');
+
+        if(!placa) {
+            msg.style.color = 'var(--vermelho)';
+            msg.innerText = 'Por favor, informe a placa!';
+            setTimeout(() => msg.innerText = '', 3000);
+            return;
+        }
+
+        const novaFrota = {
+            placa: placa,
+            crlve: document.getElementById('chk-crlve').checked,
+            crono: document.getElementById('chk-crono').checked,
+            antt: document.getElementById('chk-antt').checked,
+            aet_fed: document.getElementById('chk-aet-fed').checked,
+            aet_est: document.getElementById('chk-aet-est').checked,
+            apr: document.getElementById('chk-apr').checked,
+            floresta: document.getElementById('chk-floresta').checked,
+            estrada: document.getElementById('chk-estrada').checked,
+            hosp: document.getElementById('chk-hosp').checked,
+            eletromecanica: document.getElementById('chk-eletromecanica').checked
+        };
+
+        msg.style.color = 'var(--text-dim)';
+        msg.innerText = 'Salvando no banco...';
+
+        try {
+            const { error } = await window.supabaseClientGlobal
+                .from('frota_pendencias')
+                .insert([novaFrota]);
+
+            if (error) throw error;
+
+            msg.style.color = 'var(--verde)';
+            msg.innerText = 'Frota cadastrada com sucesso!';
+            
+            // Limpar formulário
+            document.getElementById('novo-caminhao-placa').value = '';
+            document.querySelectorAll('.checklist-grid input[type="checkbox"]').forEach(chk => chk.checked = false);
+            
+            carregarFrotaSupabase();
+        } catch (e) {
+            console.error(e);
+            msg.style.color = 'var(--vermelho)';
+            msg.innerText = 'Erro ao salvar no banco!';
+        }
+
+        setTimeout(() => msg.innerText = '', 4000);
+    }
+
+    async function toggleStatusSupabase(id, campo, valorAtual) {
+        try {
+            // Atualiza direto no banco invertendo o valor
+            const { error } = await window.supabaseClientGlobal
+                .from('frota_pendencias')
+                .update({ [campo]: !valorAtual })
+                .eq('id', id);
+
+            if (error) throw error;
+            
+            // Recarrega os dados para atualizar a tabela visualmente
+            carregarFrotaSupabase();
+        } catch (e) {
+            console.error("Erro ao atualizar status:", e);
+            alert("Não foi possível atualizar o status no banco.");
+        }
+    }
+
+    async function removerFrotaSupabase(id) {
+        if(!confirm("Tem certeza que deseja remover esta frota do visor?")) return;
+
+        try {
+            const { error } = await window.supabaseClientGlobal
+                .from('frota_pendencias')
+                .delete()
+                .eq('id', id);
+
+            if (error) throw error;
+            carregarFrotaSupabase();
+        } catch (e) {
+            console.error("Erro ao deletar:", e);
+            alert("Não foi possível excluir do banco.");
+        }
+    }
+
+    function renderizarTabelaCaminhoes() {
+        const tbody = document.getElementById('lista-caminhoes-pendentes');
+        if(!tbody) return;
+        tbody.innerHTML = '';
+
+        if(window.frotaPendenciasData.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="12" style="text-align: center; color: var(--text-dim); padding: 20px;">Nenhuma frota com pendência cadastrada.</td></tr>';
+            return;
+        }
+
+        window.frotaPendenciasData.forEach(cam => {
+            const getIcon = (status, campo) => status 
+                ? `<i class="fas fa-check-circle status-verde" style="font-size: 1.5rem; cursor: pointer; transition: 0.2s;" onclick="toggleStatusSupabase(${cam.id}, '${campo}', true)" title="Documento OK (Clique para mudar)"></i>` 
+                : `<i class="fas fa-times-circle status-vermelho" style="font-size: 1.5rem; cursor: pointer; transition: 0.2s;" onclick="toggleStatusSupabase(${cam.id}, '${campo}', false)" title="Pendente (Clique para dar Baixa)"></i>`;
+
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td style="font-weight: bold; color: var(--text-main); font-size: 1.1rem; background: rgba(0,0,0,0.2); border-radius: 8px 0 0 8px;">${cam.placa}</td>
+                <td style="text-align:center;">${getIcon(cam.crlve, 'crlve')}</td>
+                <td style="text-align:center;">${getIcon(cam.crono, 'crono')}</td>
+                <td style="text-align:center;">${getIcon(cam.antt, 'antt')}</td>
+                <td style="text-align:center;">${getIcon(cam.aet_fed, 'aet_fed')}</td>
+                <td style="text-align:center;">${getIcon(cam.aet_est, 'aet_est')}</td>
+                <td style="text-align:center;">${getIcon(cam.apr, 'apr')}</td>
+                <td style="text-align:center;">${getIcon(cam.floresta, 'floresta')}</td>
+                <td style="text-align:center;">${getIcon(cam.estrada, 'estrada')}</td>
+                <td style="text-align:center;">${getIcon(cam.hosp, 'hosp')}</td>
+                <td style="text-align:center;">${getIcon(cam.eletromecanica, 'eletromecanica')}</td>
+                <td style="text-align:center; border-radius: 0 8px 8px 0;">
+                    <button onclick="removerFrotaSupabase(${cam.id})" style="padding: 8px 12px; background: var(--vermelho); border: none; border-radius: 6px; color: white; cursor: pointer; transition: 0.2s;" title="Remover Frota">
+                        <i class="fas fa-trash"></i>
+                    </button>
+                </td>
+            `;
+            tbody.appendChild(tr);
+        });
+    }
+
+    // Carrega do Supabase assim que a tela abre
+    setTimeout(carregarFrotaSupabase, 200);
+</script>

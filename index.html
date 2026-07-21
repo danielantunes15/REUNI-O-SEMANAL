@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Serrana Florestal | Apresenta o Executiva</title>
+    
+    <link rel="icon" type="image/png" href="assets/logo.png">
+    
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <link rel="stylesheet" href="css/style.css?v=2">
+    <link rel="stylesheet" href="css/dash_operacional.css">
+    
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/echarts@5.5.0/dist/echarts.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body>
+    <div id="splash-screen" class="splash-screen">
+        <div class="splash-animation-container">
+            <svg class="tritrem-svg" viewBox="0 0 760 150" xmlns="http://www.w3.org/2000/svg">
+                <defs>
+                    <g id="roda">
+                        <circle cx="0" cy="0" r="14" fill="#0f172a"/>
+                        <circle cx="0" cy="0" r="6" fill="#94a3b8"/>
+                        <circle cx="0" cy="0" r="2" fill="#020617"/>
+                    </g>
+                    <g id="fueiro">
+                        <rect x="0" y="0" width="5" height="65" fill="#10b981"/>
+                    </g>
+                    <g id="carga-toras">
+                        <rect x="2" y="45" width="166" height="12" rx="4" fill="#78350f"/>
+                        <rect x="0" y="33" width="170" height="12" rx="4" fill="#92400e"/>
+                        <rect x="4" y="21" width="162" height="12" rx="4" fill="#b45309"/>
+                        <rect x="5" y="9" width="160" height="12" rx="4" fill="#78350f"/>
+                    </g>
+                    <g id="carreta">
+                        <use href="#carga-toras" transform="translate(0, 10)"/>
+                        <use href="#fueiro" transform="translate(15, 10)"/>
+                        <use href="#fueiro" transform="translate(65, 10)"/>
+                        <use href="#fueiro" transform="translate(115, 10)"/>
+                        <use href="#fueiro" transform="translate(155, 10)"/>
+                        <rect x="0" y="75" width="180" height="10" fill="#1e3a8a"/>
+                        <use href="#roda" transform="translate(30, 85)"/>
+                        <use href="#roda" transform="translate(65, 85)"/>
+                    </g>
+                </defs>
+                <g>
+                    <use href="#carreta" transform="translate(10, 25)"/>
+                    <rect x="190" y="100" width="20" height="5" fill="#1e3a8a"/>
+                    <use href="#carreta" transform="translate(210, 25)"/>
+                    <rect x="390" y="100" width="20" height="5" fill="#1e3a8a"/>
+                    <use href="#carreta" transform="translate(410, 25)"/>
+                    <rect x="590" y="100" width="10" height="5" fill="#1e3a8a"/>
+                    <g transform="translate(600, 15)">
+                        <rect x="0" y="85" width="140" height="10" fill="#1e3a8a"/>
+                        <rect x="38" y="0" width="6" height="85" fill="#94a3b8"/>
+                        <rect x="20" y="10" width="15" height="85" fill="#10b981"/>
+                        <rect x="75" y="88" width="35" height="12" rx="4" fill="#cbd5e1"/>
+                        <path d="M 45 10 L 130 10 L 140 40 L 140 85 L 45 85 Z" fill="#f8fafc"/>
+                        <path d="M 50 18 L 120 18 L 130 40 L 130 45 L 50 45 Z" fill="#0f172a"/>
+                        <path d="M 90 45 L 90 85" stroke="#cbd5e1" stroke-width="1"/>
+                        <path d="M 125 50 L 140 50 L 140 85 L 125 85 Z" fill="#1e293b"/>
+                        <path d="M 125 55 L 140 70" stroke="#cbd5e1" stroke-width="2"/>
+                        <rect x="132" y="75" width="6" height="5" fill="#fde047"/>
+                        <use href="#roda" transform="translate(25, 95)"/>
+                        <use href="#roda" transform="translate(60, 95)"/>
+                        <use href="#roda" transform="translate(115, 95)"/>
+                    </g>
+                </g>
+            </svg>
+        </div>
+        
+        <div class="splash-content">
+            <img src="assets/logo.png" alt="Serrana Florestal" class="splash-logo" onerror="this.src='assets/logoverde.png'">
+            <h1 class="splash-title">REUNIÃO DIÁRIA DE GESTÃO</h1>
+            <div class="splash-date" id="splash-date"></div>
+            <button class="btn-iniciar-reuniao" onclick="iniciarReuniao()">
+                <i class="fas fa-play-circle"></i> INICIAR REUNIÃO
+            </button>
+        </div>
+    </div>
+
+    <div class="presentation-container">
+        <aside class="sidebar" id="sidebar">
+            <div class="logo-area">
+                <img src="assets/logo.png" alt="Serrana" class="main-logo" onerror="this.src='assets/logoverde.png'">
+            </div>
+            
+            <nav class="nav-menu">
+                <div class="nav-label">MENUS DE APONTAMENTO</div>
+                <ul id="menu-list"></ul>
+                <div style="margin-top: 20px; border-top: 1px solid var(--border); padding-top: 20px;">
+                    <ul id="config-menu-list"></ul>
+                </div>
+            </nav>
+            
+            <div class="sidebar-footer">
+                <div class="status-box">
+                    <span class="dot online"></span>
+                    <span>SISTEMA LOCAL ATIVO</span>
+                </div>
+                <div id="clock" class="clock"></div>
+            </div>
+        </aside>
+        
+        <main class="main-display">
+            <header class="display-header">
+                <div class="header-info">
+                    <button id="toggle-menu" class="btn-icon"><i class="fas fa-bars"></i></button>
+                    <div class="title-group">
+                        <h1 id="current-sector-title">Aguardando Início...</h1>
+                        <p id="current-sector-subtitle">Módulo de Lançamento e Apresentação</p>
+                    </div>
+                </div>
+                
+                <div class="header-actions">
+                    <select id="filter-date" class="top-select">
+                        <option value="d-1" selected>D-1 (Ontem)</option>
+                        <option value="d-7">D-7 (Semana)</option>
+                        <option value="d-30">D-30 (Mês)</option>
+                    </select>
+                    <div class="presenter-badge">
+                        <i class="fas fa-user-tie"></i>
+                        <span>Responsável: <strong id="presenter-name">-</strong></span>
+                    </div>
+                </div>
+            </header>
+            
+            <section id="content-area" class="content-area"></section>
+        </main>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="js/config_db.js"></script>
+    <script src="js/app.js"></script>
+    <script src="js/os_painel.js"></script>
+    <script src="js/rh.js"></script>
+    
+    <script src="js/dash_op_core.js"></script>
+    <script src="js/dash_op_graficos.js"></script>
+    <script src="js/dash_op_mural.js"></script>
+    
+    <script src="js/dash_manutencao_core.js"></script>
+    <script src="js/dash_manutencao_graficos.js"></script>
+    <script src="js/dash_manutencao_mural.js"></script>
+</body>
+</html>

@@ -1,0 +1,95 @@
+<div class="content-panel" style="border-left: 5px solid #3b82f6; border-radius: 16px; background: rgba(15, 23, 42, 0.8);">
+    <div class="panel-header" style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(255,255,255,0.1); padding: 20px;">
+        <h3 style="color: #3b82f6; margin: 0; font-size: 1.2rem;"><i class="fas fa-archive"></i> Histórico de Metas Concluídas (Arquivadas)</h3>
+        <button class="btn-salvar" onclick="carregarHistorico()" style="padding: 6px 15px; font-size: 0.85rem;"><i class="fas fa-sync"></i> Atualizar Lista</button>
+    </div>
+    <div class="table-box" style="padding: 20px;">
+        <table class="exec-table" style="width: 100%; border-collapse: collapse; margin-top: 10px;">
+            <thead>
+                <tr>
+                    <th style="padding: 10px; border-bottom: 1px solid var(--border); color: var(--text-dim);">Setor</th>
+                    <th style="padding: 10px; border-bottom: 1px solid var(--border); color: var(--text-dim);">Responsável</th>
+                    <th style="padding: 10px; border-bottom: 1px solid var(--border); color: var(--text-dim);">Meta / Ação</th>
+                    <th style="padding: 10px; border-bottom: 1px solid var(--border); color: var(--text-dim);">Data Previsão</th>
+                    <th style="padding: 10px; border-bottom: 1px solid var(--border); color: var(--text-dim); text-align: right;">Ações</th>
+                </tr>
+            </thead>
+            <tbody id="tabela-historico">
+                <tr><td colspan="5" style="text-align: center; color: var(--text-dim);">Carregando histórico...</td></tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<script>
+    function formatarDataBRHistorico(dataIso) {
+        if (!dataIso) return '-';
+        const [ano, mes, dia] = dataIso.split('-');
+        return `${dia}/${mes}/${ano}`;
+    }
+
+    async function carregarHistorico() {
+        const tbody = document.getElementById('tabela-historico');
+        let dadosArquivados = [];
+        try {
+            if (!window.supabaseClientGlobal) window.supabaseClientGlobal = supabase.createClient(SUPABASE_CONFIG.url, SUPABASE_CONFIG.key);
+            const _supa = window.supabaseClientGlobal;
+            
+            const { data, error } = await _supa.from('kanban_metas').select('*').eq('status', 'ARCHIVED').order('data_criacao', { ascending: false });
+            if (error) throw error;
+            dadosArquivados = data || [];
+        } catch(e) {
+            console.error("Falha ao puxar histórico do Kanban");
+        }
+        
+        if (dadosArquivados.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="5" style="text-align: center; padding: 20px; color: var(--text-dim);">Nenhum card arquivado no momento.</td></tr>';
+            return;
+        }
+        
+        tbody.innerHTML = dadosArquivados.map(item => `
+            <tr style="background: rgba(255,255,255,0.02);">
+                <td style="color: var(--text-dim); padding: 12px; border-bottom: 1px solid var(--border);"><i class="fas fa-building"></i> ${item.setor}</td>
+                <td style="color: var(--primary); padding: 12px; border-bottom: 1px solid var(--border); font-weight: bold;">${item.responsavel}</td>
+                <td style="color: white; padding: 12px; border-bottom: 1px solid var(--border);">${item.meta}</td>
+                <td style="color: var(--amarelo); padding: 12px; border-bottom: 1px solid var(--border);">${formatarDataBRHistorico(item.data_previsao)}</td>
+                <td style="text-align: right; padding: 12px; border-bottom: 1px solid var(--border);">
+                    <button class="btn-kanban" style="display: inline-block; background: var(--verde);" onclick="desarquivarKanban('${item.id}')" title="Voltar para Concluído">
+                        <i class="fas fa-undo"></i>
+                    </button>
+                    <button class="btn-kanban" style="display: inline-block; background: var(--vermelho);" onclick="excluirKanbanHistorico('${item.id}')" title="Excluir">
+                        <i class="fas fa-trash"></i>
+                    </button>
+                </td>
+            </tr>
+        `).join('');
+    }
+
+    window.desarquivarKanban = async function(id) {
+        if(!confirm('Voltar este card para o Kanban (Concluído)?')) return;
+        try {
+            if (!window.supabaseClientGlobal) window.supabaseClientGlobal = supabase.createClient(SUPABASE_CONFIG.url, SUPABASE_CONFIG.key);
+            const _supa = window.supabaseClientGlobal;
+            
+            await _supa.from('kanban_metas').update({ status: 'DONE' }).eq('id', id);
+        } catch(e) {
+            console.error("Falha ao desarquivar.");
+        }
+        carregarHistorico();
+    }
+
+    window.excluirKanbanHistorico = async function(id) {
+        if(!confirm('Excluir definitivamente esta meta arquivada?')) return;
+        try {
+            if (!window.supabaseClientGlobal) window.supabaseClientGlobal = supabase.createClient(SUPABASE_CONFIG.url, SUPABASE_CONFIG.key);
+            const _supa = window.supabaseClientGlobal;
+            
+            await _supa.from('kanban_metas').delete().eq('id', id);
+        } catch(e) {
+            console.error("Falha ao excluir histórico.");
+        }
+        carregarHistorico();
+    }
+
+    setTimeout(carregarHistorico, 300);
+</script>

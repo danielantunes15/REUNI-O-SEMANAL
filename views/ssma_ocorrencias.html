@@ -1,0 +1,675 @@
+<div class="dashboard-grid">
+    <div class="kpi-card" style="grid-column: 1 / -1; border-left: 5px solid var(--verde);">
+        <h3 class="nav-label" style="margin-bottom: 20px; color: var(--verde);"><i class="fas fa-clipboard-check"></i> INDICADORES GERAIS E METAS (ESTADO FIXO)</h3>
+        <div class="form-grid">
+            <div class="input-group">
+                <label style="color: var(--text-dim); font-size: 0.8rem; margin-bottom: 5px; display: block;">Meta Diária (Abertura de DNAs)</label>
+                <input type="number" id="ssma-meta-dna" class="config-input" placeholder="Ex: 2" style="border-color: #0ea5e9;">
+            </div>
+            <div class="input-group">
+                <label style="color: var(--text-dim); font-size: 0.8rem; margin-bottom: 5px; display: block;">DNAs Concluídos (Total do Mês)</label>
+                <input type="number" id="ssma-dnas-concluidos" class="config-input" placeholder="Ex: 10" style="border-color: #8b5cf6;">
+            </div>
+            
+            <div class="input-group">
+                <label style="color: var(--text-dim); font-size: 0.8rem; margin-bottom: 5px; display: block;">Data do Último Acidente (C/ Afastamento)</label>
+                <input type="date" id="ssma-data-acidente" class="config-input" style="border-color: var(--verde);">
+            </div>
+            
+            <div class="input-group">
+                <label style="color: var(--text-dim); font-size: 0.8rem; margin-bottom: 5px; display: block;">Incidentes (Sem Afastamento)</label>
+                <input type="number" id="ssma-incidentes" class="config-input" placeholder="Ex: 2">
+            </div>
+            <div class="input-group">
+                <label style="color: var(--text-dim); font-size: 0.8rem; margin-bottom: 5px; display: block;">Visitas de Campo</label>
+                <input type="number" id="ssma-visitas" class="config-input" placeholder="Ex: 8">
+            </div>
+            <div class="input-group" style="grid-column: span 1;">
+                <label style="color: var(--text-dim); font-size: 0.8rem; margin-bottom: 5px; display: block;">Campanha do Mês (Título)</label>
+                <input type="text" id="ssma-campanha-mes" class="config-input" placeholder="Ex: Maio Amarelo">
+            </div>
+            <div class="input-group" style="grid-column: span 1;">
+                <label style="color: var(--text-dim); font-size: 0.8rem; margin-bottom: 5px; display: block;">Tema da Campanha</label>
+                <input type="text" id="ssma-campanha-tema" class="config-input" placeholder="Ex: Atenção pela Vida no Trânsito">
+            </div>
+            <div class="input-group" style="grid-column: span 1;">
+                <label style="color: var(--text-dim); font-size: 0.8rem; margin-bottom: 5px; display: block;">Cor da Campanha</label>
+                <input type="color" id="ssma-campanha-cor" class="config-input" value="#f59e0b" style="padding: 5px; height: 50px; cursor: pointer;">
+            </div>
+        </div>
+
+        <button class="btn-salvar" style="background: var(--verde); margin-top: 15px;" onclick="salvarIndicadoresGerais()">
+            <i class="fas fa-save"></i> Salvar Indicadores Manuais
+        </button>
+        <span id="msg-ssma-geral" style="margin-left: 15px; font-weight: bold;"></span>
+    </div>
+
+    <div class="kpi-card" style="grid-column: 1 / -1; border-left: 5px solid #8b5cf6;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+            <h3 class="nav-label" style="color: #8b5cf6; margin: 0;"><i class="fas fa-chalkboard"></i> MURAIS DE COMUNICAÇÃO (SALVAMENTO AUTOMÁTICO)</h3>
+            <span id="msg-murais" style="font-weight: bold; font-size: 0.9rem;"></span>
+        </div>
+        
+        <div class="form-grid" style="grid-template-columns: 1fr 1fr;">
+            <div class="input-group" style="background: rgba(0,0,0,0.2); padding: 15px; border-radius: 8px; border: 1px solid var(--border);">
+                <label style="color: #cbd5e1; font-size: 0.9rem; margin-bottom: 10px; display: block; font-weight: bold;"><i class="fas fa-car-crash" style="color: var(--vermelho);"></i> Apresentação de Ocorrências</label>
+                <div style="display: flex; gap: 8px; margin-bottom: 12px;">
+                    <input type="date" id="data-ocorrencias" class="config-input" style="width: 130px; padding: 10px;">
+                    <input type="text" id="txt-ocorrencias" class="config-input" placeholder="Digite a ocorrência..." style="flex: 1; padding: 10px;">
+                    <button type="button" class="btn-salvar" style="background: #8b5cf6; padding: 10px 15px;" onclick="addMuralSSMA('ocorrencias')"><i class="fas fa-plus"></i></button>
+                </div>
+                <div id="lista-ocorrencias" style="display: flex; flex-direction: column; gap: 8px; max-height: 200px; overflow-y: auto;"></div>
+            </div>
+
+            <div class="input-group" style="background: rgba(0,0,0,0.2); padding: 15px; border-radius: 8px; border: 1px solid var(--border);">
+                <label style="color: #cbd5e1; font-size: 0.9rem; margin-bottom: 10px; display: block; font-weight: bold;"><i class="fas fa-toolbox" style="color: #3b82f6;"></i> Status das Ferramentas de Seg.</label>
+                <div style="display: flex; gap: 8px; margin-bottom: 12px;">
+                    <input type="date" id="data-ferramentas" class="config-input" style="width: 130px; padding: 10px;">
+                    <input type="text" id="txt-ferramentas" class="config-input" placeholder="Status das ferramentas..." style="flex: 1; padding: 10px;">
+                    <button type="button" class="btn-salvar" style="background: #8b5cf6; padding: 10px 15px;" onclick="addMuralSSMA('ferramentas')"><i class="fas fa-plus"></i></button>
+                </div>
+                <div id="lista-ferramentas" style="display: flex; flex-direction: column; gap: 8px; max-height: 200px; overflow-y: auto;"></div>
+            </div>
+
+            <div class="input-group" style="background: rgba(0,0,0,0.2); padding: 15px; border-radius: 8px; border: 1px solid var(--border);">
+                <label style="color: #cbd5e1; font-size: 0.9rem; margin-bottom: 10px; display: block; font-weight: bold;"><i class="fas fa-tasks" style="color: var(--primary);"></i> Ações de Segurança</label>
+                <div style="display: flex; gap: 8px; margin-bottom: 12px;">
+                    <input type="date" id="data-acoes" class="config-input" style="width: 130px; padding: 10px;">
+                    <input type="text" id="txt-acoes" class="config-input" placeholder="Ação em andamento..." style="flex: 1; padding: 10px;">
+                    <button type="button" class="btn-salvar" style="background: #8b5cf6; padding: 10px 15px;" onclick="addMuralSSMA('acoes')"><i class="fas fa-plus"></i></button>
+                </div>
+                <div id="lista-acoes" style="display: flex; flex-direction: column; gap: 8px; max-height: 200px; overflow-y: auto;"></div>
+            </div>
+
+            <div class="input-group" style="background: rgba(0,0,0,0.2); padding: 15px; border-radius: 8px; border: 1px solid var(--border);">
+                <label style="color: #cbd5e1; font-size: 0.9rem; margin-bottom: 10px; display: block; font-weight: bold;"><i class="fas fa-bullhorn" style="color: var(--amarelo);"></i> Demais Avisos</label>
+                <div style="display: flex; gap: 8px; margin-bottom: 12px;">
+                    <input type="date" id="data-avisos" class="config-input" style="width: 130px; padding: 10px;">
+                    <input type="text" id="txt-avisos" class="config-input" placeholder="Avisos gerais..." style="flex: 1; padding: 10px;">
+                    <button type="button" class="btn-salvar" style="background: #8b5cf6; padding: 10px 15px;" onclick="addMuralSSMA('avisos')"><i class="fas fa-plus"></i></button>
+                </div>
+                <div id="lista-avisos" style="display: flex; flex-direction: column; gap: 8px; max-height: 200px; overflow-y: auto;"></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="form-grid" style="grid-template-columns: 1fr 1fr; grid-column: 1/-1;">
+        <div class="kpi-card" style="border-left: 5px solid #0ea5e9;">
+            <h3 class="nav-label" style="margin-bottom: 20px; color: #0ea5e9;"><i class="fas fa-exclamation-circle"></i> LANÇAR DNAS ABERTOS</h3>
+            
+            <input type="hidden" id="dna-data-original" value="">
+            
+            <div class="form-grid" style="grid-template-columns: 1fr 1fr;">
+                <div class="input-group">
+                    <label style="color: var(--text-dim); font-size: 0.8rem; margin-bottom: 5px; display: block;">Data de Referência</label>
+                    <input type="date" id="dna-data" class="config-input">
+                </div>
+                <div class="input-group">
+                    <label style="color: var(--text-dim); font-size: 0.8rem; margin-bottom: 5px; display: block;">Quantidade de DNAs</label>
+                    <input type="number" id="dna-qtd" class="config-input" placeholder="Ex: 5" min="1">
+                </div>
+            </div>
+            <button class="btn-salvar" style="background: #0ea5e9; width: 100%; margin-top: 15px;" onclick="salvarDNA()">
+                <i class="fas fa-save"></i> Salvar Registro de DNAs
+            </button>
+            <span id="msg-dna" style="display: block; margin-top: 10px; font-weight: bold; text-align: center;"></span>
+
+            <div style="margin-top: 20px; max-height: 200px; overflow-y: auto; background: rgba(0,0,0,0.2); border: 1px solid var(--border); border-radius: 8px;">
+                <table style="width: 100%; text-align: left; border-collapse: collapse;">
+                    <thead style="background: rgba(255,255,255,0.05); position: sticky; top: 0;">
+                        <tr>
+                            <th style="padding: 10px; font-size: 0.85rem; color: var(--text-dim); border-bottom: 1px solid var(--border);">DATA</th>
+                            <th style="padding: 10px; font-size: 0.85rem; color: var(--text-dim); text-align: center; border-bottom: 1px solid var(--border);">QTD</th>
+                            <th style="padding: 10px; font-size: 0.85rem; color: var(--text-dim); text-align: center; border-bottom: 1px solid var(--border);">AÇÕES</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tb-dnas">
+                        </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="kpi-card" style="border-left: 5px solid var(--amarelo);">
+            <h3 class="nav-label" style="margin-bottom: 20px; color: var(--amarelo);"><i class="fas fa-graduation-cap"></i> GESTÃO DE TREINAMENTOS</h3>
+            <div class="form-grid" style="grid-template-columns: 1fr 1fr;">
+                <div class="input-group" style="grid-column: 1 / -1;">
+                    <label style="color: var(--text-dim); font-size: 0.8rem; margin-bottom: 5px; display: block;">Nome do Treinamento</label>
+                    <input type="text" id="trei-nome" class="config-input" placeholder="Ex: NR-35">
+                </div>
+                <div class="input-group">
+                    <label style="color: var(--text-dim); font-size: 0.8rem; margin-bottom: 5px; display: block;">Data Previsão / Realização</label>
+                    <input type="date" id="trei-data" class="config-input">
+                </div>
+                <div class="input-group">
+                    <label style="color: var(--text-dim); font-size: 0.8rem; margin-bottom: 5px; display: block;">Status</label>
+                    <select id="trei-status" class="config-input">
+                        <option value="Programado">Programado</option>
+                        <option value="Realizado">Realizado</option>
+                    </select>
+                </div>
+            </div>
+            <button class="btn-salvar" style="background: var(--amarelo); color: var(--bg-dark); width: 100%; margin-top: 15px;" onclick="salvarTreinamento()">
+                <i class="fas fa-save"></i> Salvar Treinamento
+            </button>
+            <span id="msg-trei" style="display: block; margin-top: 10px; font-weight: bold;"></span>
+        </div>
+    </div>
+
+    <div class="kpi-card" style="grid-column: 1 / -1; border-left: 5px solid #ec4899; margin-top: 10px;">
+        <h3 class="nav-label" style="margin-bottom: 20px; color: #ec4899;">
+            <i class="fas fa-cogs"></i> 1. CONFIGURAR FERRAMENTAS POR FUNÇÃO
+        </h3>
+        <p style="color: var(--text-dim); font-size: 0.85rem; margin-bottom: 15px;">Cadastre aqui todas as ferramentas exigidas pela Suzano. Você pode marcar várias funções de uma só vez para a mesma ferramenta.</p>
+        
+        <div class="form-grid" style="grid-template-columns: 2fr 3fr 1fr auto; margin-bottom: 20px; background: rgba(0,0,0,0.2); padding: 15px; border-radius: 8px; align-items: center;">
+            <div class="input-group">
+                <label style="color: var(--text-dim); font-size: 0.8rem; margin-bottom: 5px; display: block;">Nome da Ferramenta</label>
+                <input type="text" id="cad-ferr-nome" class="config-input" placeholder="Ex: Relato Quase Acidente">
+            </div>
+            
+            <div class="input-group">
+                <label style="color: var(--text-dim); font-size: 0.8rem; margin-bottom: 5px; display: block;">Vincular às Funções (Marque quantas quiser)</label>
+                <div id="cad-ferr-funcoes" style="background: var(--bg-dark); border: 1px solid var(--border); border-radius: 4px; padding: 10px; max-height: 120px; overflow-y: auto; display: flex; flex-direction: column; gap: 8px;">
+                    <label style="color: white; font-size: 0.85rem; display: flex; align-items: center; gap: 5px; cursor: pointer;">
+                        <input type="checkbox" value="Técnico de Segurança"> Técnico de Segurança
+                    </label>
+                    <label style="color: white; font-size: 0.85rem; display: flex; align-items: center; gap: 5px; cursor: pointer;">
+                        <input type="checkbox" value="Líder de Campo"> Líder de Campo
+                    </label>
+                    <label style="color: white; font-size: 0.85rem; display: flex; align-items: center; gap: 5px; cursor: pointer;">
+                        <input type="checkbox" value="Supervisor"> Supervisor
+                    </label>
+                    <label style="color: white; font-size: 0.85rem; display: flex; align-items: center; gap: 5px; cursor: pointer;">
+                        <input type="checkbox" value="Gerente"> Gerente
+                    </label>
+                    <label style="color: white; font-size: 0.85rem; display: flex; align-items: center; gap: 5px; cursor: pointer;">
+                        <input type="checkbox" value="Motorista / Operador"> Motorista / Operador
+                    </label>
+                    <label style="color: white; font-size: 0.85rem; display: flex; align-items: center; gap: 5px; cursor: pointer;">
+                        <input type="checkbox" value="Administrativo"> Administrativo
+                    </label>
+                </div>
+            </div>
+
+            <div class="input-group">
+                <label style="color: #10b981; font-size: 0.8rem; margin-bottom: 5px; display: block;">Meta Prog.</label>
+                <input type="number" id="cad-ferr-meta" class="config-input" value="1" style="border-color: #10b981;">
+            </div>
+            <div class="input-group">
+                <button class="btn-salvar" style="background: #ec4899; padding: 14px 20px; width: 100%; height: 100%;" onclick="salvarConfigFerramenta()">
+                    <i class="fas fa-plus"></i> Adicionar
+                </button>
+            </div>
+        </div>
+
+        <div id="lista-config-ferramentas" style="display: flex; flex-wrap: wrap; gap: 10px;"></div>
+    </div>
+
+    <div class="kpi-card" style="grid-column: 1 / -1; border-left: 5px solid #10b981; margin-top: 10px;">
+        <h3 class="nav-label" style="margin-bottom: 20px; color: #10b981;">
+            <i class="fas fa-toolbox"></i> 2. QUADRO DE LANÇAMENTO (FERRAMENTAS SUZANO)
+        </h3>
+        
+        <div class="form-grid" style="grid-template-columns: 2fr 2fr auto; margin-bottom: 25px; background: rgba(0,0,0,0.2); padding: 15px; border-radius: 8px; align-items: flex-end;">
+            <div class="input-group">
+                <label style="color: var(--text-dim); font-size: 0.8rem; margin-bottom: 5px; display: block;">Colaborador</label>
+                <input type="text" id="fs-colab-nome" class="config-input" placeholder="Ex: João Silva">
+            </div>
+            <div class="input-group">
+                <label style="color: var(--text-dim); font-size: 0.8rem; margin-bottom: 5px; display: block;">Função / Cargo</label>
+                <select id="fs-colab-funcao" class="config-input">
+                    <option value="">Selecione a Função...</option>
+                    <option value="Técnico de Segurança">Técnico de Segurança</option>
+                    <option value="Líder de Campo">Líder de Campo</option>
+                    <option value="Supervisor">Supervisor</option>
+                    <option value="Gerente">Gerente</option>
+                    <option value="Motorista / Operador">Motorista / Operador</option>
+                    <option value="Administrativo">Administrativo</option>
+                </select>
+            </div>
+            <div class="input-group">
+                <button class="btn-salvar" style="background: #10b981; padding: 14px 20px; width: 100%;" onclick="adicionarFsColaborador()">
+                    <i class="fas fa-user-plus"></i> Inserir Colaborador
+                </button>
+            </div>
+        </div>
+
+        <div style="background: rgba(0,0,0,0.2); border: 1px solid var(--border); border-radius: 8px; padding: 15px;">
+            <div class="table-box" style="overflow-x: auto;">
+                <table class="exec-table" style="width: 100%; text-align: left; margin-top: 0;">
+                    <thead>
+                        <tr style="background: rgba(255,255,255,0.05);">
+                            <th style="padding: 12px; width: 25%; border-right: 1px solid var(--border);">COLABORADOR / FUNÇÃO</th>
+                            <th style="padding: 12px; width: 65%; color: #10b981; border-right: 1px solid var(--border);">LANÇAMENTO DE FERRAMENTAS (Meta / Realizado)</th>
+                            <th style="padding: 12px; width: 10%; text-align: center;"><i class="fas fa-cogs"></i> AÇÕES</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tb-ferramentas-dinamica"></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .ferramenta-badge {
+        display: inline-flex;
+        align-items: center;
+        background: rgba(255,255,255,0.05);
+        border: 1px solid var(--border);
+        padding: 5px 10px;
+        border-radius: 6px;
+        margin: 4px;
+        font-size: 0.85rem;
+    }
+    .ferramenta-badge span.nome { color: #cbd5e1; margin-right: 8px; font-weight: bold; }
+    .ferramenta-badge span.meta { color: #10b981; font-weight: bold; margin-right: 5px; }
+    .ferramenta-badge input {
+        width: 50px; padding: 4px; text-align: center; border: 1px solid var(--border);
+        background: var(--bg-dark); color: white; border-radius: 4px; outline: none;
+    }
+    .ferramenta-badge input:focus { border-color: #10b981; }
+</style>
+
+<script>
+    setTimeout(() => {
+        if (!window.supabaseClientGlobal) {
+            window.supabaseClientGlobal = supabase.createClient(SUPABASE_CONFIG.url, SUPABASE_CONFIG.key);
+        }
+        const _supa = window.supabaseClientGlobal;
+        
+        const elDnaData = document.getElementById('dna-data');
+        const elTreiData = document.getElementById('trei-data');
+        const hojeIso = new Date().toISOString().split('T')[0];
+        
+        if (elDnaData) elDnaData.value = hojeIso;
+        if (elTreiData) elTreiData.value = hojeIso;
+        
+        ['ocorrencias', 'ferramentas', 'acoes', 'avisos'].forEach(id => {
+            if(document.getElementById(`data-${id}`)) document.getElementById(`data-${id}`).value = hojeIso;
+        });
+
+        window.idRegistroSSMA = null;
+        window.listasSSMA = { ocorrencias: [], ferramentas: [], acoes: [], avisos: [] };
+        window.dbFerramentasCadastradas = []; 
+        window.dbFsColaboradores = [];
+
+        function safeParseMural(str) {
+            if (!str || str.trim() === '') return [];
+            try { let parsed = JSON.parse(str); return Array.isArray(parsed) ? parsed : []; } catch(e) { return [{ id: Date.now(), data: hojeIso, texto: str }]; }
+        }
+
+        window.formatarDataLista = function(dataIso) {
+            if(!dataIso) return ''; const [ano, mes, dia] = dataIso.split('-'); return `${dia}/${mes}/${ano}`;
+        }
+
+        window.renderizarListaMuralSSMA = function(tipo) {
+            const container = document.getElementById(`lista-${tipo}`);
+            if(!container) return;
+            const itens = window.listasSSMA[tipo];
+            if(itens.length === 0) { container.innerHTML = '<div style="color: var(--text-dim); padding: 10px; text-align: center; font-size: 0.9rem;">Nenhuma ação/aviso pendente.</div>'; return; }
+            container.innerHTML = itens.map(item => `
+                <div style="display: flex; align-items: center; justify-content: space-between; background: rgba(255,255,255,0.05); padding: 10px 12px; border-radius: 6px; border-left: 3px solid var(--primary);">
+                    <div style="flex: 1;"><span style="color: var(--text-dim); font-size: 0.8rem; font-weight: bold; margin-right: 8px;"><i class="fas fa-calendar-day"></i> ${window.formatarDataLista(item.data)}</span><span style="color: white; font-size: 0.9rem;">${item.texto}</span></div>
+                    <button class="btn-kanban" style="background: var(--verde); padding: 6px 12px;" onclick="concluirMuralSSMA('${tipo}', ${item.id})" title="Concluir / Retirar"><i class="fas fa-check"></i></button>
+                </div>
+            `).join('');
+        };
+
+        window.addMuralSSMA = async function(tipo) {
+            const dataInput = document.getElementById(`data-${tipo}`);
+            const textInput = document.getElementById(`txt-${tipo}`);
+            if(!textInput.value.trim() || !dataInput.value) { alert("Preencha a data e o texto para adicionar."); return; }
+            window.listasSSMA[tipo].push({ id: Date.now(), data: dataInput.value, texto: textInput.value.trim() });
+            textInput.value = ''; window.renderizarListaMuralSSMA(tipo); await window.salvarMuraisSSMA(); 
+            const msg = document.getElementById('msg-murais'); if (msg) { msg.style.color = 'var(--verde)'; msg.innerText = 'Item salvo automaticamente!'; setTimeout(() => msg.innerText='', 3000); }
+        };
+
+        window.concluirMuralSSMA = async function(tipo, id) {
+            if(!confirm("Concluir e retirar este item do mural?")) return;
+            window.listasSSMA[tipo] = window.listasSSMA[tipo].filter(i => i.id !== id); window.renderizarListaMuralSSMA(tipo); await window.salvarMuraisSSMA();
+            const msg = document.getElementById('msg-murais'); if (msg) { msg.style.color = 'var(--verde)'; msg.innerText = 'Item concluído e retirado!'; setTimeout(() => msg.innerText='', 3000); }
+        };
+
+        async function carregarIndicadoresDeHoje() {
+            try {
+                const { data: configData } = await _supa.from('configuracoes').select('chave, valor').in('chave', ['meta_diaria_dna', 'data_ultimo_acidente']);
+                
+                if (configData && configData.length > 0) {
+                    const metaDna = configData.find(c => c.chave === 'meta_diaria_dna');
+                    if (metaDna) document.getElementById('ssma-meta-dna').value = metaDna.valor;
+                    
+                    const dataAcid = configData.find(c => c.chave === 'data_ultimo_acidente');
+                    if (dataAcid) document.getElementById('ssma-data-acidente').value = dataAcid.valor;
+                }
+                
+                const { data } = await _supa.from('ssma_indicadores_gerais').select('*').neq('data_registro', '2099-12-31').order('data_registro', { ascending: false }).limit(1);
+                if (data && data.length > 0) {
+                    const ind = data[0]; window.idRegistroSSMA = ind.id; 
+                    document.getElementById('ssma-incidentes').value = ind.incidentes_sem_afastamento !== null ? ind.incidentes_sem_afastamento : '';
+                    document.getElementById('ssma-visitas').value = ind.visitas_campo !== null ? ind.visitas_campo : '';
+                    document.getElementById('ssma-campanha-mes').value = ind.campanha_mes || '';
+                    document.getElementById('ssma-campanha-tema').value = ind.campanha_tema || '';
+                    document.getElementById('ssma-campanha-cor').value = ind.campanha_cor || '#f59e0b';
+                    document.getElementById('ssma-dnas-concluidos').value = ind.dnas_concluidos !== null ? ind.dnas_concluidos : '';
+                    window.listasSSMA.ocorrencias = safeParseMural(ind.mural_ocorrencias); window.listasSSMA.ferramentas = safeParseMural(ind.mural_ferramentas);
+                    window.listasSSMA.acoes = safeParseMural(ind.mural_acoes); window.listasSSMA.avisos = safeParseMural(ind.mural_avisos);
+                    ['ocorrencias', 'ferramentas', 'acoes', 'avisos'].forEach(t => window.renderizarListaMuralSSMA(t));
+                }
+            } catch (err) { console.error("Erro ao carregar indicadores fixos:", err); }
+        }
+        
+        window.salvarIndicadoresGerais = async function() {
+            const msg = document.getElementById('msg-ssma-geral'); 
+            const metaDna = document.getElementById('ssma-meta-dna').value;
+            const dataAcidente = document.getElementById('ssma-data-acidente').value;
+            
+            const dados = {
+                incidentes_sem_afastamento: parseInt(document.getElementById('ssma-incidentes').value, 10) || 0,
+                visitas_campo: parseInt(document.getElementById('ssma-visitas').value, 10) || 0,
+                campanha_mes: document.getElementById('ssma-campanha-mes').value || null, 
+                campanha_tema: document.getElementById('ssma-campanha-tema').value || null,
+                campanha_cor: document.getElementById('ssma-campanha-cor').value || '#f59e0b', 
+                dnas_concluidos: parseInt(document.getElementById('ssma-dnas-concluidos').value, 10) || 0
+            };
+            msg.style.color = 'var(--text-dim)'; msg.innerText = 'Salvando no banco...';
+            try {
+                if (metaDna) await _supa.from('configuracoes').upsert([{ chave: 'meta_diaria_dna', valor: metaDna }], { onConflict: 'chave' });
+                if (dataAcidente) await _supa.from('configuracoes').upsert([{ chave: 'data_ultimo_acidente', valor: dataAcidente }], { onConflict: 'chave' });
+                
+                let res;
+                if (window.idRegistroSSMA) res = await _supa.from('ssma_indicadores_gerais').update(dados).eq('id', window.idRegistroSSMA);
+                else { dados.data_registro = hojeIso; res = await _supa.from('ssma_indicadores_gerais').insert([dados]).select(); if(res.data && res.data.length > 0) window.idRegistroSSMA = res.data[0].id; }
+                if (res.error) { msg.style.color = 'var(--vermelho)'; msg.innerText = 'Erro ao salvar!'; } else { msg.style.color = 'var(--verde)'; msg.innerText = 'Salvo no banco com sucesso!'; setTimeout(() => msg.innerText='', 3000); }
+            } catch (err) { console.error(err); }
+        };
+
+        window.salvarMuraisSSMA = async function() {
+            const dados = { mural_ocorrencias: JSON.stringify(window.listasSSMA.ocorrencias), mural_ferramentas: JSON.stringify(window.listasSSMA.ferramentas), mural_acoes: JSON.stringify(window.listasSSMA.acoes), mural_avisos: JSON.stringify(window.listasSSMA.avisos) };
+            try {
+                if (window.idRegistroSSMA) await _supa.from('ssma_indicadores_gerais').update(dados).eq('id', window.idRegistroSSMA);
+                else { dados.data_registro = hojeIso; const res = await _supa.from('ssma_indicadores_gerais').insert([dados]).select(); if(res.data && res.data.length > 0) window.idRegistroSSMA = res.data[0].id; }
+            } catch (err) { console.error(err); }
+        };
+
+        // ====== SISTEMA DE DNAS AGRUPADOS ======
+
+        window.carregarDNAs = async function() {
+            try {
+                const { data, error } = await _supa.from('ssma_dnas').select('*').order('data_abertura', { ascending: false });
+                if(error) throw error;
+                const tb = document.getElementById('tb-dnas');
+                if(!tb) return;
+                
+                if(!data || data.length === 0) {
+                    tb.innerHTML = '<tr><td colspan="3" style="text-align:center; color: var(--text-dim); padding: 15px;">Nenhum DNA lançado ainda.</td></tr>';
+                    return;
+                }
+                
+                // Agrupando os dados por data_abertura no visualizador
+                const agrupado = {};
+                data.forEach(d => {
+                    if(!agrupado[d.data_abertura]) {
+                        agrupado[d.data_abertura] = { data_abertura: d.data_abertura, qtd: 0 };
+                    }
+                    agrupado[d.data_abertura].qtd += 1;
+                });
+
+                const listaAgrupada = Object.values(agrupado).sort((a,b) => b.data_abertura.localeCompare(a.data_abertura));
+                
+                tb.innerHTML = listaAgrupada.map(dna => `
+                    <tr style="border-bottom: 1px solid var(--border); transition: background 0.2s;" onmouseover="this.style.background='rgba(255,255,255,0.02)'" onmouseout="this.style.background='transparent'">
+                        <td style="padding: 10px; color: white;">${window.formatarDataLista(dna.data_abertura)}</td>
+                        <td style="padding: 10px; color: #0ea5e9; font-weight: bold; text-align: center;">${dna.qtd}</td>
+                        <td style="padding: 10px; text-align: center;">
+                            <button class="btn-kanban" style="background: var(--amarelo); color: black; padding: 6px 12px; border-radius: 4px;" onclick="editarDNA('${dna.data_abertura}', ${dna.qtd})" title="Editar a quantidade total deste dia"><i class="fas fa-edit"></i></button>
+                            <button class="btn-kanban" style="background: var(--vermelho); padding: 6px 12px; margin-left: 5px; border-radius: 4px;" onclick="excluirDNA('${dna.data_abertura}')" title="Excluir TODOS deste dia"><i class="fas fa-trash"></i></button>
+                        </td>
+                    </tr>
+                `).join('');
+            } catch(e) {
+                console.error("Erro ao carregar DNAs:", e);
+            }
+        };
+
+        window.salvarDNA = async function() {
+            const msg = document.getElementById('msg-dna'); 
+            const dataDNA = document.getElementById('dna-data').value; 
+            const qtdDNA = parseInt(document.getElementById('dna-qtd').value, 10);
+            const dataOriginal = document.getElementById('dna-data-original').value;
+
+            if(!dataDNA || !qtdDNA || qtdDNA <= 0) { 
+                msg.style.color = 'var(--vermelho)'; msg.innerText = 'Preencha a data e a quantidade corretamente!'; return; 
+            }
+            
+            msg.style.color = 'var(--text-dim)'; msg.innerText = 'Salvando registro...';
+
+            try {
+                // Se estivermos editando uma data existente, removemos os registros originais
+                if(dataOriginal) {
+                    await _supa.from('ssma_dnas').delete().eq('data_abertura', dataOriginal);
+                }
+
+                // O banco espera 1 registro para cada DNA, então enviamos a quantidade correta de registros
+                const registros = Array.from({length: qtdDNA}, () => ({ 
+                    data_abertura: dataDNA, 
+                    setor: 'Lançamento Consolidado', 
+                    descricao: 'DNA via painel SSMA', 
+                    status: 'Aberto' 
+                }));
+
+                const { error } = await _supa.from('ssma_dnas').insert(registros);
+                if (error) throw error;
+                
+                msg.style.color = 'var(--verde)'; msg.innerText = dataOriginal ? 'Dia atualizado com sucesso!' : 'Registro(s) efetuado(s) com sucesso!';
+                
+                document.getElementById('dna-qtd').value = '';
+                document.getElementById('dna-data-original').value = ''; 
+                
+                window.carregarDNAs(); 
+                
+                setTimeout(() => msg.innerText='', 3000);
+            } catch(e) {
+                msg.style.color = 'var(--vermelho)'; msg.innerText = 'Erro ao salvar!';
+                console.error(e);
+            }
+        };
+
+        window.editarDNA = function(data_abertura, qtd) {
+            document.getElementById('dna-data-original').value = data_abertura;
+            document.getElementById('dna-data').value = data_abertura;
+            document.getElementById('dna-qtd').value = qtd;
+            
+            const msg = document.getElementById('msg-dna');
+            msg.style.color = 'var(--amarelo)';
+            msg.innerText = 'Modo de Edição. Salve para confirmar a nova quantidade.';
+        };
+
+        window.excluirDNA = async function(data_abertura) {
+            if(!confirm(`Tem certeza que deseja excluir TODOS os registros de DNA do dia ${window.formatarDataLista(data_abertura)}?`)) return;
+            try {
+                await _supa.from('ssma_dnas').delete().eq('data_abertura', data_abertura);
+                window.carregarDNAs();
+            } catch(e) {
+                alert("Erro ao excluir do banco!");
+            }
+        };
+
+        // =======================================
+
+        window.salvarTreinamento = async function() {
+            const msg = document.getElementById('msg-trei');
+            const dados = { nome_treinamento: document.getElementById('trei-nome').value, data_previsao: document.getElementById('trei-data').value, status: document.getElementById('trei-status').value };
+            if(!dados.nome_treinamento) { msg.style.color = 'var(--vermelho)'; msg.innerText = 'Preencha o Nome!'; return; }
+            msg.style.color = 'var(--text-dim)'; msg.innerText = 'Salvando...';
+            const { error } = await _supa.from('ssma_treinamentos').insert([dados]);
+            if (error) { msg.style.color = 'var(--vermelho)'; msg.innerText = 'Erro ao salvar!'; } else { msg.style.color = 'var(--verde)'; msg.innerText = 'Salvo!'; document.getElementById('trei-nome').value = ''; setTimeout(() => msg.innerText='', 3000); }
+        }
+
+        window.carregarConfigFerramentas = async function() {
+            try {
+                const { data } = await _supa.from('ssma_cad_ferramentas').select('*').order('funcao', { ascending: true }).order('nome', { ascending: true });
+                window.dbFerramentasCadastradas = data || [];
+                window.renderizarListaConfigFerramentas();
+            } catch(e) { console.error("Erro Config Ferramentas:", e); }
+        }
+
+        window.renderizarListaConfigFerramentas = function() {
+            const container = document.getElementById('lista-config-ferramentas');
+            if (window.dbFerramentasCadastradas.length === 0) {
+                container.innerHTML = '<span style="color: var(--text-dim); font-size: 0.85rem;">Nenhuma ferramenta configurada ainda.</span>';
+                return;
+            }
+            container.innerHTML = window.dbFerramentasCadastradas.map((f, idx) => `
+                <div style="background: rgba(255,255,255,0.05); border: 1px solid #ec4899; padding: 10px; border-radius: 6px; display: flex; flex-direction: column; min-width: 200px;">
+                    <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 8px;">
+                        <span style="color: white; font-weight: bold; font-size: 0.9rem;">${f.nome}</span>
+                        <i class="fas fa-trash" style="color: #f43f5e; cursor: pointer; font-size: 0.8rem; margin-top: 2px;" onclick="deletarConfigFerramenta(${f.id})" title="Excluir Ferramenta"></i>
+                    </div>
+                    <span style="color: var(--text-dim); font-size: 0.75rem;">Função: <b style="color: #cbd5e1;">${f.funcao}</b></span>
+                    <span style="color: var(--text-dim); font-size: 0.75rem;">Meta Padrão: <b style="color: #10b981;">${f.meta}</b></span>
+                </div>
+            `).join('');
+            
+            window.renderizarQuadroColaboradores();
+        }
+
+        window.salvarConfigFerramenta = async function() {
+            const nome = document.getElementById('cad-ferr-nome').value.trim();
+            const checkboxesSelecionados = document.querySelectorAll('#cad-ferr-funcoes input[type="checkbox"]:checked');
+            const funcoes = Array.from(checkboxesSelecionados).map(cb => cb.value);
+            const meta = parseInt(document.getElementById('cad-ferr-meta').value) || 0;
+
+            if(!nome || funcoes.length === 0) { alert("Preencha o Nome e marque ao menos uma Função."); return; }
+
+            const payload = funcoes.map(f => ({ nome: nome, funcao: f, meta: meta }));
+
+            try {
+                await _supa.from('ssma_cad_ferramentas').insert(payload);
+                document.getElementById('cad-ferr-nome').value = '';
+                document.getElementById('cad-ferr-meta').value = '1';
+                checkboxesSelecionados.forEach(cb => cb.checked = false); 
+                await window.carregarConfigFerramentas();
+            } catch(e) { alert("Erro ao salvar configuração!"); }
+        }
+
+        window.deletarConfigFerramenta = async function(id) {
+            if(!confirm("Deseja apagar esta ferramenta da configuração?")) return;
+            try { await _supa.from('ssma_cad_ferramentas').delete().eq('id', id); await window.carregarConfigFerramentas(); } catch(e) { alert("Erro ao excluir!"); }
+        }
+
+        window.carregarQuadroColaboradores = async function() {
+            try {
+                const { data } = await _supa.from('ssma_fs_colab').select('*').order('nome', { ascending: true });
+                window.dbFsColaboradores = data || [];
+                window.renderizarQuadroColaboradores();
+            } catch(e) { console.error("Erro Quadro Colab:", e); }
+        }
+
+        window.adicionarFsColaborador = async function() {
+            const area = 'N/A'; 
+            const nome = document.getElementById('fs-colab-nome').value.trim().toUpperCase();
+            const funcao = document.getElementById('fs-colab-funcao').value;
+
+            if(!nome || !funcao) { alert("Preencha Nome e Função do colaborador."); return; }
+
+            try {
+                await _supa.from('ssma_fs_colab').insert([{ area, nome, funcao, realizado: {} }]);
+                document.getElementById('fs-colab-nome').value = '';
+                await window.carregarQuadroColaboradores();
+            } catch(e) { alert("Erro ao salvar colaborador!"); }
+        }
+
+        window.renderizarQuadroColaboradores = function() {
+            const tb = document.getElementById('tb-ferramentas-dinamica');
+            tb.innerHTML = '';
+
+            if (window.dbFsColaboradores.length === 0) {
+                tb.innerHTML = '<tr><td colspan="3" style="text-align:center; color: var(--text-dim); padding: 15px;">Sem colaboradores cadastrados.</td></tr>';
+                return;
+            }
+
+            window.dbFsColaboradores.forEach((colab, idxColab) => {
+                const ferramentasDaFuncao = window.dbFerramentasCadastradas.filter(f => f.funcao === colab.funcao);
+                let jsonRealizado = colab.realizado || {};
+
+                let painelFerramentasHTML = '';
+                
+                if (ferramentasDaFuncao.length === 0) {
+                    painelFerramentasHTML = `<span style="color: var(--vermelho); font-size: 0.8rem;"><i class="fas fa-exclamation-triangle"></i> Nenhuma ferramenta cadastrada para o cargo de ${colab.funcao}.</span>`;
+                } else {
+                    painelFerramentasHTML = `<div style="display: flex; flex-wrap: wrap;">`;
+                    ferramentasDaFuncao.forEach(ferr => {
+                        const valorRealizado = jsonRealizado[ferr.nome] || 0;
+                        const inputId = `input-real-${idxColab}-${ferr.id}`;
+
+                        painelFerramentasHTML += `
+                            <div class="ferramenta-badge">
+                                <span class="nome">${ferr.nome}:</span>
+                                <span class="meta">${ferr.meta} / </span>
+                                <input type="number" id="${inputId}" value="${valorRealizado}" oninput="window.atualizarJsonLocal(${idxColab}, '${ferr.nome}', this.value)">
+                            </div>
+                        `;
+                    });
+                    painelFerramentasHTML += `</div>`;
+                }
+
+                tb.insertAdjacentHTML('beforeend', `
+                    <tr style="background: rgba(255,255,255,0.02); border-bottom: 1px solid var(--border);">
+                        <td style="padding: 12px; border-right: 1px solid var(--border);">
+                            <div style="font-weight: bold; color: white;">${colab.nome}</div>
+                            <div style="color: var(--text-dim); font-size: 0.8rem;">${colab.funcao}</div>
+                        </td>
+                        <td style="padding: 12px; border-right: 1px solid var(--border);">
+                            ${painelFerramentasHTML}
+                        </td>
+                        <td style="padding: 12px; text-align: center;">
+                            <div style="display: flex; justify-content: center; align-items: center;">
+                                <button class="btn-kanban" style="background: var(--verde); padding: 8px 12px;" onclick="window.salvarLancamentoColaborador(${idxColab}, this)" title="Salvar Lançamentos Deste Colaborador"><i class="fas fa-save"></i></button>
+                                <button class="btn-kanban" style="background: var(--vermelho); padding: 8px 12px; margin-left: 5px;" onclick="window.removerColaborador(${colab.id})" title="Remover Colaborador"><i class="fas fa-trash"></i></button>
+                            </div>
+                        </td>
+                    </tr>
+                `);
+            });
+        }
+
+        window.atualizarJsonLocal = function(idxColab, nomeFerramenta, valorStr) {
+            const val = parseInt(valorStr) || 0;
+            let colab = window.dbFsColaboradores[idxColab];
+            if (!colab.realizado) colab.realizado = {};
+            colab.realizado[nomeFerramenta] = val;
+        }
+
+        window.salvarLancamentoColaborador = async function(idxColab, btnElement) {
+            const colab = window.dbFsColaboradores[idxColab];
+            if (!colab || !colab.id) return;
+            
+            const originalHTML = btnElement.innerHTML;
+            btnElement.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+            
+            try {
+                const { error } = await _supa.from('ssma_fs_colab').update({ realizado: colab.realizado }).eq('id', colab.id);
+                if(error) throw error;
+                btnElement.innerHTML = '<i class="fas fa-check-double"></i>';
+                btnElement.style.background = '#059669'; 
+                setTimeout(() => { btnElement.innerHTML = originalHTML; btnElement.style.background = 'var(--verde)'; }, 2000);
+            } catch(e) {
+                btnElement.innerHTML = '<i class="fas fa-times"></i>';
+                btnElement.style.background = 'var(--vermelho)';
+                setTimeout(() => { btnElement.innerHTML = originalHTML; btnElement.style.background = 'var(--verde)'; }, 2000);
+            }
+        }
+
+        window.removerColaborador = async function(id) {
+            if(!confirm('Deseja realmente remover este colaborador do quadro de ferramentas?')) return;
+            try { await _supa.from('ssma_fs_colab').delete().eq('id', id); await window.carregarQuadroColaboradores(); } catch(e) { alert("Erro ao excluir!"); }
+        }
+
+        // INIT
+        carregarIndicadoresDeHoje();
+        window.carregarDNAs(); 
+        window.carregarConfigFerramentas().then(() => { window.carregarQuadroColaboradores(); });
+
+    }, 50);
+</script>

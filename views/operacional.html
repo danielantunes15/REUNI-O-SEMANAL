@@ -1,0 +1,184 @@
+<div class="dashboard-grid">
+    <div class="kpi-card">
+        <p class="nav-label">VOLUME TOTAL SERRANA</p>
+        <div class="kpi-value">12.840 <span class="kpi-unit">ton</span></div>
+    </div>
+</div>
+
+<div class="table-box">
+    <h3 class="nav-label">PRODUÇÃO POR FRENTE (GRUAS SERRANA / TERCEIROS)</h3>
+    <table class="exec-table">
+        <thead>
+            <tr>
+                <th>Frente</th>
+                <th>Cód Grua</th>
+                <th>Transp.</th>
+                <th>Carregador</th>
+                <th>Volume</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>SERRANA</td>
+                <td>G-102</td>
+                <td>Serranalógica</td>
+                <td>Serrana</td>
+                <td>450 ton</td>
+            </tr>
+            <tr>
+                <td>REFLORESTAR</td>
+                <td>G-504</td>
+                <td>Serrana</td>
+                <td>JSL</td>
+                <td>320 ton</td>
+            </tr>
+        </tbody>
+    </table>
+</div>
+
+<div class="content-panel kpi-card" style="margin-top: 40px; border-left: 5px solid var(--amarelo);">
+    <h3 class="nav-label" style="color: var(--amarelo); margin-bottom: 20px; font-size: 1rem;">
+        <i class="fas fa-clipboard-check"></i> CADASTRO DE CAMINHÕES NOVOS (PENDÊNCIAS CHECK-LIST)
+    </h3>
+    <div class="form-grid">
+        <div class="input-group">
+            <label style="color: var(--text-dim); font-size: 0.8rem; margin-bottom: 5px; display: block;">Placa da Frota / Caminhão</label>
+            <input type="text" id="novo-caminhao-placa" class="config-input" placeholder="Ex: ABC-1234">
+        </div>
+    </div>
+    
+    <div class="checklist-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 15px; margin-top: 15px;">
+        <label class="check-container"><input type="checkbox" id="chk-crlve"> CRLVe</label>
+        <label class="check-container"><input type="checkbox" id="chk-crono"> Certificado Cronotacógrafo</label>
+        <label class="check-container"><input type="checkbox" id="chk-antt"> Registro de ANTT</label>
+        <label class="check-container"><input type="checkbox" id="chk-aet-fed"> AET FED.</label>
+        <label class="check-container"><input type="checkbox" id="chk-aet-est"> AET EST.</label>
+        <label class="check-container"><input type="checkbox" id="chk-apr"> APR</label>
+        <label class="check-container"><input type="checkbox" id="chk-floresta"> PG.12.00.0044 - Floresta Segura</label>
+        <label class="check-container"><input type="checkbox" id="chk-estrada"> PG.12.00.0021 - Estrada Segura</label>
+        <label class="check-container"><input type="checkbox" id="chk-hosp"> Mapeamento Hospitalar</label>
+        <label class="check-container"><input type="checkbox" id="chk-eletromecanica"> Eletromecânica</label>
+    </div>
+    
+    <div style="margin-top: 25px; display: flex; justify-content: flex-end;">
+        <button class="btn-salvar" onclick="adicionarCaminhaoPendente()"><i class="fas fa-plus"></i> Cadastrar Frota no Visor</button>
+    </div>
+</div>
+
+<div class="table-box" style="margin-top: 20px;">
+    <h3 class="nav-label">VISOR DE PENDÊNCIAS - CAMINHÕES NOVOS</h3>
+    <div style="overflow-x: auto;">
+        <table class="exec-table" id="tabela-caminhoes-pendentes">
+            <thead>
+                <tr>
+                    <th>Placa</th>
+                    <th style="text-align:center; font-size: 0.7rem;">CRLVe</th>
+                    <th style="text-align:center; font-size: 0.7rem;">Cronotacógrafo</th>
+                    <th style="text-align:center; font-size: 0.7rem;">ANTT</th>
+                    <th style="text-align:center; font-size: 0.7rem;">AET FED.</th>
+                    <th style="text-align:center; font-size: 0.7rem;">AET EST.</th>
+                    <th style="text-align:center; font-size: 0.7rem;">APR</th>
+                    <th style="text-align:center; font-size: 0.7rem;">Floresta Segura</th>
+                    <th style="text-align:center; font-size: 0.7rem;">Estrada Segura</th>
+                    <th style="text-align:center; font-size: 0.7rem;">Map. Hosp.</th>
+                    <th style="text-align:center; font-size: 0.7rem;">Eletromec.</th>
+                    <th style="text-align:center; font-size: 0.7rem;">Ação</th>
+                </tr>
+            </thead>
+            <tbody id="lista-caminhoes-pendentes">
+                </tbody>
+        </table>
+    </div>
+</div>
+
+<script>
+    // Inicializa array na janela para manter os dados enquanto navega pelas abas
+    if(!window.caminhoesPendentesData) {
+        window.caminhoesPendentesData = [];
+    }
+
+    function adicionarCaminhaoPendente() {
+        const placa = document.getElementById('novo-caminhao-placa').value;
+        if(!placa) {
+            alert('Por favor, informe a placa do caminhão.');
+            return;
+        }
+
+        const cam = {
+            id: Date.now(),
+            placa: placa.toUpperCase(),
+            crlve: document.getElementById('chk-crlve').checked,
+            crono: document.getElementById('chk-crono').checked,
+            antt: document.getElementById('chk-antt').checked,
+            aet_fed: document.getElementById('chk-aet-fed').checked,
+            aet_est: document.getElementById('chk-aet-est').checked,
+            apr: document.getElementById('chk-apr').checked,
+            floresta: document.getElementById('chk-floresta').checked,
+            estrada: document.getElementById('chk-estrada').checked,
+            hosp: document.getElementById('chk-hosp').checked,
+            eletromecanica: document.getElementById('chk-eletromecanica').checked
+        };
+
+        window.caminhoesPendentesData.push(cam);
+        renderizarTabelaCaminhoes();
+
+        // Limpar campos
+        document.getElementById('novo-caminhao-placa').value = '';
+        document.querySelectorAll('.checklist-grid input[type="checkbox"]').forEach(chk => chk.checked = false);
+    }
+
+    function removerCaminhao(id) {
+        window.caminhoesPendentesData = window.caminhoesPendentesData.filter(c => c.id !== id);
+        renderizarTabelaCaminhoes();
+    }
+
+    // Permite alterar o status clicando diretamente no ícone da tabela
+    function toggleStatusCaminhao(id, campo) {
+        const cam = window.caminhoesPendentesData.find(c => c.id === id);
+        if(cam) {
+            cam[campo] = !cam[campo];
+            renderizarTabelaCaminhoes();
+        }
+    }
+
+    function renderizarTabelaCaminhoes() {
+        const tbody = document.getElementById('lista-caminhoes-pendentes');
+        if(!tbody) return;
+        tbody.innerHTML = '';
+
+        if(window.caminhoesPendentesData.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="12" style="text-align: center; color: var(--text-dim); padding: 20px;">Nenhuma frota com pendência cadastrada.</td></tr>';
+            return;
+        }
+
+        window.caminhoesPendentesData.forEach(cam => {
+            const getIcon = (status, campo) => status 
+                ? `<i class="fas fa-check-circle status-verde" style="font-size: 1.5rem; cursor: pointer; transition: 0.2s;" onclick="toggleStatusCaminhao(${cam.id}, '${campo}')" title="Documento OK"></i>` 
+                : `<i class="fas fa-times-circle status-vermelho" style="font-size: 1.5rem; cursor: pointer; transition: 0.2s;" onclick="toggleStatusCaminhao(${cam.id}, '${campo}')" title="Pendente"></i>`;
+
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td style="font-weight: bold; color: var(--text-main); font-size: 1.1rem;">${cam.placa}</td>
+                <td style="text-align:center;">${getIcon(cam.crlve, 'crlve')}</td>
+                <td style="text-align:center;">${getIcon(cam.crono, 'crono')}</td>
+                <td style="text-align:center;">${getIcon(cam.antt, 'antt')}</td>
+                <td style="text-align:center;">${getIcon(cam.aet_fed, 'aet_fed')}</td>
+                <td style="text-align:center;">${getIcon(cam.aet_est, 'aet_est')}</td>
+                <td style="text-align:center;">${getIcon(cam.apr, 'apr')}</td>
+                <td style="text-align:center;">${getIcon(cam.floresta, 'floresta')}</td>
+                <td style="text-align:center;">${getIcon(cam.estrada, 'estrada')}</td>
+                <td style="text-align:center;">${getIcon(cam.hosp, 'hosp')}</td>
+                <td style="text-align:center;">${getIcon(cam.eletromecanica, 'eletromecanica')}</td>
+                <td style="text-align:center;">
+                    <button onclick="removerCaminhao(${cam.id})" style="padding: 8px 12px; background: var(--vermelho); border: none; border-radius: 6px; color: white; cursor: pointer; transition: 0.2s;" title="Remover Frota">
+                        <i class="fas fa-trash"></i>
+                    </button>
+                </td>
+            `;
+            tbody.appendChild(tr);
+        });
+    }
+
+    // Carrega a tabela assim que o HTML for injetado na tela
+    setTimeout(renderizarTabelaCaminhoes, 100);
+</script>

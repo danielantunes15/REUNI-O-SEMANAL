@@ -1,0 +1,323 @@
+<div class="dashboard-grid">
+    <div class="kpi-card" style="grid-column: 1 / -1; border-left: 5px solid var(--primary);">
+        <h3 class="nav-label" style="margin-bottom: 20px; color: var(--primary);"><i class="fas fa-edit"></i> INDICADORES FIXOS GERAIS - RH</h3>
+        
+        <div class="form-grid">
+            <div class="input-group">
+                <label style="display:block; margin-bottom: 8px; font-size: 0.8rem; color: var(--text-dim);">Total de Colaboradores (Headcount)</label>
+                <input type="number" id="input-headcount" class="config-input" placeholder="Ex: 250">
+            </div>
+            <div class="input-group">
+                <label style="display:block; margin-bottom: 8px; font-size: 0.8rem; color: var(--text-dim);">Total de Atestados</label>
+                <input type="number" id="input-atestados" class="config-input" placeholder="Ex: 5">
+            </div>
+            <div class="input-group">
+                <label style="display:block; margin-bottom: 8px; font-size: 0.8rem; color: var(--text-dim);">Total de Afastamentos</label>
+                <input type="number" id="input-afastamentos" class="config-input" placeholder="Ex: 2">
+            </div>
+            <div class="input-group">
+                <label style="display:block; margin-bottom: 8px; font-size: 0.8rem; color: var(--text-dim);">Processos de Admissão (Em andamento)</label>
+                <input type="number" id="input-admissoes" class="config-input" placeholder="Ex: 3">
+            </div>
+            <div class="input-group">
+                <label style="display:block; margin-bottom: 8px; font-size: 0.8rem; color: var(--text-dim);">Integrações Realizadas</label>
+                <input type="number" id="input-integracoes" class="config-input" placeholder="Ex: 4">
+            </div>
+            <div class="input-group">
+                <label style="display:block; margin-bottom: 8px; font-size: 0.8rem; color: #06b6d4; font-weight: bold;">SGT (Cadastrados)</label>
+                <input type="number" id="input-sgt" class="config-input" placeholder="Ex: 150" style="border-color: rgba(6, 182, 212, 0.3);">
+            </div>
+        </div>
+        <div style="margin-top: 20px; display: flex; align-items: center;">
+            <button class="btn-salvar" onclick="salvarDadosRH('msg-rh-1')" style="background: var(--primary);">
+                <i class="fas fa-save"></i> Salvar Indicadores Básicos
+            </button>
+            <span id="msg-rh-1" style="margin-left: 15px; font-weight: bold;"></span>
+        </div>
+    </div>
+
+    <div class="kpi-card" style="grid-column: 1 / -1; border-left: 5px solid #8b5cf6; margin-top: 10px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+            <h3 class="nav-label" style="color: #8b5cf6; margin: 0;"><i class="fas fa-chalkboard"></i> MURAIS DE COMUNICAÇÃO E EVENTOS (SALVAMENTO AUTOMÁTICO)</h3>
+            <span id="msg-murais-rh" style="font-weight: bold; font-size: 0.9rem;"></span>
+        </div>
+
+        <div class="form-grid" style="grid-template-columns: 1fr 1fr;">
+            
+            <div class="input-group" style="background: rgba(0,0,0,0.2); padding: 15px; border-radius: 8px; border: 1px solid var(--border);">
+                <label style="display:block; margin-bottom: 8px; font-size: 0.9rem; font-weight: bold; color: var(--amarelo);"><i class="fas fa-bullhorn"></i> Avisos Gerais</label>
+                <div style="display: flex; gap: 8px; margin-bottom: 12px;">
+                    <input type="date" id="data-avisos_rh" class="config-input" style="width: 130px; padding: 10px;">
+                    <input type="text" id="txt-avisos_rh" class="config-input" placeholder="Escreva o aviso..." style="flex: 1; padding: 10px;">
+                    <button type="button" class="btn-salvar" style="background: var(--amarelo); color: #0f172a; padding: 10px 15px;" onclick="addMuralRH('avisos_rh')"><i class="fas fa-plus"></i></button>
+                </div>
+                <div id="lista-avisos_rh" style="display: flex; flex-direction: column; gap: 8px; max-height: 200px; overflow-y: auto;"></div>
+            </div>
+
+            <div class="input-group" style="background: rgba(0,0,0,0.2); padding: 15px; border-radius: 8px; border: 1px solid var(--border);">
+                <label style="display:block; margin-bottom: 8px; font-size: 0.9rem; font-weight: bold; color: #0ea5e9;"><i class="fas fa-id-card"></i> Liberações Destra x Prazos</label>
+                <div style="display: flex; gap: 8px; margin-bottom: 12px;">
+                    <input type="date" id="data-liberacoes_rh" class="config-input" style="width: 130px; padding: 10px;">
+                    <input type="text" id="txt-liberacoes_rh" class="config-input" placeholder="Escreva a liberação/prazo..." style="flex: 1; padding: 10px;">
+                    <button type="button" class="btn-salvar" style="background: #0ea5e9; padding: 10px 15px;" onclick="addMuralRH('liberacoes_rh')"><i class="fas fa-plus"></i></button>
+                </div>
+                <div id="lista-liberacoes_rh" style="display: flex; flex-direction: column; gap: 8px; max-height: 200px; overflow-y: auto;"></div>
+            </div>
+
+            <div class="input-group" style="grid-column: 1 / -1; background: rgba(236, 72, 153, 0.05); padding: 15px; border-radius: 8px; border: 1px solid rgba(236, 72, 153, 0.3);">
+                <label style="display:block; margin-bottom: 12px; font-size: 0.9rem; color: #ec4899; font-weight: bold;"><i class="fas fa-birthday-cake"></i> Gerenciar Aniversariantes do Mês (Banco de Dados)</label>
+                <div style="display: flex; gap: 15px; align-items: flex-end; flex-wrap: wrap; margin-bottom: 15px;">
+                    <div style="flex: 1; min-width: 150px;">
+                        <label style="font-size: 0.75rem; color: var(--text-dim); margin-bottom: 5px; display: block;">Nome do Colaborador</label>
+                        <input type="text" id="novo-aniv-nome" class="config-input" placeholder="Ex: João Silva">
+                    </div>
+                    <div style="flex: 1; min-width: 150px;">
+                        <label style="font-size: 0.75rem; color: var(--text-dim); margin-bottom: 5px; display: block;">Setor</label>
+                        <input type="text" id="novo-aniv-setor" class="config-input" placeholder="Ex: Operacional">
+                    </div>
+                    <div style="width: 100px;">
+                        <label style="font-size: 0.75rem; color: var(--text-dim); margin-bottom: 5px; display: block;">Dia (Ex: 15)</label>
+                        <input type="number" id="novo-aniv-dia" class="config-input" min="1" max="31" placeholder="Dia">
+                    </div>
+                    <div style="width: 100px;">
+                        <label style="font-size: 0.75rem; color: var(--text-dim); margin-bottom: 5px; display: block;">Mês (Ex: 05)</label>
+                        <input type="number" id="novo-aniv-mes" class="config-input" min="1" max="12" placeholder="Mês">
+                    </div>
+                    <button type="button" class="btn-salvar" style="padding: 14px 20px; background: #ec4899;" onclick="window.adicionarAniversarianteBD()">
+                        <i class="fas fa-plus"></i> Adicionar
+                    </button>
+                </div>
+                
+                <div class="table-box">
+                    <table class="exec-table" style="width: 100%; border-collapse: collapse; margin-top: 0;">
+                        <thead>
+                            <tr>
+                                <th style="color: var(--text-dim); padding-bottom: 10px;">Dia/Mês</th>
+                                <th style="color: var(--text-dim); padding-bottom: 10px;">Nome</th>
+                                <th style="color: var(--text-dim); padding-bottom: 10px;">Setor</th>
+                                <th style="text-align: right; color: var(--text-dim); padding-bottom: 10px;">Ação</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tabela-aniversariantes-lanc"></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="input-group" style="grid-column: 1 / -1; background: rgba(0,0,0,0.2); padding: 15px; border-radius: 8px; border: 1px solid var(--border);">
+                <label style="display:block; margin-bottom: 12px; font-size: 0.9rem; color: var(--verde); font-weight: bold;"><i class="fas fa-calendar-plus"></i> Gerenciar Calendário de Eventos / Pagamentos</label>
+                <div style="display: flex; gap: 15px; align-items: flex-end; flex-wrap: wrap; margin-bottom: 15px;">
+                    <div style="flex: 1; min-width: 200px;">
+                        <label style="font-size: 0.75rem; color: var(--text-dim); margin-bottom: 5px; display: block;">Selecione o Evento</label>
+                        <select id="novo-evento-tipo" class="config-input">
+                            <option value="PAGAMENTO MENSAL">PAGAMENTO MENSAL</option>
+                            <option value="TICKET">TICKET</option>
+                            <option value="ADIANTAMENTO">ADIANTAMENTO</option>
+                            <option value="FERIADO" style="color: var(--amarelo); font-weight: bold;">FERIADO (Destaca em Amarelo)</option>
+                            <option value="EVENTO">EVENTO (Digitar nome...)</option>
+                        </select>
+                    </div>
+                    <div style="flex: 1; min-width: 150px;">
+                        <label style="font-size: 0.75rem; color: var(--text-dim); margin-bottom: 5px; display: block;">Data do Evento</label>
+                        <input type="date" id="novo-evento-data" class="config-input">
+                    </div>
+                    <button type="button" class="btn-salvar" style="padding: 14px 20px; background: var(--verde);" onclick="adicionarEventoCalendario()">
+                        <i class="fas fa-plus"></i> Incluir no Calendário
+                    </button>
+                </div>
+                <label style="font-size: 0.75rem; color: var(--text-dim); margin-bottom: 5px; display: block;">Lista Final de Eventos</label>
+                <textarea id="input-calendario-rh" class="config-input" rows="3" placeholder="Os eventos adicionados aparecerão aqui..."></textarea>
+                <button type="button" class="btn-kanban" style="background: var(--vermelho); margin-top: 8px; width: 100%;" onclick="window.limparMuralRH('input-calendario-rh')"><i class="fas fa-trash"></i> Limpar Lista de Eventos</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="kpi-card" style="grid-column: 1 / -1; border-left: 5px solid var(--amarelo); margin-top: 10px;">
+        <h3 class="nav-label" style="margin-bottom: 20px; color: var(--amarelo);"><i class="fas fa-briefcase"></i> GESTÃO DE VAGAS (RECRUTAMENTO E SELEÇÃO)</h3>
+        
+        <div class="form-grid" style="grid-template-columns: 2fr 2fr 1fr;">
+            <div class="input-group">
+                <label style="display:block; margin-bottom: 8px; font-size: 0.8rem; color: var(--text-dim);">Cargo / Função</label>
+                <input type="text" id="vaga-cargo" class="config-input" placeholder="Ex: Motorista Tritrem">
+            </div>
+            <div class="input-group">
+                <label style="display:block; margin-bottom: 8px; font-size: 0.8rem; color: var(--text-dim);">Setor</label>
+                <input type="text" id="vaga-setor" class="config-input" placeholder="Ex: Operacional">
+            </div>
+            <div class="input-group">
+                <label style="display:block; margin-bottom: 8px; font-size: 0.8rem; color: var(--text-dim);">Quantidade</label>
+                <input type="number" id="vaga-qtd" class="config-input" placeholder="Ex: 2" min="1">
+            </div>
+        </div>
+        <button class="btn-salvar" style="background: var(--amarelo); color: var(--bg-dark); margin-top: 15px;" onclick="adicionarVaga()">
+            <i class="fas fa-plus"></i> Adicionar Vaga no Banco
+        </button>
+
+        <div class="table-box" style="margin-top: 30px;">
+            <table class="exec-table">
+                <thead>
+                    <tr>
+                        <th style="color: var(--text-dim);">Cargo</th>
+                        <th style="color: var(--text-dim);">Setor</th>
+                        <th style="text-align: center; color: var(--text-dim);">Qtd</th>
+                        <th style="text-align: right; color: var(--text-dim);">Ação</th>
+                    </tr>
+                </thead>
+                <tbody id="tabela-vagas-lancamento"></tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<script>
+    const hojeIsoRH = new Date().toISOString().split('T')[0];
+    if(document.getElementById('data-avisos_rh')) document.getElementById('data-avisos_rh').value = hojeIsoRH;
+    if(document.getElementById('data-liberacoes_rh')) document.getElementById('data-liberacoes_rh').value = hojeIsoRH;
+
+    // Seta o mês atual automaticamente no campo
+    if(document.getElementById('novo-aniv-mes')) document.getElementById('novo-aniv-mes').value = new Date().getMonth() + 1;
+
+    window.listasRH = { avisos_rh: [], liberacoes_rh: [] };
+
+    window.formatarDataListaRH = function(dataIso) {
+        if(!dataIso) return ''; const [ano, mes, dia] = dataIso.split('-'); return `${dia}/${mes}/${ano}`;
+    }
+
+    window.renderizarListaMuralRH = function(tipo) {
+        const container = document.getElementById(`lista-${tipo}`);
+        if(!container) return;
+        const itens = window.listasRH[tipo];
+        if(itens.length === 0) {
+            container.innerHTML = '<div style="color: var(--text-dim); padding: 10px; text-align: center; font-size: 0.9rem;">Nenhuma ação/aviso pendente.</div>';
+            return;
+        }
+        container.innerHTML = itens.map(item => `
+            <div style="display: flex; align-items: center; justify-content: space-between; background: rgba(255,255,255,0.05); padding: 10px 12px; border-radius: 6px; border-left: 3px solid ${tipo==='avisos_rh'?'var(--amarelo)':'#0ea5e9'};">
+                <div style="flex: 1;">
+                    <span style="color: var(--text-dim); font-size: 0.8rem; font-weight: bold; margin-right: 8px;"><i class="fas fa-calendar-day"></i> ${window.formatarDataListaRH(item.data)}</span>
+                    <span style="color: white; font-size: 0.9rem;">${item.texto}</span>
+                </div>
+                <button class="btn-kanban" style="background: var(--verde); padding: 6px 12px;" onclick="concluirMuralRH('${tipo}', ${item.id})" title="Concluir / Retirar">
+                    <i class="fas fa-check"></i>
+                </button>
+            </div>
+        `).join('');
+    };
+
+    window.addMuralRH = async function(tipo) {
+        const dataInput = document.getElementById(`data-${tipo}`);
+        const textInput = document.getElementById(`txt-${tipo}`);
+        if(!textInput || !dataInput || !textInput.value.trim() || !dataInput.value) {
+            alert("Preencha a data e o texto para adicionar."); return;
+        }
+        window.listasRH[tipo].push({ id: Date.now(), data: dataInput.value, texto: textInput.value.trim() });
+        textInput.value = '';
+        window.renderizarListaMuralRH(tipo);
+        await window.salvarDadosRH('msg-murais-rh', true); 
+        const msg = document.getElementById('msg-murais-rh');
+        if (msg) { msg.style.color = 'var(--verde)'; msg.innerText = 'Item adicionado e salvo!'; setTimeout(() => msg.innerText='', 3000); }
+    };
+
+    window.concluirMuralRH = async function(tipo, id) {
+        if(!confirm("Concluir e retirar este item do mural?")) return;
+        window.listasRH[tipo] = window.listasRH[tipo].filter(i => i.id !== id);
+        window.renderizarListaMuralRH(tipo);
+        await window.salvarDadosRH('msg-murais-rh', true);
+        const msg = document.getElementById('msg-murais-rh');
+        if (msg) { msg.style.color = 'var(--verde)'; msg.innerText = 'Item concluído e retirado!'; setTimeout(() => msg.innerText='', 3000); }
+    };
+
+    // NOVAS FUNÇÕES: BANCO DE DADOS DE ANIVERSARIANTES
+    window.renderizarTabelaAniversariantes = function(lista) {
+        const tbody = document.getElementById('tabela-aniversariantes-lanc');
+        if(!tbody) return;
+        if(lista.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="4" style="text-align:center; padding: 10px; color: var(--text-dim);">Nenhum aniversariante cadastrado.</td></tr>';
+            return;
+        }
+        tbody.innerHTML = lista.map(a => `
+            <tr style="background: rgba(255,255,255,0.02);">
+                <td style="color: #ec4899; font-weight: bold; border-bottom: 1px solid var(--border); padding: 12px; width: 80px;">${String(a.dia).padStart(2,'0')}/${String(a.mes).padStart(2,'0')}</td>
+                <td style="color: white; font-weight: bold; border-bottom: 1px solid var(--border); padding: 12px;">${a.nome}</td>
+                <td style="color: var(--text-dim); border-bottom: 1px solid var(--border); padding: 12px;">${a.setor}</td>
+                <td style="text-align: right; border-bottom: 1px solid var(--border); padding: 12px;">
+                    <button class="btn-kanban" style="background: var(--vermelho);" onclick="window.removerAniversarianteBD(${a.id})"><i class="fas fa-trash"></i></button>
+                </td>
+            </tr>
+        `).join('');
+    };
+
+    window.adicionarAniversarianteBD = async function() {
+        const nome = document.getElementById('novo-aniv-nome').value;
+        const setor = document.getElementById('novo-aniv-setor').value;
+        const dia = document.getElementById('novo-aniv-dia').value;
+        const mes = document.getElementById('novo-aniv-mes').value;
+
+        if(!nome || !dia || !mes) { alert('Preencha Nome, Dia e Mês do Aniversariante!'); return; }
+
+        const _supa = window.supabaseClientGlobal;
+        const { error } = await _supa.from('rh_aniversariantes').insert([{
+            nome: nome,
+            setor: setor || 'Não informado',
+            dia: parseInt(dia),
+            mes: parseInt(mes)
+        }]);
+
+        if(!error) {
+            document.getElementById('novo-aniv-nome').value = '';
+            document.getElementById('novo-aniv-setor').value = '';
+            document.getElementById('novo-aniv-dia').value = '';
+            window.carregarDadosRH();
+            const msg = document.getElementById('msg-murais-rh');
+            if(msg) { msg.style.color = 'var(--verde)'; msg.innerText = 'Aniversariante Salvo!'; setTimeout(()=>msg.innerText='', 3000); }
+        } else {
+            alert("Erro ao salvar: " + error.message);
+        }
+    };
+
+    window.removerAniversarianteBD = async function(id) {
+        if(!confirm("Tem certeza que deseja remover este colaborador?")) return;
+        const _supa = window.supabaseClientGlobal;
+        const { error } = await _supa.from('rh_aniversariantes').delete().eq('id', id);
+        if(!error) window.carregarDadosRH();
+    };
+
+    // FUNÇÕES DE CALENDÁRIO
+    window.adicionarEventoCalendario = async function() {
+        const selectTipo = document.getElementById('novo-evento-tipo');
+        let tipo = selectTipo.value;
+        const dataStr = document.getElementById('novo-evento-data').value;
+        const textarea = document.getElementById('input-calendario-rh');
+
+        if (!dataStr) { alert("Por favor, selecione a data do evento!"); return; }
+
+        if (tipo === 'EVENTO') {
+            const nomePersonalizado = prompt("Digite o nome do evento (Ex: Festa Junina, Treinamento, etc):");
+            if (!nomePersonalizado || nomePersonalizado.trim() === '') return; 
+            tipo = "EVENTO - " + nomePersonalizado.toUpperCase();
+        } else if (tipo === 'FERIADO') {
+            const nomeFeriado = prompt("Qual o nome do feriado? (Pode deixar em branco se quiser)");
+            if (nomeFeriado && nomeFeriado.trim() !== '') tipo = "FERIADO - " + nomeFeriado.toUpperCase();
+            else tipo = "FERIADO";
+        }
+
+        const partes = dataStr.split('-');
+        const dia = partes[2]; 
+
+        const novoTexto = `Dia ${dia} - ${tipo}`;
+
+        if (textarea.value.trim() === '') textarea.value = novoTexto;
+        else textarea.value += '\n' + novoTexto;
+
+        document.getElementById('novo-evento-data').value = '';
+        
+        await window.salvarDadosRH('msg-murais-rh', true);
+        const msg = document.getElementById('msg-murais-rh');
+        if (msg) { msg.style.color = 'var(--verde)'; msg.innerText = 'Evento salvo!'; setTimeout(() => msg.innerText='', 3000); }
+    };
+
+    setTimeout(function() {
+        if (typeof window.carregarDadosRH === 'function') {
+            window.carregarDadosRH();
+        }
+    }, 100);
+</script>

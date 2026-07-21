@@ -1,0 +1,272 @@
+<style>
+    .btn-filter-periodo {
+        background: rgba(59, 130, 246, 0.1);
+        border: 1px solid #3b82f6;
+        color: #94a3b8;
+        padding: 8px 16px;
+        border-radius: 8px;
+        font-size: 0.95rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+    .btn-filter-periodo:hover {
+        background: rgba(59, 130, 246, 0.3);
+        color: white;
+    }
+    .btn-filter-periodo.active {
+        background: #3b82f6;
+        color: white;
+        box-shadow: 0 0 10px rgba(59, 130, 246, 0.5);
+    }
+</style>
+
+<div class="action-bar" style="display: flex; justify-content: space-between; align-items: center; position: relative; margin-bottom: 30px; padding: 10px 0;">
+    <h2 style="color: #fff; margin: 0; font-weight: 700; letter-spacing: 1px; text-transform: uppercase;">Disponibilidade de Equipamento (Manutenção)</h2>
+    <div>
+        <img src="assets/logo.png" alt="Serrana Log" style="height: 45px; object-fit: contain; filter: drop-shadow(0 0 5px rgba(255,255,255,0.2));" onerror="this.src='./assets/logoverde.png'">
+    </div>
+</div>
+
+<script>
+    window.dispararFiltrosGlobais = function() {
+        // Atualiza os painéis novos de DM
+        try { if(typeof window.atualizarKPIsGlobais === 'function') window.atualizarKPIsGlobais(); } catch(e){}
+        try { if(typeof window.renderizarGraficoEvolucaoDMDiaria === 'function') window.renderizarGraficoEvolucaoDMDiaria(); } catch(e){}
+        try { if(typeof window.renderizarGraficoStatusFrotaHorario === 'function') window.renderizarGraficoStatusFrotaHorario(); } catch(e){}
+        try { if(typeof window.renderizarPatioManutencaoDash === 'function') window.renderizarPatioManutencaoDash(); } catch(e){}
+        
+        // Atualiza os painéis originais que pararam de funcionar
+        try { if(typeof window.renderizarRelatorioTipoServico === 'function') window.renderizarRelatorioTipoServico(); } catch(e){}
+        try { if(typeof window.renderizarOcorrenciasTipoBarra === 'function') window.renderizarOcorrenciasTipoBarra(); } catch(e){}
+        try { if(typeof window.renderizarPrioridadeOS === 'function') window.renderizarPrioridadeOS(); } catch(e){}
+        try { if(typeof window.renderizarRankingCavalos === 'function') window.renderizarRankingCavalos(); } catch(e){}
+    };
+</script>
+
+<div class="content-panel global-filter-bar" style="grid-column: 1 / -1; margin-bottom: 25px; border: 1px solid #3b82f6; background: rgba(15, 23, 42, 0.8); backdrop-filter: blur(10px); border-radius: 12px; padding: 15px 20px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 15px; box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);">
+    <div style="display: flex; align-items: center; gap: 15px;">
+        <div style="background: rgba(59, 130, 246, 0.2); padding: 12px; border-radius: 50%; display: flex; align-items: center; justify-content: center;">
+            <i class="fas fa-filter" style="color: #3b82f6; font-size: 1.5rem;"></i>
+        </div>
+        <div>
+            <h3 style="color: #fff; margin: 0; font-size: 1.2rem; font-weight: 700;">Filtro Global de Período</h3>
+            <span style="color: #94a3b8; font-size: 0.85rem;">Ao selecionar, toda a tela será atualizada automaticamente</span>
+        </div>
+    </div>
+    
+    <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;" id="botoesFiltroGlobal">
+        <button class="btn-filter-periodo active" onclick="setFiltroGlobal('d1', this)">D-1</button>
+        <button class="btn-filter-periodo" onclick="setFiltroGlobal('d2', this)">D-2</button>
+        <button class="btn-filter-periodo" onclick="setFiltroGlobal('d3', this)">D-3</button>
+        <button class="btn-filter-periodo" onclick="setFiltroGlobal('d7', this)">D-7</button>
+        
+        <div style="display: flex; align-items: center; gap: 5px; margin-left: 10px;">
+            <span style="color: #94a3b8; font-size: 0.85rem; font-weight: 600;">Data Específica:</span>
+            <input type="date" id="filtroDataGlobalEspecifica" onchange="setFiltroGlobal('data_especifica', null)" class="dark-select" style="background: #1e293b; border: 1px solid #3b82f6; color: white; padding: 8px 12px; border-radius: 8px; outline: none; cursor: pointer;">
+        </div>
+
+        <div style="display: flex; align-items: center; gap: 5px; margin-left: 10px;">
+            <span style="color: #94a3b8; font-size: 0.85rem; font-weight: 600;">Mês Específico:</span>
+            <input type="month" id="filtroMesGlobalEspecifico" onchange="setFiltroGlobal('mes_especifico', null)" class="dark-select" style="background: #1e293b; border: 1px solid #3b82f6; color: white; padding: 8px 12px; border-radius: 8px; outline: none; cursor: pointer;">
+        </div>
+    </div>
+</div>
+
+<div class="quick-stats-header" style="justify-content: space-between; margin-bottom: 20px; display: flex; flex-wrap: wrap; gap: 10px; background: rgba(15, 23, 42, 0.6); padding: 20px; border-radius: 12px; border: 1px solid var(--border);">
+    <div class="q-stat" style="flex: 1; text-align: center; min-width: 120px;">Total O.S. <br><span id="kpiTotalOS" style="font-size: 1.8rem; color: #fff; font-weight: bold;">0</span></div>
+    <div class="q-stat" style="flex: 1; text-align: center; min-width: 120px; border-left: 3px solid #10b981;">Concluídas <br><span id="kpiConcluidasOS" style="font-size: 1.8rem; color: #10b981; font-weight: bold;">0</span></div>
+    <div class="q-stat" style="flex: 1; text-align: center; min-width: 120px; border-left: 3px solid #ef4444;">Abertas <br><span id="kpiAbertasOS" style="font-size: 1.8rem; color: #f87171; font-weight: bold;">0</span></div>
+    <div class="q-stat" style="flex: 1; text-align: center; min-width: 120px; border-left: 3px solid #3b82f6;">Conclusão <br><span id="kpiTaxaOS" style="font-size: 1.8rem; color: #3b82f6; font-weight: bold;">0%</span></div>
+    <div class="q-stat" style="flex: 1; text-align: center; min-width: 120px; border-left: 3px solid #a855f7;">Tempo Médio <br><span id="kpiTempoMedioOS" style="font-size: 1.8rem; color: #a855f7; font-weight: bold;">0h 0m</span></div>
+</div>
+
+<div id="painelMediasDia" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; margin-bottom: 25px;">
+    <div class="card-moderno" style="background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%); border-left: 5px solid #3b82f6; padding: 20px; border-radius: 12px; box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.3);">
+        <span style="color: #94a3b8; font-size: 0.85rem; font-weight: 600; text-transform: uppercase;">Média DM Geral</span>
+        <div style="display: flex; align-items: baseline; gap: 5px; margin-top: 10px;">
+            <span id="avgDM" style="font-size: 2.2rem; font-weight: 800; color: #3b82f6;">0%</span>
+        </div>
+    </div>
+    <div class="card-moderno" style="background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%); border-left: 5px solid #10b981; padding: 20px; border-radius: 12px; box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.3);">
+        <span style="color: #94a3b8; font-size: 0.85rem; font-weight: 600; text-transform: uppercase;">Média Disponíveis</span>
+        <div style="display: flex; align-items: baseline; gap: 5px; margin-top: 10px;">
+            <span id="avgAtivos" style="font-size: 2.2rem; font-weight: 800; color: #10b981;">0</span>
+            <small style="color: #64748b;">veículos</small>
+        </div>
+    </div>
+    <div class="card-moderno" style="background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%); border-left: 5px solid #f59e0b; padding: 20px; border-radius: 12px; box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.3);">
+        <span style="color: #94a3b8; font-size: 0.85rem; font-weight: 600; text-transform: uppercase;">Média Manutenção</span>
+        <div style="display: flex; align-items: baseline; gap: 5px; margin-top: 10px;">
+            <span id="avgManut" style="font-size: 2.2rem; font-weight: 800; color: #f59e0b;">0</span>
+            <small style="color: #64748b;">veículos</small>
+        </div>
+    </div>
+    <div class="card-moderno" style="background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%); border-left: 5px solid #ef4444; padding: 20px; border-radius: 12px; box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.3);">
+        <span style="color: #94a3b8; font-size: 0.85rem; font-weight: 600; text-transform: uppercase;">Média SOS</span>
+        <div style="display: flex; align-items: baseline; gap: 5px; margin-top: 10px;">
+            <span id="avgSOS" style="font-size: 2.2rem; font-weight: 800; color: #ef4444;">0</span>
+            <small style="color: #64748b;">chamados</small>
+        </div>
+    </div>
+</div>
+
+<div class="content-panel" style="grid-column: 1 / -1; margin-bottom: 25px; border: 1px solid rgba(245, 158, 11, 0.5); background: rgba(15, 23, 42, 0.8); backdrop-filter: blur(10px); border-radius: 16px; overflow: hidden; box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);">
+    <div class="panel-header" style="padding: 15px 20px; display: flex; justify-content: space-between; align-items: center; background: linear-gradient(90deg, rgba(245, 158, 11, 0.1) 0%, rgba(15, 23, 42, 0) 100%); border-bottom: 1px solid rgba(255,255,255,0.05); flex-wrap: wrap; gap: 10px;">
+        <div style="display: flex; align-items: center; gap: 15px;">
+            <h3 style="color: #f59e0b; margin: 0; display: flex; align-items: center; gap: 10px; font-size: 1.3rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px;">
+                <i class="fas fa-clock"></i> Disponibilidade Horária de Equipamentos
+            </h3>
+        </div>
+        <div style="display: flex; gap: 10px; align-items: center;">
+            <span style="color: #94a3b8; font-size: 0.85rem; font-weight: 600;">Filtrar Dia:</span>
+            <input type="date" id="filtroDataEspecificaHoraria" class="dark-select" onchange="window.renderizarGraficoStatusFrotaHorario()" style="background: #1e293b; border: 1px solid #334155; color: white; padding: 5px 12px; border-radius: 6px; height: 34px; font-size: 0.9rem;">
+            <button class="btn-secondary-dark" onclick="exportarGraficoPNG('graficoStatusFrotaHorario', 'Disponibilidade_Horaria')" style="border-radius: 6px; background: #334155; padding: 6px 14px; font-size: 0.85rem; height: 34px; font-weight: 600; transition: all 0.3s ease;">Exportar</button>
+        </div>
+    </div>
+    <div style="display: flex; justify-content: space-around; flex-wrap: wrap; gap: 15px; padding: 15px 20px; background: rgba(0,0,0,0.25); border-bottom: 1px solid rgba(255,255,255,0.05);">
+        <div style="display: flex; align-items: center; gap: 12px; background: rgba(16, 185, 129, 0.05); padding: 10px 20px; border-radius: 12px; border: 1px solid rgba(16, 185, 129, 0.2); flex: 1; min-width: 200px; justify-content: center;">
+            <div style="background: rgba(16, 185, 129, 0.2); padding: 12px; border-radius: 50%; display: flex; align-items: center; justify-content: center;">
+                <i class="fas fa-truck-moving" style="color: #10b981; font-size: 1.4rem;"></i>
+            </div>
+            <div style="display: flex; flex-direction: column;">
+                <span style="color: #94a3b8; font-size: 0.8rem; text-transform: uppercase; font-weight: 700; letter-spacing: 0.5px;">Média Disponíveis</span>
+                <div style="display: flex; align-items: baseline; gap: 4px;">
+                    <span id="avgAtivosInterno" style="color: #10b981; font-size: 1.8rem; font-weight: 900; line-height: 1;">0</span>
+                    <span style="color: #64748b; font-size: 0.8rem; font-weight: 600;">veículos</span>
+                </div>
+            </div>
+        </div>
+        <div style="display: flex; align-items: center; gap: 12px; background: rgba(245, 158, 11, 0.05); padding: 10px 20px; border-radius: 12px; border: 1px solid rgba(245, 158, 11, 0.2); flex: 1; min-width: 200px; justify-content: center;">
+            <div style="background: rgba(245, 158, 11, 0.2); padding: 12px; border-radius: 50%; display: flex; align-items: center; justify-content: center;">
+                <i class="fas fa-tools" style="color: #f59e0b; font-size: 1.4rem;"></i>
+            </div>
+            <div style="display: flex; flex-direction: column;">
+                <span style="color: #94a3b8; font-size: 0.8rem; text-transform: uppercase; font-weight: 700; letter-spacing: 0.5px;">Média Manutenção</span>
+                <div style="display: flex; align-items: baseline; gap: 4px;">
+                    <span id="avgManutInterno" style="color: #f59e0b; font-size: 1.8rem; font-weight: 900; line-height: 1;">0</span>
+                    <span style="color: #64748b; font-size: 0.8rem; font-weight: 600;">veículos</span>
+                </div>
+            </div>
+        </div>
+        <div style="display: flex; align-items: center; gap: 12px; background: rgba(239, 68, 68, 0.05); padding: 10px 20px; border-radius: 12px; border: 1px solid rgba(239, 68, 68, 0.2); flex: 1; min-width: 200px; justify-content: center;">
+            <div style="background: rgba(239, 68, 68, 0.2); padding: 12px; border-radius: 50%; display: flex; align-items: center; justify-content: center;">
+                <i class="fas fa-exclamation-triangle" style="color: #ef4444; font-size: 1.4rem;"></i>
+            </div>
+            <div style="display: flex; flex-direction: column;">
+                <span style="color: #94a3b8; font-size: 0.8rem; text-transform: uppercase; font-weight: 700; letter-spacing: 0.5px;">Média S.O.S</span>
+                <div style="display: flex; align-items: baseline; gap: 4px;">
+                    <span id="avgSOSInterno" style="color: #ef4444; font-size: 1.8rem; font-weight: 900; line-height: 1;">0</span>
+                    <span style="color: #64748b; font-size: 0.8rem; font-weight: 600;">chamados</span>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div style="width: 100%; height: 350px; padding: 20px;" id="graficoStatusFrotaHorario"></div>
+</div>
+
+<div class="content-panel" style="grid-column: 1 / -1; margin-bottom: 25px; border: 1px solid rgba(16, 185, 129, 0.3); background: rgba(15, 23, 42, 0.6); backdrop-filter: blur(10px); border-radius: 16px; overflow: hidden;">
+    <div class="panel-header" style="padding: 20px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(255,255,255,0.05); flex-wrap: wrap; gap: 10px;">
+        <h3 style="color: #10b981; margin: 0; display: flex; align-items: center; gap: 10px;">
+            <span style="width: 8px; height: 8px; background: #10b981; border-radius: 50%;"></span>
+            Evolução Diária da Disponibilidade Mecânica
+        </h3>
+        <div style="display: flex; gap: 10px; align-items: center;">
+            <span style="color: #94a3b8; font-size: 0.85rem; font-weight: 600;">Filtrar Mês:</span>
+            <select id="filtroMesEvolucaoDMDiaria" class="dark-select" onchange="window.renderizarGraficoEvolucaoDMDiaria()" style="background: #1e293b; border: 1px solid #334155; color: white; padding: 5px 12px; border-radius: 6px; height: 34px; font-size: 0.9rem; outline: none; cursor: pointer;">
+            </select>
+            <button class="btn-salvar" onclick="exportarGraficoPNG('graficoEvolucaoDMDiaria', 'Evolucao_DM_Diaria')" style="padding: 5px 12px; font-size: 0.8rem; height: 34px; background: #334155; border:none; border-radius: 6px; color: white; cursor: pointer;"><i class="fas fa-camera"></i> Exportar PNG</button>
+        </div>
+    </div>
+    
+    <div style="display: flex; justify-content: space-around; flex-wrap: wrap; gap: 10px; padding: 15px 20px; background: rgba(0,0,0,0.25); border-bottom: 1px solid rgba(255,255,255,0.05);">
+        <div style="text-align: center; flex: 1; min-width: 150px;">
+            <span style="color: #94a3b8; font-size: 0.75rem; text-transform: uppercase; font-weight: bold;">Média DM do Período</span><br>
+            <span id="kpiMiniDM" style="color: #10b981; font-size: 1.5rem; font-weight: 900;">0%</span>
+        </div>
+        <div style="text-align: center; flex: 1; min-width: 150px; border-left: 1px dashed rgba(255,255,255,0.1);">
+            <span style="color: #94a3b8; font-size: 0.75rem; text-transform: uppercase; font-weight: bold;">Total de O.S. (Período)</span><br>
+            <span id="kpiMiniTotalOS" style="color: #fff; font-size: 1.5rem; font-weight: 900;">0</span>
+        </div>
+        <div style="text-align: center; flex: 1; min-width: 150px; border-left: 1px dashed rgba(255,255,255,0.1);">
+            <span style="color: #94a3b8; font-size: 0.75rem; text-transform: uppercase; font-weight: bold;">O.S. Concluídas</span><br>
+            <span id="kpiMiniConcluidas" style="color: #3b82f6; font-size: 1.5rem; font-weight: 900;">0</span>
+        </div>
+        <div style="text-align: center; flex: 1; min-width: 150px; border-left: 1px dashed rgba(255,255,255,0.1);">
+            <span style="color: #94a3b8; font-size: 0.75rem; text-transform: uppercase; font-weight: bold;">Tempo Médio Conclusão</span><br>
+            <span id="kpiMiniTempo" style="color: #a855f7; font-size: 1.5rem; font-weight: 900;">0h 0m</span>
+        </div>
+    </div>
+    <div style="width: 100%; height: 400px; padding: 20px;" id="graficoEvolucaoDMDiaria"></div>
+</div>
+
+<div class="content-panel" style="grid-column: 1 / -1; margin-bottom: 20px; border: 1px solid #10b981; border-radius: 16px; background: rgba(15, 23, 42, 0.8);">
+    <div class="panel-header" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px; border-bottom: 1px solid rgba(255,255,255,0.1); padding: 15px 20px;">
+        <h3 style="color: #10b981; margin: 0;"><i class="fas fa-tools"></i> Desempenho por Tipo de Serviço</h3>
+        <div class="form-group-dark" style="margin: 0; display: flex; align-items: center; gap: 10px;">
+            <button class="btn-salvar" onclick="exportarRelatorioTipoServicoExcel()" style="padding: 6px 12px; font-size: 0.85rem;"><i class="fas fa-file-excel"></i> Exportar Tabela Completa</button>
+        </div>
+    </div>
+    <div class="table-box" style="padding: 20px;">
+        <table class="exec-table" style="width: 100%; border-collapse: collapse; margin-top: 10px;">
+            <thead>
+                <tr>
+                    <th style="text-align: left; padding: 10px; border-bottom: 1px solid var(--border); color: var(--text-dim);">Tipo de Serviço</th>
+                    <th style="text-align: center; padding: 10px; border-bottom: 1px solid var(--border); color: var(--text-dim);">Quantidade (O.S.)</th>
+                    <th style="text-align: right; padding: 10px; border-bottom: 1px solid var(--border); color: var(--text-dim);">Tempo Médio de Conclusão</th>
+                </tr>
+            </thead>
+            <tbody id="tabelaRelatorioTipoServico"></tbody>
+        </table>
+    </div>
+</div>
+
+<div class="content-panel" style="grid-column: 1 / -1; margin-bottom: 25px; border: 1px solid #8b5cf6; border-radius: 16px; background: rgba(15, 23, 42, 0.8);">
+    <div class="panel-header" style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(255,255,255,0.1); padding: 15px 20px;">
+        <h3 style="color: #8b5cf6; margin: 0; display: flex; align-items: center; gap: 10px;">
+            <i class="fas fa-tv" style="color: #8b5cf6;"></i> Pátio de Manutenção (Tempo Real)
+        </h3>
+        <div style="display: flex; gap: 10px; align-items: center;">
+            <span style="color: var(--text-dim); font-size: 0.85rem; background: rgba(0,0,0,0.3); padding: 5px 10px; border-radius: 6px;"><i class="fas fa-sync fa-spin" style="margin-right: 5px; color: #8b5cf6;"></i> Atualização Automática</span>
+        </div>
+    </div>
+    <div style="padding: 20px;" id="patioManutencaoDashContainer">
+        <p style="color:#94a3b8; text-align:center;">Carregando pátio...</p>
+    </div>
+</div>
+
+<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px;">
+    <div class="content-panel kpi-card" style="border-left: 5px solid #ef4444; padding: 20px;">
+        <h3 class="nav-label" style="color: #ef4444;"><i class="fas fa-exclamation-circle"></i> Top 5 Caminhões que Mais Quebram</h3>
+        <div style="padding: 15px 0;" id="rankingCavalosOS"></div>
+    </div>
+    <div class="content-panel kpi-card" style="border-left: 5px solid #0ea5e9; padding: 20px;">
+        <h3 class="nav-label" style="color: #0ea5e9;"><i class="fas fa-chart-bar"></i> Análise de Ocorrências por Tipo de Serviço</h3>
+        <div style="width: 100%; height: 300px;" id="graficoOcorrenciasTipoBarra"></div>
+    </div>
+    <div class="content-panel kpi-card" style="border-left: 5px solid #fde047; padding: 20px;">
+        <h3 class="nav-label" style="color: #fde047;"><i class="fas fa-bell"></i> Alertas de Prioridade</h3>
+        <div style="padding: 15px 0; height: 300px;" id="graficoPrioridadeOS"></div>
+    </div>
+</div>
+
+<div class="content-panel kpi-card" style="border-left: 5px solid #8b5cf6; padding: 20px; margin-top: 25px; margin-bottom: 10px;">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+        <h3 class="nav-label" style="color: #8b5cf6; margin: 0; font-size: 1rem;"><i class="fas fa-bullhorn"></i> MURAL DE INFORMAÇÕES E AVISOS (MANUTENÇÃO)</h3>
+        <span id="msg-mural-setor" style="font-weight: bold; font-size: 0.9rem;"></span>
+    </div>
+    <div style="background: rgba(0,0,0,0.2); padding: 15px; border-radius: 8px; border: 1px solid var(--border); margin-bottom: 15px; display: flex; gap: 10px; flex-wrap: wrap;">
+        <input type="date" id="data-mural-setor" class="config-input" style="width: 140px; padding: 10px;">
+        <input type="text" id="txt-mural-setor" class="config-input" placeholder="Digite a informação, aviso ou lembrete do setor..." style="flex: 1; padding: 10px;">
+        <button type="button" class="btn-salvar" style="background: #8b5cf6; padding: 10px 20px;" onclick="window.addMuralSetor()">
+            <i class="fas fa-plus"></i> Adicionar
+        </button>
+    </div>
+    <div id="lista-mural-setor" style="display: flex; flex-direction: column; gap: 8px; max-height: 250px; overflow-y: auto;"></div>
+</div>
+
+<script>
+    if(typeof window.initDashManutencao === 'function') {
+        window.initDashManutencao();
+    }
+</script>
