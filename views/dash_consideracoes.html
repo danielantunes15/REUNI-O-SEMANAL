@@ -14,7 +14,6 @@
         </h3>
         <span id="status-load-d1" style="font-size: 0.8rem; color: var(--amarelo); font-weight: bold;"><i class="fas fa-sync fa-spin"></i> Buscando dados...</span>
     </div>
-
     <div style="padding: 20px; background: rgba(0,0,0,0.2);">
         <h4 style="color: #10b981; font-size: 0.85rem; margin-bottom: 15px; text-transform: uppercase; font-weight: 800;"><i class="fas fa-truck"></i> Operacional (D-1)</h4>
         <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 15px;">
@@ -56,7 +55,6 @@
             </div>
         </div>
     </div>
-
     <div style="padding: 20px; border-top: 1px solid rgba(255,255,255,0.05);">
         <h4 style="color: #f59e0b; font-size: 0.85rem; margin-bottom: 15px; text-transform: uppercase; font-weight: 800;"><i class="fas fa-tools"></i> Manutenção (D-1)</h4>
         <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 15px;">
@@ -93,28 +91,24 @@
                 <span style="color: var(--text-dim); font-size: 0.8rem;">Carregando...</span>
             </div>
         </div>
-
         <div style="background: rgba(0,0,0,0.2); border: 1px solid var(--border); border-radius: 8px; padding: 15px;">
             <h4 style="color: #ec4899; font-size: 0.9rem; margin-bottom: 15px; font-weight: bold; border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 8px;"><i class="fas fa-users"></i> Mural RH</h4>
             <div id="mural-global-rh" style="display: flex; flex-direction: column; gap: 8px; max-height: 250px; overflow-y: auto;">
                 <span style="color: var(--text-dim); font-size: 0.8rem;">Carregando...</span>
             </div>
         </div>
-
         <div style="background: rgba(0,0,0,0.2); border: 1px solid var(--border); border-radius: 8px; padding: 15px;">
             <h4 style="color: #0ea5e9; font-size: 0.9rem; margin-bottom: 15px; font-weight: bold; border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 8px;"><i class="fas fa-truck"></i> Mural Operacional</h4>
             <div id="mural-global-op" style="display: flex; flex-direction: column; gap: 8px; max-height: 250px; overflow-y: auto;">
                 <span style="color: var(--text-dim); font-size: 0.8rem;">Carregando...</span>
             </div>
         </div>
-
         <div style="background: rgba(0,0,0,0.2); border: 1px solid var(--border); border-radius: 8px; padding: 15px;">
             <h4 style="color: #f59e0b; font-size: 0.9rem; margin-bottom: 15px; font-weight: bold; border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 8px;"><i class="fas fa-tools"></i> Mural Manutenção</h4>
             <div id="mural-global-man" style="display: flex; flex-direction: column; gap: 8px; max-height: 250px; overflow-y: auto;">
                 <span style="color: var(--text-dim); font-size: 0.8rem;">Carregando...</span>
             </div>
         </div>
-
     </div>
 </div>
 
@@ -142,7 +136,7 @@
 </div>
 
 <script>
-    // --- FUNÇÕES UTILITÁRIAS ---
+    // --- FUNÇÕES UTILITÁRIAS (Modificadas de const para window. para evitar SyntaxError no reload da página) ---
     window.formatarDataBR = function(dataIso) {
         if (!dataIso) return '';
         const [ano, mes, dia] = dataIso.split('-');
@@ -160,15 +154,15 @@
         return `${horas}h ${minutos.toString().padStart(2, '0')}m`;
     };
 
-    function formatDataMural(d) {
+    window.formatDataMural = function(d) {
         if(!d) return ''; 
         if(d.includes('/')) return d; 
         const p = d.split('-'); 
         if(p.length === 3) return `${p[2]}/${p[1]}`;
         return d;
-    }
+    };
 
-    const parseDateTime = function(dateVal) {
+    window.parseDateTime = function(dateVal) {
         if (!dateVal) return null;
         const str = String(dateVal).trim();
         if (str === 'Desconhecida') return null;
@@ -194,10 +188,9 @@
     };
 
     // --- FUNÇÕES DE FILTRAGEM SEGURAS ---
-    const isSerranaTransp = function(d) {
+    window.isSerranaTransp = function(d) {
         let valTransp = String(d.transportadora || d['Nome da Transportadora'] || d.nomeTransportadora || '').toUpperCase().replace(/\s+/g, '');
         if (valTransp.includes('SERRANALOG') || valTransp.includes('SERRANA')) return true;
-
         for (let key in d) {
             if (d[key] && typeof d[key] === 'string') {
                 let val = d[key].toUpperCase().replace(/\s+/g, '');
@@ -209,7 +202,7 @@
         return false;
     };
 
-    const normalizarCiclos = function(dataArr) {
+    window.normalizarCiclos = function(dataArr) {
         const pMap = new Map();
         dataArr.forEach(d => {
             if (d.cicloHorasOriginal === undefined) { d.cicloHorasOriginal = d.cicloHoras; }
@@ -235,16 +228,14 @@
     window.carregarResumoD1EMurais = async function() {
         const statEl = document.getElementById('status-load-d1');
         
+        // UNIFICAÇÃO: Usar apenas a conexão global. NUNCA MAIS usar supabaseClientFrota.
         if (!window.supabaseClientGlobal) {
             window.supabaseClientGlobal = supabase.createClient(SUPABASE_CONFIG.url, SUPABASE_CONFIG.key);
         }
-        if (!window.supabaseClientFrota) {
-            window.supabaseClientFrota = supabase.createClient(SUPABASE_CONFIG_FROTA.url, SUPABASE_CONFIG_FROTA.key);
-        }
-
+        
         const supaGlobal = window.supabaseClientGlobal;
-        const supaFrota = window.supabaseClientFrota;
-
+        const supaFrota = window.supabaseClientGlobal; // Aponta para a mesma base central
+        
         const hoje = new Date();
         const ontem = new Date(hoje);
         ontem.setDate(hoje.getDate() - 1);
@@ -272,16 +263,16 @@
             }
 
             if (opData.length > 0) {
-                normalizarCiclos(opData);
+                window.normalizarCiclos(opData);
 
                 const fOp = opData.filter(d => {
                     const motorista = String(d.motorista || '').toUpperCase();
                     if(motorista.includes('JULIO CESAR ALMEIDA NUNES') || motorista === '-') return false;
                     
-                    let pDate = parseDateTime(d.dataDaBaseExcel || d.data || d.Data);
+                    let pDate = window.parseDateTime(d.dataDaBaseExcel || d.data || d.Data);
                     
                     if(pDate && pDate.getTime() === ontem.getTime()) {
-                        return isSerranaTransp(d);
+                        return window.isSerranaTransp(d);
                     }
                     return false;
                 });
@@ -314,7 +305,6 @@
             }
 
             // ================= 2. MANUTENÇÃO D-1 =================
-            // Corrigindo paginação para Manutenção (O.S)
             let osData = [];
             let fromOs = 0;
             const stepOs = 1000;
@@ -336,7 +326,6 @@
                 const fimOntem = new Date(ontem);
                 fimOntem.setHours(23, 59, 59, 999);
                 
-                // Filtro idêntico ao painel principal: Somente TRITREM Ativos
                 let frotasValidas = frotasData.filter(f => (f.status || '').toUpperCase() === 'ATIVO' && (f.categoria || '').toUpperCase() === 'TRITREM');
 
                 let msTotalDia = 24 * 60 * 60 * 1000;
@@ -434,7 +423,7 @@
                 if(!arr || arr.length === 0) return `<div style="color: var(--text-dim); font-size: 0.8rem; padding: 5px;">Nenhum registro.</div>`;
                 return arr.map(i => `
                     <div style="background: rgba(255,255,255,0.03); border-left: 3px solid ${color}; padding: 8px 10px; border-radius: 4px; font-size: 0.85rem;">
-                        <span style="color: var(--text-dim); font-weight: bold; font-size: 0.75rem; margin-right: 5px;">[${formatDataMural(i.data)}]</span> 
+                        <span style="color: var(--text-dim); font-weight: bold; font-size: 0.75rem; margin-right: 5px;">[${window.formatDataMural(i.data)}]</span> 
                         <span style="color: #e2e8f0;">${i.texto}</span>
                     </div>
                 `).join('');
@@ -488,21 +477,26 @@
 
     // --- LÓGICA DO DRAG AND DROP DO KANBAN ---
     window.draggedItemId = null;
+    
     window.dragStart = function(event) {
         window.draggedItemId = event.currentTarget.getAttribute('data-id');
         event.currentTarget.classList.add('dragging');
     };
+    
     window.dragEnd = function(event) {
         event.currentTarget.classList.remove('dragging');
         document.querySelectorAll('.kanban-col').forEach(col => col.classList.remove('drag-over'));
     };
+    
     window.permitirDrop = function(event) {
         event.preventDefault();
         event.currentTarget.classList.add('drag-over');
     };
+    
     window.sairDrop = function(event) {
         event.currentTarget.classList.remove('drag-over');
     };
+    
     window.soltarDrop = function(event) {
         event.preventDefault();
         const coluna = event.currentTarget;
@@ -702,7 +696,7 @@
                 } else {
                     html += `<ul style="list-style: none; padding: 0; margin: 0; font-size: 11px; color: #000;">`;
                     arr.forEach(i => {
-                        html += `<li style="margin-bottom: 4px; border-bottom: 1px dashed #ccc; padding-bottom: 4px;"><strong>[${formatDataMural(i.data)}]</strong> ${i.texto}</li>`;
+                        html += `<li style="margin-bottom: 4px; border-bottom: 1px dashed #ccc; padding-bottom: 4px;"><strong>[${window.formatDataMural(i.data)}]</strong> ${i.texto}</li>`;
                     });
                     html += `</ul>`;
                 }
@@ -860,7 +854,7 @@
             heightLeft -= pdfHeight;
             
             while (heightLeft > 0) {
-                position = heightLeft - totalImgHeight; 
+                position = heightLeft - totalImgHeight;
                 pdf.addPage();
                 pdf.addImage(imgData, 'PNG', 0, position, pdfWidth, totalImgHeight);
                 heightLeft -= pdfHeight;
@@ -882,5 +876,4 @@
         window.carregarResumoD1EMurais();
         window.carregarKanbanDash();
     }, 300);
-
 </script>
