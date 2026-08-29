@@ -136,7 +136,7 @@
 </div>
 
 <script>
-    // --- FUNÇÕES UTILITÁRIAS (Modificadas de const para window. para evitar SyntaxError no reload da página) ---
+    // --- FUNÇÕES UTILITÁRIAS ---
     window.formatarDataBR = function(dataIso) {
         if (!dataIso) return '';
         const [ano, mes, dia] = dataIso.split('-');
@@ -187,6 +187,19 @@
         return baseDate;
     };
 
+    // NOVO: Lê a data bruta como horário local ignorando o fuso que o banco carimbou
+    window.tratarFusoDB = function(dateStr) {
+        if (!dateStr || dateStr === 'null' || dateStr === 'undefined') return null;
+        let str = String(dateStr).trim();
+        if (str.includes('T')) {
+            str = str.split('.')[0].split('+')[0].split('Z')[0]; 
+        } else {
+            str = str.replace(' ', 'T').split('.')[0].split('+')[0].split('Z')[0];
+        }
+        const d = new Date(str); 
+        return isNaN(d.getTime()) ? null : d;
+    };
+
     // --- FUNÇÕES DE FILTRAGEM SEGURAS ---
     window.isSerranaTransp = function(d) {
         let valTransp = String(d.transportadora || d['Nome da Transportadora'] || d.nomeTransportadora || '').toUpperCase().replace(/\s+/g, '');
@@ -228,13 +241,11 @@
     window.carregarResumoD1EMurais = async function() {
         const statEl = document.getElementById('status-load-d1');
         
-        // UNIFICAÇÃO: Usar apenas a conexão global. NUNCA MAIS usar supabaseClientFrota.
         if (!window.supabaseClientGlobal) {
             window.supabaseClientGlobal = supabase.createClient(SUPABASE_CONFIG.url, SUPABASE_CONFIG.key);
         }
-        
         const supaGlobal = window.supabaseClientGlobal;
-        const supaFrota = window.supabaseClientGlobal; // Aponta para a mesma base central
+        const supaFrota = window.supabaseClientGlobal; 
         
         const hoje = new Date();
         const ontem = new Date(hoje);
@@ -304,7 +315,7 @@
                 document.getElementById('d1-fabrica').innerText = window.formatarHorasMinutos(calcMed(fOp, 'filaFabricaHoras'));
             }
 
-            // ================= 2. MANUTENÇÃO D-1 =================
+            // ================= 2. MANUTENÇÃO D-1 (CÁLCULO EXATO COM FUSO E MESCLAGEM) =================
             let osData = [];
             let fromOs = 0;
             const stepOs = 1000;
@@ -320,84 +331,107 @@
                 if (!data || data.length < stepOs) fetchMoreOs = false;
             }
 
-            const { data: frotasData } = await supaFrota.from('frotas_manutencao').select('*').limit(1000);
+            const { data: frotasData } = await supaFrota.from('frotas_manutencao').select('*').limit(5000);
             
             if (osData && frotasData) {
-                const fimOntem = new Date(ontem);
-                fimOntem.setHours(23, 59, 59, 999);
-                
-                let frotasValidas = frotasData.filter(f => (f.status || '').toUpperCase() === 'ATIVO' && (f.categoria || '').toUpperCase() === 'TRITREM');
+                let frotasTritrem = frotasData.filter(f => (f.status || '').toUpperCase() === 'ATIVO' && (f.categoria || '').toUpperCase() === 'TRITREM');
 
+                const inicioDia = new Date(ontem);
+                const fimDia = new Date(ontem);
+                fimDia.setHours(23, 59, 59, 999);
+                
                 let msTotalDia = 24 * 60 * 60 * 1000;
-                let totalMsDisponivel = 0;
-                let msManutencao = 0;
+                let somaDispNoDiaMs = 0;
+                let totalMsExistenciaPeriodo = 0;
                 let totalOSDia = 0;
 
-                frotasValidas.forEach(frota => {
-                    let frotaInicioStr = frota.data_inicial ? frota.data_inicial : '2026-04-01';
-                    let dtEntradaVeiculo = new Date(frotaInicioStr + 'T00:00:00');
+                frotasTritrem.forEach(frota => {
+                    let frotaInicioStr = frota.data_inicial ? frota.data_inicial.split('T')[0] : '2026-04-01';
+                    let parts = frotaInicioStr.split('-');
+                    let dtEntradaVeiculo = new Date(parts[0], parts[1]-1, parts[2], 0, 0, 0);
                     
-                    let overlapDispInicio = dtEntradaVeiculo > ontem ? dtEntradaVeiculo : ontem;
-                    if (overlapDispInicio < fimOntem) {
-                        totalMsDisponivel += (fimOntem - overlapDispInicio);
+                    let overlapDispInicio = dtEntradaVeiculo > inicioDia ? dtEntradaVeiculo : inicioDia;
+                    let tempoDisp = 0;
+                    if (overlapDispInicio < fimDia) {
+                        tempoDisp = (fimDia - overlapDispInicio);
                     }
 
-                    const osCavalo = osData.filter(o => o.placa === frota.cavalo && o.status !== 'Agendada' && o.tipo !== 'Cavalo Disponível S/ Carreta');
+                    const placaFrotaNorm = (frota.cavalo || frota.placa || frota.placa_cavalo || '').trim().toUpperCase().replace(/-/g, '');
+                    let manutencaoIntervals = [];
+
+                    const todasOSCavalo = osData.filter(o => {
+                        let isOSInativa = (o.inativa === 1 || o.inativa === '1' || o.inativa === true);
+                        if (isOSInativa) return false;
+                        const placaOS = (o.placa || o.placa_cavalo || o.veiculo || o.cavalo || '').trim().toUpperCase().replace(/-/g, '');
+                        return placaOS === placaFrotaNorm && o.status !== 'Agendada' && o.status !== 'Cancelada' && o.tipo !== 'Cavalo Disponível S/ Carreta';
+                    });
                     
-                    osCavalo.forEach(os => {
-                        let osInStr = os.data_abertura;
-                        if(!osInStr) return;
-                        if(!osInStr.includes('T')) osInStr += 'T00:00:00';
-                        const osInicio = new Date(osInStr.replace('Z','').replace('+00:00',''));
+                    todasOSCavalo.forEach(os => {
+                        let dtAbertura = os.data_abertura ? window.tratarFusoDB(os.data_abertura) : null;
+                        let dtInicioM = os.data_inicio_manutencao ? window.tratarFusoDB(os.data_inicio_manutencao) : null;
+                        let osInicio = dtAbertura || dtInicioM; // Prioriza data_abertura = Cálculo de Ouro
+                        if (!osInicio) return;
                         
-                        let osFim = new Date(); 
-                        if(os.data_conclusao) {
-                            let osFimStr = os.data_conclusao;
-                            if(!osFimStr.includes('T')) osFimStr += 'T00:00:00';
-                            osFim = new Date(osFimStr.replace('Z','').replace('+00:00',''));
-                        }
+                        let osFim = os.data_conclusao ? window.tratarFusoDB(os.data_conclusao) : new Date(); 
                         
                         let inicioValido = osInicio > dtEntradaVeiculo ? osInicio : dtEntradaVeiculo;
-                        const oIn = inicioValido > ontem ? inicioValido : ontem;
-                        const oOut = osFim < fimOntem ? osFim : fimOntem;
+                        const overlapInicio = inicioValido > inicioDia ? inicioValido : inicioDia;
+                        const overlapFim = osFim < fimDia ? osFim : fimDia;
                         
-                        if (oIn < oOut) {
-                            msManutencao += (oOut - oIn);
+                        if (overlapInicio < overlapFim) { 
+                            manutencaoIntervals.push([overlapInicio.getTime(), overlapFim.getTime()]);
                             totalOSDia++;
                         }
                     });
-                });
 
-                let dispMs = totalMsDisponivel - msManutencao;
-                if(dispMs < 0) dispMs = 0;
-                let percDM = totalMsDisponivel > 0 ? (dispMs / totalMsDisponivel) * 100 : 100;
-                let medDisp = msTotalDia > 0 ? Math.round(dispMs / msTotalDia) : 0;
-
-                let osTempoMs = 0;
-                let qtdOsTempo = 0;
-                const placasValidas = frotasValidas.map(f => f.cavalo);
-
-                osData.forEach(os => {
-                    if (!os.placa || !placasValidas.includes(os.placa)) return;
-                    if (os.status === 'Agendada' || os.tipo === 'Cavalo Disponível S/ Carreta') return;
-                    
-                    let osInStr = os.data_abertura;
-                    if(!osInStr) return;
-                    if(!osInStr.includes('T')) osInStr += 'T00:00:00';
-                    const dtAb = new Date(osInStr.replace('Z','').replace('+00:00',''));
-                    
-                    let dtCon = new Date();
-                    if(os.data_conclusao) {
-                        let osFimStr = os.data_conclusao;
-                        if(!osFimStr.includes('T')) osFimStr += 'T00:00:00';
-                        dtCon = new Date(osFimStr.replace('Z','').replace('+00:00',''));
+                    // Mescla os intervalos
+                    let manutencaoCavalo = 0;
+                    if (manutencaoIntervals.length > 0) {
+                        manutencaoIntervals.sort((a,b) => a[0] - b[0]);
+                        let merged = [manutencaoIntervals[0]];
+                        for (let i = 1; i < manutencaoIntervals.length; i++) {
+                            let last = merged[merged.length - 1];
+                            let current = manutencaoIntervals[i];
+                            if (current[0] <= last[1]) last[1] = Math.max(last[1], current[1]);
+                            else merged.push(current);
+                        }
+                        merged.forEach(iv => manutencaoCavalo += (iv[1] - iv[0]));
                     }
 
-                    if (dtAb <= fimOntem && dtCon >= ontem) {
+                    let dispNoDiaMs = tempoDisp - manutencaoCavalo;
+                    if (dispNoDiaMs < 0) dispNoDiaMs = 0;
+
+                    somaDispNoDiaMs += dispNoDiaMs;
+                    totalMsExistenciaPeriodo += tempoDisp;
+                });
+
+                let percentDM = totalMsExistenciaPeriodo > 0 ? (somaDispNoDiaMs / totalMsExistenciaPeriodo) * 100 : 0;
+                if (percentDM > 100) percentDM = 100;
+                let mediaVeiculosDisp = totalMsExistenciaPeriodo > 0 ? Math.round(somaDispNoDiaMs / msTotalDia) : 0;
+
+                // KPI Tempo Médio
+                let osTempoMs = 0;
+                let qtdOsTempo = 0;
+                let cavalosValidos = frotasTritrem.map(f => (f.cavalo || f.placa || '').trim().toUpperCase().replace(/-/g, ''));
+
+                osData.forEach(os => {
+                    let isOSInativa = (os.inativa === 1 || os.inativa === '1' || os.inativa === true);
+                    if (isOSInativa) return;
+                    
+                    const placaOS = (os.placa || os.placa_cavalo || os.veiculo || os.cavalo || '').trim().toUpperCase().replace(/-/g, '');
+                    if (!placaOS || !cavalosValidos.includes(placaOS)) return;
+                    if (os.status === 'Agendada' || os.status === 'Cancelada' || os.tipo === 'Cavalo Disponível S/ Carreta') return;
+                    
+                    let dtAbertura = os.data_abertura ? window.tratarFusoDB(os.data_abertura) : null;
+                    if (!dtAbertura) return;
+                    
+                    let dtConclusao = os.data_conclusao ? window.tratarFusoDB(os.data_conclusao) : new Date();
+                    
+                    if (dtAbertura <= fimDia && dtConclusao >= inicioDia) {
                         const st = (os.status || '').toUpperCase();
                         if (st === 'CONCLUÍDA' || st === 'CONCLUIDA' || st === 'RESOLVIDO') {
-                            if (os.data_conclusao) {
-                                osTempoMs += (dtCon - dtAb);
+                            if (os.data_abertura && os.data_conclusao) {
+                                osTempoMs += (dtConclusao - dtAbertura);
                                 qtdOsTempo++;
                             }
                         }
@@ -412,8 +446,8 @@
                     tmosStr = `${hrs}h ${mins}m`;
                 }
 
-                document.getElementById('d1-dm').innerText = percDM.toFixed(1) + '%';
-                document.getElementById('d1-ativos').innerText = medDisp;
+                document.getElementById('d1-dm').innerText = percentDM.toFixed(2) + '%';
+                document.getElementById('d1-ativos').innerText = mediaVeiculosDisp;
                 document.getElementById('d1-manut').innerText = totalOSDia;
                 document.getElementById('d1-tmos').innerText = tmosStr;
             }
