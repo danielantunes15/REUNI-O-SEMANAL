@@ -6,6 +6,19 @@ console.log('[Dash Core] Inicializando dash_manutencao_core.js');
 
 window.filtroGlobalAtual = 'd1';
 
+// NOVO: Lê a data bruta como horário local ignorando o fuso que o banco carimbou
+window.tratarFusoDB = function(dateStr) {
+    if (!dateStr || dateStr === 'null' || dateStr === 'undefined') return null;
+    let str = String(dateStr).trim();
+    if (str.includes('T')) {
+        str = str.split('.')[0].split('+')[0].split('Z')[0]; 
+    } else {
+        str = str.replace(' ', 'T').split('.')[0].split('+')[0].split('Z')[0];
+    }
+    const d = new Date(str); 
+    return isNaN(d.getTime()) ? null : d;
+};
+
 window.setFiltroGlobal = function(tipo, el) {
     console.log(`[Dash Core] setFiltroGlobal alterado para: ${tipo}`);
     window.filtroGlobalAtual = tipo;
@@ -79,16 +92,19 @@ window.renderizarPatioManutencaoDash = function() {
         return;
     }
 
-    // Prevenção de quebra por case sensitive ou espaços (ex: " Ativo", "ATIVO")
+    // Normalização das placas para não perder veículos (Remover traços)
     let cavalosValidos = [];
     if (window.frotasManutencao) {
         cavalosValidos = window.frotasManutencao
             .filter(f => (f.status || '').toUpperCase() === 'ATIVO' && (f.categoria || '').toUpperCase() === 'TRITREM')
-            .map(f => (f.cavalo || '').trim());
+            .map(f => (f.cavalo || '').trim().toUpperCase().replace(/-/g, ''));
     }
 
     const osAtivas = window.ordensServico.filter(o => {
-        const placaOs = (o.placa || '').trim();
+        let isOSInativa = (o.inativa === 1 || o.inativa === '1' || o.inativa === true);
+        if (isOSInativa) return false;
+
+        const placaOs = (o.placa || o.placa_cavalo || o.veiculo || o.cavalo || '').trim().toUpperCase().replace(/-/g, '');
         if (!placaOs || !cavalosValidos.includes(placaOs)) return false;
         if (o.tipo === 'Sinistro' || o.tipo === 'Cavalo Disponível S/ Carreta') return false;
         
@@ -113,7 +129,7 @@ window.renderizarPatioManutencaoDash = function() {
         const pA = pesoPri[a.prioridade] || 0;
         const pB = pesoPri[b.prioridade] || 0;
         if (pA !== pB) return pB - pA;
-        return new Date(a.data_abertura) - new Date(b.data_abertura);
+        return new Date(window.tratarFusoDB(a.data_abertura)) - new Date(window.tratarFusoDB(b.data_abertura));
     });
 
     const agora = new Date();
@@ -128,7 +144,7 @@ window.renderizarPatioManutencaoDash = function() {
         let entradaHoraStr = '--:--';
 
         if (os.data_abertura) {
-            const inicio = new Date(os.data_abertura.replace('Z', '').replace('+00:00', ''));
+            const inicio = window.tratarFusoDB(os.data_abertura);
             const diffMs = agora - inicio;
             if(diffMs > 0) {
                 diffHrs = Math.floor(diffMs / (1000 * 60 * 60));
@@ -141,8 +157,9 @@ window.renderizarPatioManutencaoDash = function() {
         if (diffHrs >= 24) { colorCronometro = '#ef4444'; piscarAnimacao = 'animation: piscar 1.5s infinite;'; }
         else if (diffHrs >= 12) { colorCronometro = '#f59e0b'; }
 
-        const placaTrimmed = (os.placa || '').trim();
-        const frotaVinculada = (window.frotasManutencao || []).find(f => (f.cavalo || '').trim() === placaTrimmed) || {};
+        const placaTrimmed = (os.placa || os.placa_cavalo || os.veiculo || os.cavalo || '').trim().toUpperCase();
+        const placaNorm = placaTrimmed.replace(/-/g, '');
+        const frotaVinculada = (window.frotasManutencao || []).find(f => (f.cavalo || '').trim().toUpperCase().replace(/-/g, '') === placaNorm) || {};
         
         let conjuntosBadge = '';
         if (frotaVinculada.numero_frota && String(frotaVinculada.numero_frota).trim() !== '') {
@@ -210,37 +227,34 @@ window.atualizarKPIsGlobais = function() {
 
         let cavalosValidos = window.frotasManutencao
             .filter(f => (f.status || '').toUpperCase() === 'ATIVO' && (f.categoria || '').toUpperCase() === 'TRITREM')
-            .map(f => (f.cavalo || '').trim());
+            .map(f => (f.cavalo || '').trim().toUpperCase().replace(/-/g, ''));
 
         const datas = typeof window.getDatasFiltroGlobal === 'function' ? window.getDatasFiltroGlobal() : { inicio: new Date(), fim: new Date() };
         const inicio = datas.inicio;
         const fim = datas.fim;
+        const agora = new Date();
         
         let totalOS = 0, abertasOS = 0, concluidasOS = 0, msTotalTempo = 0, osComTempo = 0;
         
         window.ordensServico.forEach(os => {
-            const placaOs = (os.placa || '').trim();
+            let isOSInativa = (os.inativa === 1 || os.inativa === '1' || os.inativa === true);
+            if (isOSInativa) return;
+
+            const placaOs = (os.placa || os.placa_cavalo || os.veiculo || os.cavalo || '').trim().toUpperCase().replace(/-/g, '');
             if (!placaOs || !cavalosValidos.includes(placaOs)) return;
             if (os.status === 'Agendada' || os.tipo === 'Cavalo Disponível S/ Carreta') return;
             
-            let osInicioStr = os.data_abertura;
-            if (!osInicioStr) return;
-            if (!osInicioStr.includes('T')) osInicioStr += 'T00:00:00';
-            const dtAbertura = new Date(osInicioStr.replace('Z', '').replace('+00:00', ''));
-            let dtConclusao = new Date();
+            const dtAbertura = window.tratarFusoDB(os.data_abertura);
+            if (!dtAbertura) return;
             
-            if (os.data_conclusao) {
-                let osFimStr = os.data_conclusao;
-                if (!osFimStr.includes('T')) osFimStr += 'T00:00:00';
-                dtConclusao = new Date(osFimStr.replace('Z', '').replace('+00:00', ''));
-            }
+            let dtConclusao = os.data_conclusao ? window.tratarFusoDB(os.data_conclusao) : agora;
             
             if (dtAbertura <= fim && dtConclusao >= inicio) {
                 totalOS++;
                 const statusUpper = (os.status || '').toUpperCase();
                 if (statusUpper === 'CONCLUÍDA' || statusUpper === 'CONCLUIDA' || statusUpper === 'RESOLVIDO') {
                     concluidasOS++;
-                    if (dtAbertura && os.data_conclusao) { 
+                    if (os.data_abertura && os.data_conclusao) { 
                         msTotalTempo += (dtConclusao - dtAbertura);
                         osComTempo++;
                     }
@@ -259,8 +273,6 @@ window.atualizarKPIsGlobais = function() {
             tempoMedioStr = `${mediaHoras}h ${mediaMinutos}m`;
         }
         
-        console.log(`[Dash Core] KPIs Calculados: Total=${totalOS}, Abertas=${abertasOS}, Concluídas=${concluidasOS}`);
-
         const elKpiTotal = document.getElementById('kpiTotalOS');
         const elKpiAbertas = document.getElementById('kpiAbertasOS');
         const elKpiConcluidas = document.getElementById('kpiConcluidasOS');
@@ -276,40 +288,45 @@ window.atualizarKPIsGlobais = function() {
         let frotasValidas = window.frotasManutencao.filter(f => (f.status || '').toUpperCase() === 'ATIVO' && (f.categoria || '').toUpperCase() === 'TRITREM');
         if (frotasValidas.length === 0) return;
         
-        let fimParaCalculo = fim > new Date() ? new Date() : fim;
+        let fimParaCalculo = fim > agora ? agora : fim;
         let msTotalPeriodo = fimParaCalculo - inicio;
         if (msTotalPeriodo <= 0) msTotalPeriodo = 1;
         
         let msManutencaoComum = 0, msSOS = 0, totalMsDisponivelPeriodo = 0;
         
         frotasValidas.forEach(frota => {
-            let frotaInicioStr = frota.data_inicial ? frota.data_inicial : '2026-04-01';
-            let dtEntradaVeiculo = new Date(frotaInicioStr + 'T00:00:00');
-            const cavaloFrota = (frota.cavalo || '').trim();
+            let frotaInicioStr = frota.data_inicial ? frota.data_inicial.split('T')[0] : '2026-04-01';
+            let parts = frotaInicioStr.split('-');
+            let dtEntradaVeiculo = new Date(parts[0], parts[1]-1, parts[2], 0, 0, 0);
+            
+            const placaFrotaNorm = (frota.cavalo || frota.placa || frota.placa_cavalo || '').trim().toUpperCase().replace(/-/g, '');
             
             let overlapDispInicio = dtEntradaVeiculo > inicio ? dtEntradaVeiculo : inicio;
             if (overlapDispInicio < fimParaCalculo) {
                 totalMsDisponivelPeriodo += (fimParaCalculo - overlapDispInicio);
             }
             
-            const todasOSCavalo = window.ordensServico.filter(o => (o.placa || '').trim() === cavaloFrota && o.status !== 'Agendada' && o.tipo !== 'Cavalo Disponível S/ Carreta');
+            const todasOSCavalo = window.ordensServico.filter(o => {
+                let isOSInativa = (o.inativa === 1 || o.inativa === '1' || o.inativa === true);
+                if (isOSInativa) return false;
+                const pOS = (o.placa || o.placa_cavalo || o.veiculo || o.cavalo || '').trim().toUpperCase().replace(/-/g, '');
+                const st = (o.status || '').toUpperCase();
+                return pOS === placaFrotaNorm && st !== 'AGENDADA' && st !== 'CANCELADA' && o.tipo !== 'Cavalo Disponível S/ Carreta';
+            });
+
             todasOSCavalo.forEach(os => {
-                let osInicioStr = os.data_abertura;
-                if (!osInicioStr) return;
-                if (!osInicioStr.includes('T')) osInicioStr += 'T00:00:00';
-                const osInicio = new Date(osInicioStr.replace('Z', '').replace('+00:00', ''));
+                let dtAbertura = os.data_abertura ? window.tratarFusoDB(os.data_abertura) : null;
+                let dtInicioM = os.data_inicio_manutencao ? window.tratarFusoDB(os.data_inicio_manutencao) : null;
+                let osInicio = dtAbertura || dtInicioM; // Prioriza abertura
+                if (!osInicio) return;
                 
-                let osFim = new Date(); 
-                if (os.data_conclusao) {
-                    let osFimStr = os.data_conclusao;
-                    if (!osFimStr.includes('T')) osFimStr += 'T00:00:00';
-                    osFim = new Date(osFimStr.replace('Z', '').replace('+00:00', ''));
-                }
+                let osFim = os.data_conclusao ? window.tratarFusoDB(os.data_conclusao) : agora;
                 
                 let inicioValido = osInicio > dtEntradaVeiculo ? osInicio : dtEntradaVeiculo;
                 let overlapInicio = inicioValido > inicio ? inicioValido : inicio;
                 const overlapFim = osFim < fimParaCalculo ? osFim : fimParaCalculo;
                 
+                // Soma de forma contínua a inatividade real
                 if (overlapInicio < overlapFim) {
                     const tempoParado = overlapFim - overlapInicio;
                     const tipoOS = (os.tipo || '').toUpperCase();
@@ -339,7 +356,7 @@ window.atualizarKPIsGlobais = function() {
         const elAvgManut = document.getElementById('avgManut');
         const elAvgSOS = document.getElementById('avgSOS');
         
-        if(elAvgDM) elAvgDM.innerText = percentDMReal.toFixed(1) + '%';
+        if(elAvgDM) elAvgDM.innerText = percentDMReal.toFixed(2) + '%';
         if(elAvgAtivos) elAvgAtivos.innerText = mediaAtivosReal;
         if(elAvgManut) elAvgManut.innerText = mediaManutReal;
         if(elAvgSOS) elAvgSOS.innerText = mediaSOSReal;
