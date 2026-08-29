@@ -15,18 +15,28 @@ window.renderizarGraficoStatusFrotaHorario = function() {
         const agora = new Date();
         let dataBase = new Date(); 
         let ehHoje = true;
+
+        // Puxa o filtro global para saber qual é o dia atual configurado na tela
+        const datasGlobais = typeof window.getDatasFiltroGlobal === 'function' ? window.getDatasFiltroGlobal() : null;
         const inputData = document.getElementById('filtroDataEspecificaHoraria');
-        if (inputData && inputData.value) {
+
+        // Sincronização Inteligente: Força a data do filtro global se ele mudou ou se o input está vazio
+        if (datasGlobais && inputData && (!inputData.value || window.ultimoFiltroGlobalHorario !== window.filtroGlobalAtual)) {
+            dataBase = new Date(datasGlobais.inicio); // Pega a data base do filtro global
+            window.ultimoFiltroGlobalHorario = window.filtroGlobalAtual; // Salva o estado atual
+            
+            const mesStr = String(dataBase.getMonth() + 1).padStart(2, '0');
+            const diaStr = String(dataBase.getDate()).padStart(2, '0');
+            inputData.value = `${dataBase.getFullYear()}-${mesStr}-${diaStr}`;
+        } else if (inputData && inputData.value) {
+            // Se o usuário mexeu no campinho de data manual do gráfico, usamos a data dele
             const partesData = inputData.value.split('-');
             if(partesData.length === 3) {
                 dataBase = new Date(partesData[0], partesData[1] - 1, partesData[2]);
-                ehHoje = (dataBase.getDate() === agora.getDate() && dataBase.getMonth() === agora.getMonth() && dataBase.getFullYear() === agora.getFullYear());
             }
-        } else if (inputData && !inputData.value) {
-            const mesStr = String(agora.getMonth() + 1).padStart(2, '0');
-            const diaStr = String(agora.getDate()).padStart(2, '0');
-            inputData.value = `${agora.getFullYear()}-${mesStr}-${diaStr}`;
         }
+        
+        ehHoje = (dataBase.getDate() === agora.getDate() && dataBase.getMonth() === agora.getMonth() && dataBase.getFullYear() === agora.getFullYear());
         
         const labelsX = [], dadosBarraAtivos = [], dadosBarraManut = [], dadosBarraSOS = [];
         let horaLimite = ehHoje ? agora.getHours() : 23;
@@ -59,7 +69,7 @@ window.renderizarGraficoStatusFrotaHorario = function() {
                 todasOSCavalo.forEach(os => {
                     let dtAbertura = os.data_abertura ? window.tratarFusoDB(os.data_abertura) : null;
                     let dtInicioM = os.data_inicio_manutencao ? window.tratarFusoDB(os.data_inicio_manutencao) : null;
-                    let osInicio = dtAbertura || dtInicioM; // 🔧 CORREÇÃO: Prioriza Abertura
+                    let osInicio = dtAbertura || dtInicioM; // Prioriza Abertura
                     if (!osInicio) return;
                     
                     let osFim = os.data_conclusao ? window.tratarFusoDB(os.data_conclusao) : agora;
