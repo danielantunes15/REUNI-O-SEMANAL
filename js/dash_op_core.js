@@ -3,7 +3,6 @@
 // =========================================================
 
 // --- GERENCIADOR UNIFICADO DE BANCO DE DADOS ---
-// Unifica as chamadas antigas para usar o banco global inicializado no config_db.js
 window.supabaseClientLocal = window.supabaseClientGlobal;
 window.supabaseClientMan = window.supabaseClientGlobal;
 
@@ -12,19 +11,16 @@ window.getGlobalDB = function() {
 };
 // --------------------------------------------------
 
-// Sincronizador de Data do Banco (Garante que a contagem de horas da O.S seja idêntica ao Indicadores)
+// NOVO: Lê a data bruta como horário local ignorando o fuso que o banco carimbou (Correção UTC -3h)
 window.corrigirDataSupabaseLocal = function(dateStr) {
     if (!dateStr || dateStr === 'null' || dateStr === 'undefined') return null;
     let str = String(dateStr).trim();
-    if (!str.includes('T')) str = str.replace(' ', 'T');
-    const partes = str.split('T');
-    if (partes.length === 2) {
-        const horaStr = partes[1];
-        if (!horaStr.includes('Z') && !horaStr.includes('+') && !horaStr.includes('-')) {
-            str += 'Z';
-        }
+    if (str.includes('T')) {
+        str = str.split('.')[0].split('+')[0].split('Z')[0]; 
+    } else {
+        str = str.replace(' ', 'T').split('.')[0].split('+')[0].split('Z')[0];
     }
-    const d = new Date(str);
+    const d = new Date(str); 
     return isNaN(d.getTime()) ? null : d;
 };
 
@@ -51,12 +47,11 @@ window.op_chartDataLabelsPlugin = {
 };
 
 window.fullHistoricoDataOp = [];
-window.activeQuickFilterOp = 'D-1'; // Inicializa como D-1
+window.activeQuickFilterOp = 'D-1'; 
 window.diasConsideradosGlobais = 1;
 window.chartCarregamento = null;
 window.chartTransporte = null;
 
-// ARRAYS PADRÕES (Serão substituídos pelo Banco de Dados)
 window.frentesNomes = {
     C1: 'C1: Serrana - Fr. 05',
     C2: 'C2: Serrana - Fr. 06',
@@ -69,9 +64,6 @@ window.serranaLoaders = [];
 window.reflorestarLoaders = [];
 window.jslLoaders = [];
 
-// =========================================================================
-// O BUSCADOR DINÂMICO DE GRUAS NO SUPABASE (TABELA config_gruas)
-// =========================================================================
 window.carregarConfigGruas = async function() {
     try {
         const { data, error } = await window.supabaseClientLocal.from('config_gruas').select('*');
@@ -80,7 +72,6 @@ window.carregarConfigGruas = async function() {
             
             data.forEach(row => {
                 let ord = row.ordem ? row.ordem.toUpperCase().trim() : '';
-                
                 if (row.codigos) {
                     const codigos = row.codigos.split(',').map(c => c.trim().toUpperCase()).filter(Boolean);
                     if (ord === 'C1') c1.push(...codigos);
@@ -88,10 +79,7 @@ window.carregarConfigGruas = async function() {
                     else if (ord === 'C3') c3.push(...codigos);
                     else if (ord === 'C4') c4.push(...codigos);
                 }
-                
-                if (row.frente && ord) {
-                    window.frentesNomes[ord] = `${ord}: ${row.frente}`;
-                }
+                if (row.frente && ord) { window.frentesNomes[ord] = `${ord}: ${row.frente}`; }
             });
 
             if (c1.length > 0) window.serranaFrente05Loaders = c1;
@@ -100,27 +88,22 @@ window.carregarConfigGruas = async function() {
             if (c4.length > 0) window.jslLoaders = c4;
             
             window.serranaLoaders = [...window.serranaFrente05Loaders, ...window.serranaFrente06Loaders];
-            console.log("✅ Configuração de gruas dinâmica carregada com sucesso da tabela config_gruas!");
             
             const thC1 = document.getElementById('th_c1'); if(thC1) thC1.innerHTML = `<i class="fas fa-star mr-1"></i> ${window.frentesNomes['C1']}`;
             const thC2 = document.getElementById('th_c2'); if(thC2) thC2.innerHTML = `<i class="fas fa-star mr-1"></i> ${window.frentesNomes['C2']}`;
             const thC3 = document.getElementById('th_c3'); if(thC3) thC3.innerHTML = `<i class="fas fa-tree mr-1"></i> ${window.frentesNomes['C3']}`;
             const thC4 = document.getElementById('th_c4'); if(thC4) thC4.innerHTML = `<i class="fas fa-leaf mr-1"></i> ${window.frentesNomes['C4']}`;
         }
-    } catch (e) {
-        console.error("Erro ao carregar tabela config_gruas:", e);
-    }
+    } catch (e) { console.error("Erro ao carregar tabela config_gruas:", e); }
 };
 
-// --- VARIÁVEIS PARA AS METAS DINÂMICAS ---
 window.metaCaixaMedia = 0;
 window.metaVolumeDiario = 0;
 window.metaViagensCalculada = 0;
-
-window.metaCicloDecimal = 10.083; // Padrão 10h 05m
-window.metaFilaCampoDecimal = 1.333; // Padrão 1h 20m
-window.metaCargaDecimal = 0.5; // Padrão 30m
-window.metaFilaFabricaDecimal = 0.5; // Padrão 30m
+window.metaCicloDecimal = 10.083; 
+window.metaFilaCampoDecimal = 1.333; 
+window.metaCargaDecimal = 0.5; 
+window.metaFilaFabricaDecimal = 0.5; 
 
 window.parseMetaTempo = function(val) {
     if (val === null || val === undefined || val === '') return null;
@@ -138,9 +121,6 @@ window.parseMetaTempo = function(val) {
     return null;
 };
 
-// =========================================================================
-// O VARREDOR UNIVERSAL DE METAS
-// =========================================================================
 window.carregarMetasGlobais = async function() {
     try {
         const dbs = [ window.supabaseClientLocal, window.supabaseClientMan, window.getGlobalDB() ];
@@ -167,7 +147,6 @@ window.carregarMetasGlobais = async function() {
                     let filaF = window.parseMetaTempo(m.meta_fila_fabrica) ?? window.parseMetaTempo(m.cfg_meta_fila_fabrica);
                     if (filaF !== null) window.metaFilaFabricaDecimal = filaF;
                     
-                    console.log("✅ Metas extraídas com sucesso do banco:", db.supabaseUrl);
                     metasEncontradas = true;
                     break;
                 }
@@ -189,7 +168,6 @@ window.carregarMetasGlobais = async function() {
                             if (item.chave === 'cfg_meta_carga' && v !== null) window.metaCargaDecimal = v;
                             if (item.chave === 'cfg_meta_fila_fabrica' && v !== null) window.metaFilaFabricaDecimal = v;
                         });
-                        console.log("✅ Metas recuperadas de 'configuracoes' do Banco:", db.supabaseUrl);
                         break;
                     }
                 } catch (e) {}
@@ -220,9 +198,6 @@ window.normalizarCiclos = function(dataArr) {
     });
 };
 
-// =========================================================
-// SISTEMA BLINDADO DE IDENTIFICAÇÃO DE GRUAS E TRANSPORTADORA
-// =========================================================
 window.checkLoader = function(d, loaderArray, prefix = '') {
     let colunasPrioritarias = [];
     let outrasColunas = [];
@@ -287,7 +262,6 @@ window.isSerranaTransp = function(d) {
     return false;
 };
 
-// Modifica visualmente e na lógica o botão rápido ativo
 window.setQuickFilterOpUI = function(qf) {
     window.activeQuickFilterOp = qf;
     const btnQFs = document.querySelectorAll('.btn-op-qf');
@@ -347,8 +321,6 @@ window.setupOperacionalFilters = function() {
 window.loadManutencaoDataForMeta = async function() {
     try {
         const client = window.supabaseClientLocal; 
-        
-        // LIMITADO A 5000 COM ORDENAÇÃO E EXCLUSÃO DO STATUS "Agendada" PARA FUNCIONAR IGUAL AO INDICADORES
         const osResp = await client.from('ordens_servico')
             .select('*')
             .neq('status', 'Agendada')
@@ -424,7 +396,6 @@ window.loadOperacionalData = async function() {
                     filterMesOp.insertAdjacentHTML('beforeend', `<option value="${mStr}">${nomeMes}</option>`);
                 });
                 
-                // Força o mês para "Todos os Meses" para permitir que o D-1 assuma o controle na inicialização
                 filterMesOp.value = 'ALL';
             }
             if(filterTransp) {
@@ -600,14 +571,12 @@ window.atualizarPainelOperacional = function() {
     
     window.metaViagensCalculada = 0;
     let diasConsideradosCalc = 1;
-    let mediaAtivosReal = 0; 
 
     // ========================================================================
     // CÁLCULO EXATO DE META E DISPONIBILIDADE BASEADO NA MANUTENÇÃO E VEÍCULOS
     // ========================================================================
     if (elMetaTexto && window.frotasParaMeta && window.osParaMeta) {
         
-        // FILTRO DE ATIVOS EXATAMENTE IGUAL AO RELATÓRIO GERENCIAL
         const frotasAtivas = window.frotasParaMeta.filter(f => 
             f.status === 'Ativo' && 
             f.categoria && 
@@ -656,87 +625,108 @@ window.atualizarPainelOperacional = function() {
 
         window.diasConsideradosGlobais = diasConsideradosCalc;
 
-        let fimParaCalculo = dataFimCalc > new Date() ? new Date() : dataFimCalc;
-        let msTotalPeriodo = fimParaCalculo.getTime() - dataInicioCalc.getTime();
-        if (msTotalPeriodo <= 0) msTotalPeriodo = 86400000; 
+        // >> A LÓGICA DE OURO DA SERRANA (IDÊNTICA AOS INDICADORES) <<
+        let inicioPeriodo = new Date(dataInicioCalc);
+        inicioPeriodo.setHours(0, 0, 0, 0);
 
-        let totalMetaCalculadaExata = 0;
-        let totalDispNoPeriodoMs = 0;
+        let fimDia = new Date(inicioPeriodo);
+        fimDia.setDate(fimDia.getDate() + 1); // 00:00:00 do dia seguinte = exatas 24h
 
-        frotasAtivas.forEach(frota => {
-            // DATA BASE EXATA DE ENTRADA DO VEICULO
-            let dtEntradaVeiculo = new Date('2026-04-01T00:00:00');
-            if(frota.data_inicial) dtEntradaVeiculo = new Date(frota.data_inicial + 'T00:00:00');
+        let agora = new Date();
+        let isHoje = inicioPeriodo.toDateString() === agora.toDateString();
 
-            let overlapDispInicio = dtEntradaVeiculo > dataInicioCalc ? dtEntradaVeiculo : dataInicioCalc;
-            let totalMsDisponivelVeiculo = 0;
-            
-            if (overlapDispInicio < fimParaCalculo) {
-                totalMsDisponivelVeiculo = (fimParaCalculo.getTime() - overlapDispInicio.getTime());
-            }
+        let fimParaCalculo = isHoje ? agora : fimDia;
+        let msTotalPeriodo = fimParaCalculo.getTime() - inicioPeriodo.getTime();
+        if (msTotalPeriodo <= 0) msTotalPeriodo = 86400000;
 
-            if (totalMsDisponivelVeiculo > 0) {
-                let msManutVeiculo = 0;
-                let placaFrotaNorm = (frota.cavalo || frota.placa || '').trim().toUpperCase().replace(/-/g, ''); 
-                
-                // EXCLUSÃO ESTRITA EXATAMENTE COMO NO RELATÓRIO DE INDICADORES
-                const todasOSCavalo = window.osParaMeta.filter(o => {
-                    let placaOS = (o.placa || '').trim().toUpperCase().replace(/-/g, '');
-                    if (placaOS !== placaFrotaNorm) return false;
-                    let isOSInativa = (o.inativa === 1 || o.inativa === '1' || o.inativa === true);
-                    if (isOSInativa) return false;
-                    if (o.status === 'Agendada' || o.status === 'Cancelada') return false;
-                    if (o.tipo && o.tipo.toUpperCase() === 'CAVALO DISPONÍVEL S/ CARRETA') return false;
-                    return true;
-                });
-                
-                todasOSCavalo.forEach(os => {
-                    let osInicio = window.corrigirDataSupabaseLocal(os.data_abertura); // Prioriza a Abertura
-                    if (!osInicio) return;
+        let totalMsExistenciaPeriodo = 0;
+        let somaDispNoDiaMs = 0;
+        let metaTotalViagens = 0;
+
+        let totalFrotaBase = frotasAtivas.length > 0 ? frotasAtivas.length : ((window.metasGlobaisObj && window.metasGlobaisObj.tamanho_frota) ? window.metasGlobaisObj.tamanho_frota : 0);
+
+        if (frotasAtivas.length > 0) {
+            frotasAtivas.forEach(frota => {
+                let frotaInicioStr = frota.data_inicial ? frota.data_inicial.split('T')[0] : '2026-04-01';
+                let parts = frotaInicioStr.split('-');
+                let dtEntradaVeiculo = new Date(parts[0], parts[1]-1, parts[2], 0, 0, 0);
+
+                let overlapDispInicio = dtEntradaVeiculo > inicioPeriodo ? dtEntradaVeiculo : inicioPeriodo;
+                let tempoDisp = fimParaCalculo.getTime() - overlapDispInicio.getTime();
+                if (tempoDisp < 0) tempoDisp = 0;
+
+                const placaFrotaNorm = (frota.cavalo || frota.placa || frota.placa_cavalo || '').trim().toUpperCase().replace(/-/g, '');
+                let manutencaoCavalo = 0;
+
+                if (placaFrotaNorm && tempoDisp > 0 && window.osParaMeta && window.osParaMeta.length > 0) {
+                    const todasOSCavalo = window.osParaMeta.filter(o => {
+                        let isOSInativa = (o.inativa === 1 || o.inativa === '1' || o.inativa === true);
+                        if (isOSInativa) return false;
+                        const status = o.status ? o.status.trim().toUpperCase() : '';
+                        if (status === 'CANCELADA' || status === 'AGENDADA') return false;
+                        if (o.tipo && o.tipo.toUpperCase() === 'CAVALO DISPONÍVEL S/ CARRETA') return false;
+                        const placaOS = (o.placa || o.placa_cavalo || o.veiculo || o.cavalo || '').trim().toUpperCase().replace(/-/g, '');
+                        return placaOS === placaFrotaNorm;
+                    });
                     
-                    let osFim = os.data_conclusao ? window.corrigirDataSupabaseLocal(os.data_conclusao) : new Date();
-                    
-                    let inicioValido = osInicio > dtEntradaVeiculo ? osInicio : dtEntradaVeiculo;
-                    const overlapInicio = inicioValido > dataInicioCalc ? inicioValido : dataInicioCalc;
-                    const overlapFim = osFim < fimParaCalculo ? osFim : fimParaCalculo;
-                    
-                    // Soma Contínua (Não mescla intervalos = igual ao Relatório)
-                    if (overlapInicio < overlapFim) {
-                        msManutVeiculo += (overlapFim.getTime() - overlapInicio.getTime());
-                    }
-                });
-
-                let dispVeiculoMs = totalMsDisponivelVeiculo - msManutVeiculo;
-                if (dispVeiculoMs < 0) dispVeiculoMs = 0;
-
-                totalDispNoPeriodoMs += dispVeiculoMs;
-
-                let metaDiariaVeiculo = 2; 
-                if (frota.meta !== null && frota.meta !== undefined && frota.meta !== '') {
-                    let parsedMeta = parseFloat(frota.meta);
-                    if (!isNaN(parsedMeta) && parsedMeta > 0) {
-                        metaDiariaVeiculo = parsedMeta;
-                    }
+                    todasOSCavalo.forEach(os => {
+                        // Aplica o Fuso DB Nativo
+                        let dtAbertura = os.data_abertura ? window.corrigirDataSupabaseLocal(os.data_abertura) : null;
+                        let dtInicioM = os.data_inicio_manutencao ? window.corrigirDataSupabaseLocal(os.data_inicio_manutencao) : null;
+                        let osInicio = dtAbertura || dtInicioM; // Prioriza a abertura
+                        if (!osInicio) return;
+                        
+                        let osFim = os.data_conclusao ? window.corrigirDataSupabaseLocal(os.data_conclusao) : agora;
+                        
+                        let inicioValido = osInicio > dtEntradaVeiculo ? osInicio : dtEntradaVeiculo;
+                        const overlapInicio = inicioValido > inicioPeriodo ? inicioValido : inicioPeriodo;
+                        const overlapFim = osFim < fimParaCalculo ? osFim : fimParaCalculo;
+                        
+                        // SOMA CONTÍNUA DAS O.S. (Matemática Oficial sem mesclar)
+                        if (overlapInicio < overlapFim) {
+                            manutencaoCavalo += (overlapFim.getTime() - overlapInicio.getTime());
+                        }
+                    });
                 }
 
-                let veiculoDiasDisponiveis = dispVeiculoMs / 86400000;
-                totalMetaCalculadaExata += (veiculoDiasDisponiveis * metaDiariaVeiculo);
-            }
-        });
+                let dispNoDiaMs = tempoDisp - manutencaoCavalo;
+                if (dispNoDiaMs < 0) dispNoDiaMs = 0;
 
-        mediaAtivosReal = Math.round(totalDispNoPeriodoMs / msTotalPeriodo);
+                somaDispNoDiaMs += dispNoDiaMs;
+                totalMsExistenciaPeriodo += tempoDisp;
+
+                let metaVeiculo = frota.meta ? parseFloat(frota.meta) : 0;
+                let proporcaoPeriodo = dispNoDiaMs / (24 * 60 * 60 * 1000); 
+                metaTotalViagens += (metaVeiculo * proporcaoPeriodo);
+            });
+        } else if (totalFrotaBase > 0) {
+            totalMsExistenciaPeriodo = totalFrotaBase * msTotalPeriodo;
+            somaDispNoDiaMs = totalMsExistenciaPeriodo;
+        }
+
+        window.metaViagensCalculada = Math.round(metaTotalViagens);
+
+        let percentDM = totalMsExistenciaPeriodo > 0 ? (somaDispNoDiaMs / totalMsExistenciaPeriodo) * 100 : 0;
+        if (percentDM > 100) percentDM = 100;
+        let corDm = percentDM >= 90 ? 'text-emerald-400' : (percentDM >= 80 ? 'text-amber-400' : 'text-rose-400');
+        
+        let mediaVeiculosDisp = totalMsExistenciaPeriodo > 0 ? (somaDispNoDiaMs / msTotalPeriodo) : 0;
+        let mediaVeiculosDispStr = Math.round(mediaVeiculosDisp).toString();
 
         if (activeT === 'ALL' || activeT.toUpperCase().includes('SERRANALOG')) {
-            window.metaViagensCalculada = Math.round(totalMetaCalculadaExata);
-            
-            let viagensFaltantes = window.metaViagensCalculada - totalViagens;
-            let textoFalta = viagensFaltantes > 0 ? `| Faltam: <b class="text-rose-400">${viagensFaltantes}</b> viag.` : `| <b class="text-emerald-400">Batida!</b>`;
-            
-            elMetaTexto.innerHTML = `<span class="text-white drop-shadow-md">Disp: <b>${mediaAtivosReal}</b> (DM) | Meta: <b>${window.metaViagensCalculada}</b> viag. ${textoFalta}</span>`;
+            let atingiuMeta = totalViagens >= window.metaViagensCalculada;
+            let corMetaStr = atingiuMeta ? 'text-emerald-400' : 'text-rose-500';
+
+            elMetaTexto.innerHTML = `
+                <span class="${corDm} font-bold text-[12px]" title="Disponibilidade Mecânica Real e Média de Veículos Disponíveis">DM: ${percentDM.toFixed(2)}% (${mediaVeiculosDispStr})</span> 
+                <span class="text-slate-600 mx-[6px]">|</span> 
+                <span class="${corMetaStr} font-bold text-[12px]" title="Meta ajustada pela DM">META: ${window.metaViagensCalculada}</span>
+            `;
             elMetaTexto.classList.remove('hidden');
+            elMetaTexto.className = "mt-auto pt-3 border-t border-slate-700/50 flex items-center uppercase tracking-wider block whitespace-nowrap overflow-hidden text-ellipsis";
             
             if (window.metaViagensCalculada > 0) {
-                if (totalViagens >= window.metaViagensCalculada) {
+                if (atingiuMeta) {
                     if(elTotalViagens) elTotalViagens.className = "text-[32px] font-extrabold leading-none m-0 text-emerald-400 drop-shadow-md transition-all";
                     if(elIconeMeta) elIconeMeta.innerHTML = '<i class="fas fa-check-circle text-emerald-400 text-[22px] drop-shadow-md" title="Meta Atingida"></i>';
                 } else {
@@ -901,7 +891,6 @@ window.atualizarPainelOperacional = function() {
     window.atualizarElementoTempo('tempoCarregamento', mediaTempoCarregamento, window.metaCargaDecimal);
     window.atualizarElementoTempo('filaFabrica', mediaFilaFabrica, window.metaFilaFabricaDecimal);
 
-    // TABELA COMPARATIVA DE CENÁRIOS COM BLINDAGEM DE GRUAS EXATA
     const tbodyComp = document.getElementById('comparativoBody');
     if (tbodyComp) {
         const dataC1 = filteredGlobal.filter(d => window.checkLoader(d, window.serranaFrente05Loaders) && window.isSerranaTransp(d));
@@ -982,9 +971,6 @@ window.atualizarPainelOperacional = function() {
     }
 };
 
-// =========================================================
-// INICIALIZAÇÃO GERAL DO OPERACIONAL
-// =========================================================
 window.initNovoDashboardOperacional = async function() {
     if(typeof Chart === 'undefined') {
         setTimeout(window.initNovoDashboardOperacional, 50);
@@ -996,9 +982,8 @@ window.initNovoDashboardOperacional = async function() {
     Chart.defaults.font.family = "'Inter', sans-serif";
 
     window.setupOperacionalFilters();
-    window.setQuickFilterOpUI('D-1'); // FORÇA O D-1 VISUALMENTE NA INICIALIZAÇÃO!
+    window.setQuickFilterOpUI('D-1'); 
     
-    // GATILHO DAS FUNÇÕES DINÂMICAS DO BANCO DE DADOS
     await window.carregarConfigGruas();
     await window.carregarMetasGlobais();
 
