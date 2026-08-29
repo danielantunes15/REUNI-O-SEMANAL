@@ -51,7 +51,7 @@ window.op_chartDataLabelsPlugin = {
 };
 
 window.fullHistoricoDataOp = [];
-window.activeQuickFilterOp = 'ALL';
+window.activeQuickFilterOp = 'D-1'; // Inicializa como D-1
 window.diasConsideradosGlobais = 1;
 window.chartCarregamento = null;
 window.chartTransporte = null;
@@ -287,6 +287,21 @@ window.isSerranaTransp = function(d) {
     return false;
 };
 
+// Modifica visualmente e na lógica o botão rápido ativo
+window.setQuickFilterOpUI = function(qf) {
+    window.activeQuickFilterOp = qf;
+    const btnQFs = document.querySelectorAll('.btn-op-qf');
+    btnQFs.forEach(b => {
+        if(b.getAttribute('data-op-qf') === qf) {
+            b.classList.add('active', 'border-sky-500/50', 'text-sky-400', 'bg-sky-900/30');
+            b.classList.remove('border-transparent', 'text-slate-400', 'hover:bg-slate-700/50');
+        } else {
+            b.classList.remove('active', 'border-sky-500/50', 'text-sky-400', 'bg-sky-900/30');
+            b.classList.add('border-transparent', 'text-slate-400', 'hover:bg-slate-700/50');
+        }
+    });
+};
+
 window.setupOperacionalFilters = function() {
     const btnQFs = document.querySelectorAll('.btn-op-qf');
     const datePicker = document.getElementById('opDatePicker');
@@ -295,16 +310,7 @@ window.setupOperacionalFilters = function() {
     
     btnQFs.forEach(btn => {
         btn.addEventListener('click', (e) => {
-            window.activeQuickFilterOp = e.currentTarget.getAttribute('data-op-qf');
-            btnQFs.forEach(b => {
-                if(b.getAttribute('data-op-qf') === window.activeQuickFilterOp) {
-                    b.classList.add('active', 'border-sky-500/50', 'text-sky-400', 'bg-sky-900/30');
-                    b.classList.remove('border-transparent', 'text-slate-400', 'hover:bg-slate-700/50');
-                } else {
-                    b.classList.remove('active', 'border-sky-500/50', 'text-sky-400', 'bg-sky-900/30');
-                    b.classList.add('border-transparent', 'text-slate-400', 'hover:bg-slate-700/50');
-                }
-            });
+            window.setQuickFilterOpUI(e.currentTarget.getAttribute('data-op-qf'));
             if(datePicker) datePicker.value = '';
             if(filterMesOp) filterMesOp.value = 'ALL';
             window.atualizarPainelOperacional();
@@ -314,11 +320,7 @@ window.setupOperacionalFilters = function() {
     if(datePicker) {
         datePicker.addEventListener('change', () => {
             if(datePicker.value) {
-                window.activeQuickFilterOp = 'DATE';
-                btnQFs.forEach(b => {
-                    b.classList.remove('active', 'border-sky-500/50', 'text-sky-400', 'bg-sky-900/30');
-                    b.classList.add('border-transparent', 'text-slate-400', 'hover:bg-slate-700/50');
-                });
+                window.setQuickFilterOpUI('DATE');
                 if(filterMesOp) filterMesOp.value = 'ALL';
                 window.atualizarPainelOperacional();
             }
@@ -328,11 +330,7 @@ window.setupOperacionalFilters = function() {
     if(filterMesOp) {
         filterMesOp.addEventListener('change', () => {
             if(filterMesOp.value !== 'ALL') {
-                window.activeQuickFilterOp = 'ALL';
-                btnQFs.forEach(b => {
-                    b.classList.remove('active', 'border-sky-500/50', 'text-sky-400', 'bg-sky-900/30');
-                    b.classList.add('border-transparent', 'text-slate-400', 'hover:bg-slate-700/50');
-                });
+                window.setQuickFilterOpUI('ALL');
                 if(datePicker) datePicker.value = '';
             }
             window.atualizarPainelOperacional();
@@ -426,9 +424,8 @@ window.loadOperacionalData = async function() {
                     filterMesOp.insertAdjacentHTML('beforeend', `<option value="${mStr}">${nomeMes}</option>`);
                 });
                 
-                const hj = new Date();
-                const mesAtualStr = String(hj.getMonth() + 1).padStart(2, '0') + '/' + hj.getFullYear();
-                if(allMeses.includes(mesAtualStr)) { filterMesOp.value = mesAtualStr; }
+                // Força o mês para "Todos os Meses" para permitir que o D-1 assuma o controle na inicialização
+                filterMesOp.value = 'ALL';
             }
             if(filterTransp) {
                 const transps = [...new Set(window.fullHistoricoDataOp.map(d => d.transportadora))].filter(Boolean).sort();
@@ -680,18 +677,21 @@ window.atualizarPainelOperacional = function() {
 
             if (totalMsDisponivelVeiculo > 0) {
                 let msManutVeiculo = 0;
-                let placaFrota = frota.placa || frota.cavalo; 
+                let placaFrotaNorm = (frota.cavalo || frota.placa || '').trim().toUpperCase().replace(/-/g, ''); 
                 
                 // EXCLUSÃO ESTRITA EXATAMENTE COMO NO RELATÓRIO DE INDICADORES
                 const todasOSCavalo = window.osParaMeta.filter(o => {
-                    if (o.placa !== placaFrota) return false;
-                    if (o.status === 'Agendada') return false;
+                    let placaOS = (o.placa || '').trim().toUpperCase().replace(/-/g, '');
+                    if (placaOS !== placaFrotaNorm) return false;
+                    let isOSInativa = (o.inativa === 1 || o.inativa === '1' || o.inativa === true);
+                    if (isOSInativa) return false;
+                    if (o.status === 'Agendada' || o.status === 'Cancelada') return false;
                     if (o.tipo && o.tipo.toUpperCase() === 'CAVALO DISPONÍVEL S/ CARRETA') return false;
                     return true;
                 });
                 
                 todasOSCavalo.forEach(os => {
-                    let osInicio = window.corrigirDataSupabaseLocal(os.data_abertura);
+                    let osInicio = window.corrigirDataSupabaseLocal(os.data_abertura); // Prioriza a Abertura
                     if (!osInicio) return;
                     
                     let osFim = os.data_conclusao ? window.corrigirDataSupabaseLocal(os.data_conclusao) : new Date();
@@ -700,6 +700,7 @@ window.atualizarPainelOperacional = function() {
                     const overlapInicio = inicioValido > dataInicioCalc ? inicioValido : dataInicioCalc;
                     const overlapFim = osFim < fimParaCalculo ? osFim : fimParaCalculo;
                     
+                    // Soma Contínua (Não mescla intervalos = igual ao Relatório)
                     if (overlapInicio < overlapFim) {
                         msManutVeiculo += (overlapFim.getTime() - overlapInicio.getTime());
                     }
@@ -995,6 +996,7 @@ window.initNovoDashboardOperacional = async function() {
     Chart.defaults.font.family = "'Inter', sans-serif";
 
     window.setupOperacionalFilters();
+    window.setQuickFilterOpUI('D-1'); // FORÇA O D-1 VISUALMENTE NA INICIALIZAÇÃO!
     
     // GATILHO DAS FUNÇÕES DINÂMICAS DO BANCO DE DADOS
     await window.carregarConfigGruas();
