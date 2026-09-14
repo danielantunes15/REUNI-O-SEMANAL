@@ -1,444 +1,7 @@
 // =========================================================
-// MÓDULO 3: NÚCLEO, FILTROS E CÁLCULOS (OPERACIONAL)
+// ARQUIVO: js/operacional/op_calculos.js
+// MÓDULO: CÁLCULOS E GERAÇÃO DO PAINEL
 // =========================================================
-
-// --- GERENCIADOR UNIFICADO DE BANCO DE DADOS ---
-window.supabaseClientLocal = window.supabaseClientGlobal;
-window.supabaseClientMan = window.supabaseClientGlobal;
-
-window.getGlobalDB = function() {
-    return window.supabaseClientGlobal;
-};
-// --------------------------------------------------
-
-// NOVO: Lê a data bruta como horário local ignorando o fuso que o banco carimbou (Correção UTC -3h)
-window.corrigirDataSupabaseLocal = function(dateStr) {
-    if (!dateStr || dateStr === 'null' || dateStr === 'undefined') return null;
-    let str = String(dateStr).trim();
-    if (str.includes('T')) {
-        str = str.split('.')[0].split('+')[0].split('Z')[0]; 
-    } else {
-        str = str.replace(' ', 'T').split('.')[0].split('+')[0].split('Z')[0];
-    }
-    const d = new Date(str); 
-    return isNaN(d.getTime()) ? null : d;
-};
-
-window.op_chartDataLabelsPlugin = {
-    id: 'customDataLabels',
-    afterDatasetsDraw: (chart) => {
-        const { ctx } = chart;
-        ctx.save();
-        ctx.font = 'bold 11px Inter, sans-serif';
-        ctx.fillStyle = '#f8fafc';
-        ctx.textAlign = 'center';
-        ctx.textBaseline = 'bottom';
-        chart.data.datasets.forEach((dataset, i) => {
-            const meta = chart.getDatasetMeta(i);
-            meta.data.forEach((bar, index) => {
-                const dataVal = dataset.data[index];
-                if (dataVal > 0) {
-                    ctx.fillText(dataVal.toLocaleString('pt-BR', {maximumFractionDigits: 0}), bar.x, bar.y - 4);
-                }
-            });
-        });
-        ctx.restore();
-    }
-};
-
-window.fullHistoricoDataOp = [];
-window.activeQuickFilterOp = 'D-1'; 
-window.diasConsideradosGlobais = 1;
-window.chartCarregamento = null;
-window.chartTransporte = null;
-
-window.frentesNomes = {
-    C1: 'C1: Serrana - Fr. 05',
-    C2: 'C2: Serrana - Fr. 06',
-    C3: 'C3: Reflorestar',
-    C4: 'C4: JSL'
-};
-window.serranaFrente05Loaders = [];
-window.serranaFrente06Loaders = [];
-window.serranaLoaders = [];
-window.reflorestarLoaders = [];
-window.jslLoaders = [];
-
-window.carregarConfigGruas = async function() {
-    try {
-        const { data, error } = await window.supabaseClientLocal.from('config_gruas').select('*');
-        if (!error && data && data.length > 0) {
-            let c1 = [], c2 = [], c3 = [], c4 = [];
-            
-            data.forEach(row => {
-                let ord = row.ordem ? row.ordem.toUpperCase().trim() : '';
-                if (row.codigos) {
-                    const codigos = row.codigos.split(',').map(c => c.trim().toUpperCase()).filter(Boolean);
-                    if (ord === 'C1') c1.push(...codigos);
-                    else if (ord === 'C2') c2.push(...codigos);
-                    else if (ord === 'C3') c3.push(...codigos);
-                    else if (ord === 'C4') c4.push(...codigos);
-                }
-                if (row.frente && ord) { window.frentesNomes[ord] = `${ord}: ${row.frente}`; }
-            });
-
-            if (c1.length > 0) window.serranaFrente05Loaders = c1;
-            if (c2.length > 0) window.serranaFrente06Loaders = c2;
-            if (c3.length > 0) window.reflorestarLoaders = c3;
-            if (c4.length > 0) window.jslLoaders = c4;
-            
-            window.serranaLoaders = [...window.serranaFrente05Loaders, ...window.serranaFrente06Loaders];
-            
-            const thC1 = document.getElementById('th_c1'); if(thC1) thC1.innerHTML = `<i class="fas fa-star mr-1"></i> ${window.frentesNomes['C1']}`;
-            const thC2 = document.getElementById('th_c2'); if(thC2) thC2.innerHTML = `<i class="fas fa-star mr-1"></i> ${window.frentesNomes['C2']}`;
-            const thC3 = document.getElementById('th_c3'); if(thC3) thC3.innerHTML = `<i class="fas fa-tree mr-1"></i> ${window.frentesNomes['C3']}`;
-            const thC4 = document.getElementById('th_c4'); if(thC4) thC4.innerHTML = `<i class="fas fa-leaf mr-1"></i> ${window.frentesNomes['C4']}`;
-        }
-    } catch (e) { console.error("Erro ao carregar tabela config_gruas:", e); }
-};
-
-window.metaCaixaMedia = 0;
-window.metaVolumeDiario = 0;
-window.metaViagensCalculada = 0;
-window.metaCicloDecimal = 10.083; 
-window.metaFilaCampoDecimal = 1.333; 
-window.metaCargaDecimal = 0.5; 
-window.metaFilaFabricaDecimal = 0.5; 
-
-window.parseMetaTempo = function(val) {
-    if (val === null || val === undefined || val === '') return null;
-    if (typeof val === 'number') return val;
-    if (typeof val === 'string') {
-        if (val.includes(':')) {
-            let p = val.split(':');
-            let h = parseInt(p[0], 10) || 0;
-            let m = parseInt(p[1], 10) || 0;
-            return h + (m / 60);
-        }
-        let num = parseFloat(val);
-        if (!isNaN(num)) return num;
-    }
-    return null;
-};
-
-window.carregarMetasGlobais = async function() {
-    try {
-        const dbs = [ window.supabaseClientLocal, window.supabaseClientMan, window.getGlobalDB() ];
-        let metasEncontradas = false;
-
-        for (let db of dbs) {
-            if (!db) continue;
-            try {
-                const { data, error } = await db.from('metas_globais').select('*').limit(1);
-                if (!error && data && data.length > 0) {
-                    const m = data[0];
-                    if (m.cx_prog !== undefined && m.cx_prog !== null) window.metaCaixaMedia = parseFloat(m.cx_prog);
-                    if (m.vol_prog !== undefined && m.vol_prog !== null) window.metaVolumeDiario = parseFloat(m.vol_prog);
-
-                    let ciclo = window.parseMetaTempo(m.meta_ciclo) ?? window.parseMetaTempo(m.cfg_meta_ciclo);
-                    if (ciclo !== null) window.metaCicloDecimal = ciclo;
-
-                    let filaC = window.parseMetaTempo(m.meta_fila_campo) ?? window.parseMetaTempo(m.cfg_meta_fila_campo);
-                    if (filaC !== null) window.metaFilaCampoDecimal = filaC;
-
-                    let carga = window.parseMetaTempo(m.meta_carga) ?? window.parseMetaTempo(m.cfg_meta_carga) ?? window.parseMetaTempo(m.meta_carregamento);
-                    if (carga !== null) window.metaCargaDecimal = carga;
-
-                    let filaF = window.parseMetaTempo(m.meta_fila_fabrica) ?? window.parseMetaTempo(m.cfg_meta_fila_fabrica);
-                    if (filaF !== null) window.metaFilaFabricaDecimal = filaF;
-                    
-                    metasEncontradas = true;
-                    break;
-                }
-            } catch (e) { }
-        }
-
-        if (!metasEncontradas) {
-            for (let db of dbs) {
-                if (!db) continue;
-                try {
-                    const { data, error } = await db.from('configuracoes').select('*').in('chave', ['cfg_cx_prog', 'cfg_vol_prog', 'cfg_meta_ciclo', 'cfg_meta_fila_campo', 'cfg_meta_carga', 'cfg_meta_fila_fabrica']);
-                    if (!error && data && data.length > 0) {
-                        data.forEach(item => {
-                            if (item.chave === 'cfg_cx_prog' && item.valor) window.metaCaixaMedia = parseFloat(item.valor);
-                            if (item.chave === 'cfg_vol_prog' && item.valor) window.metaVolumeDiario = parseFloat(item.valor);
-                            let v = window.parseMetaTempo(item.valor);
-                            if (item.chave === 'cfg_meta_ciclo' && v !== null) window.metaCicloDecimal = v;
-                            if (item.chave === 'cfg_meta_fila_campo' && v !== null) window.metaFilaCampoDecimal = v;
-                            if (item.chave === 'cfg_meta_carga' && v !== null) window.metaCargaDecimal = v;
-                            if (item.chave === 'cfg_meta_fila_fabrica' && v !== null) window.metaFilaFabricaDecimal = v;
-                        });
-                        break;
-                    }
-                } catch (e) {}
-            }
-        }
-    } catch (e) { console.error("Erro geral na busca de metas:", e); }
-};
-
-window.normalizarCiclos = function(dataArr) {
-    const pMap = new Map();
-    dataArr.forEach(d => {
-        if (d.cicloHorasOriginal === undefined) { d.cicloHorasOriginal = d.cicloHoras; }
-        if (d.cicloHorasOriginal > 0 && d.cicloHorasOriginal <= 12) { 
-            const pl = d.placa || 'N/A';
-            if (!pMap.has(pl)) pMap.set(pl, { ciclos: 0, count: 0 });
-            pMap.get(pl).ciclos += d.cicloHorasOriginal;
-            pMap.get(pl).count++;
-        }
-    });
-    
-    const frotas = Array.from(pMap.values()).map(x => x.ciclos / x.count).sort((a, b) => a - b).slice(0, 20);
-    if (frotas.length === 0) return;
-    const mediaMenores = frotas.reduce((a, b) => a + b, 0) / frotas.length;
-    
-    dataArr.forEach(d => {
-        if (d.cicloHorasOriginal > 12) { d.cicloHoras = mediaMenores; } 
-        else { d.cicloHoras = d.cicloHorasOriginal; }
-    });
-};
-
-window.checkLoader = function(d, loaderArray, prefix = '') {
-    let colunasPrioritarias = [];
-    let outrasColunas = [];
-
-    for (let key in d) {
-        let keyUpper = key.toUpperCase();
-        let val = d[key];
-        if (val && typeof val === 'string') {
-            let vClean = val.trim().toUpperCase().replace(/\s+/g, '');
-            if (!vClean || vClean === '-' || vClean === 'N/A' || vClean === '0') continue;
-
-            if (keyUpper.includes('GRUA') || keyUpper.includes('CARREG') || keyUpper.includes('EQUIP') || keyUpper.includes('FRENTE')) {
-                colunasPrioritarias.push(vClean);
-            } else {
-                outrasColunas.push(vClean);
-            }
-        }
-    }
-
-    let valoresParaChecar = colunasPrioritarias.length > 0 ? colunasPrioritarias : outrasColunas;
-
-    for (let v of valoresParaChecar) {
-        for (let code of loaderArray) {
-            let codeClean = code.replace(/\s+/g, '');
-            if (v === codeClean || v.includes(codeClean)) {
-                return true;
-            }
-        }
-
-        if (prefix) {
-            if (prefix === 'GSR') {
-                if (v.startsWith('GSR') || v.includes('GSR0')) return true;
-                if (v.includes('GRB0015') || v.includes('GRB0022')) return true; 
-            } 
-            else if (prefix === 'GRB') {
-                if (v.startsWith('GRB') || v.includes('GRB0')) {
-                    if (v.includes('0015') || v.includes('0022')) continue; 
-                    return true;
-                }
-            } 
-            else if (prefix === 'GSL') {
-                if (v.startsWith('GSL') || v.includes('GSL0')) return true;
-            }
-        }
-    }
-
-    return false;
-};
-
-window.isSerranaTransp = function(d) {
-    let valTransp = String(d.transportadora || d['Nome da Transportadora'] || d.nomeTransportadora || '').toUpperCase().replace(/\s+/g, '');
-    if (valTransp.includes('SERRANALOG') || valTransp.includes('SERRANA')) return true;
-
-    for (let key in d) {
-        if (d[key] && typeof d[key] === 'string') {
-            let val = d[key].toUpperCase().replace(/\s+/g, '');
-            if (val.includes('SERRANALOG') || val.includes('SERRANATRANSPORTES')) {
-                return true;
-            }
-        }
-    }
-    return false;
-};
-
-window.setQuickFilterOpUI = function(qf) {
-    window.activeQuickFilterOp = qf;
-    const btnQFs = document.querySelectorAll('.btn-op-qf');
-    btnQFs.forEach(b => {
-        if(b.getAttribute('data-op-qf') === qf) {
-            b.classList.add('active', 'border-sky-500/50', 'text-sky-400', 'bg-sky-900/30');
-            b.classList.remove('border-transparent', 'text-slate-400', 'hover:bg-slate-700/50');
-        } else {
-            b.classList.remove('active', 'border-sky-500/50', 'text-sky-400', 'bg-sky-900/30');
-            b.classList.add('border-transparent', 'text-slate-400', 'hover:bg-slate-700/50');
-        }
-    });
-};
-
-window.setupOperacionalFilters = function() {
-    const btnQFs = document.querySelectorAll('.btn-op-qf');
-    const datePicker = document.getElementById('opDatePicker');
-    const filterMesOp = document.getElementById('filterMesOp');
-    const filterTransp = document.getElementById('filterTransportadora');
-    
-    btnQFs.forEach(btn => {
-        btn.addEventListener('click', (e) => {
-            window.setQuickFilterOpUI(e.currentTarget.getAttribute('data-op-qf'));
-            if(datePicker) datePicker.value = '';
-            if(filterMesOp) filterMesOp.value = 'ALL';
-            window.atualizarPainelOperacional();
-        });
-    });
-
-    if(datePicker) {
-        datePicker.addEventListener('change', () => {
-            if(datePicker.value) {
-                window.setQuickFilterOpUI('DATE');
-                if(filterMesOp) filterMesOp.value = 'ALL';
-                window.atualizarPainelOperacional();
-            }
-        });
-    }
-
-    if(filterMesOp) {
-        filterMesOp.addEventListener('change', () => {
-            if(filterMesOp.value !== 'ALL') {
-                window.setQuickFilterOpUI('ALL');
-                if(datePicker) datePicker.value = '';
-            }
-            window.atualizarPainelOperacional();
-        });
-    }
-
-    if(filterTransp) {
-        filterTransp.addEventListener('change', () => {
-            window.atualizarPainelOperacional();
-        });
-    }
-};
-
-window.loadManutencaoDataForMeta = async function() {
-    try {
-        const client = window.supabaseClientLocal; 
-        const osResp = await client.from('ordens_servico')
-            .select('*')
-            .neq('status', 'Agendada')
-            .order('data_abertura', { ascending: false })
-            .limit(5000);
-
-        let frotasResp = await client.from('frotas_manutencao').select('*').limit(2000);
-        if (!frotasResp.data || frotasResp.data.length === 0) {
-            frotasResp = await client.from('cadastro_frota').select('*').limit(2000);
-        }
-
-        if (osResp.data) window.osParaMeta = osResp.data;
-        if (frotasResp.data) window.frotasParaMeta = frotasResp.data;
-    } catch (e) { console.error("Erro dados manutenção:", e); }
-};
-
-window.loadOperacionalData = async function() {
-    try {
-        let historico = [];
-        let from = 0;
-        const step = 1000;
-        let fetchMore = true;
-        
-        while (fetchMore) {
-            const { data, error } = await window.supabaseClientLocal
-                .from('historico_viagens')
-                .select('*')
-                .range(from, from + step - 1);
-                
-            if (error) break;
-            if (data && data.length > 0) {
-                historico = historico.concat(data);
-                from += step;
-            }
-            if (!data || data.length < step) fetchMore = false;
-        }
-        
-        if(historico && historico.length > 0) {
-            historico = historico.filter(d => {
-                const motorista = String(d.motorista || '').toUpperCase();
-                return !motorista.includes('JULIO CESAR ALMEIDA NUNES') && motorista !== '-';
-            });
-            window.fullHistoricoDataOp = historico.reverse();
-            window.normalizarCiclos(window.fullHistoricoDataOp);
-        }
-
-        const filterMesOp = document.getElementById('filterMesOp');
-        const filterTransp = document.getElementById('filterTransportadora');
-
-        if(window.fullHistoricoDataOp.length > 0) {
-            if(filterMesOp) {
-                const mesesSet = new Set();
-                window.fullHistoricoDataOp.forEach(d => {
-                    if(d.dataDaBaseExcel && d.dataDaBaseExcel !== 'Desconhecida') {
-                        const p = d.dataDaBaseExcel.split('/');
-                        if(p.length >= 3) {
-                            let y = p[2]; if(y.length === 2) y = "20"+y;
-                            mesesSet.add(`${p[1]}/${y}`);
-                        }
-                    }
-                });
-                const allMeses = Array.from(mesesSet).sort((a,b) => {
-                      const pA = a.split('/'); const pB = b.split('/');
-                      return new Date(pA[1], pA[0]-1, 1) - new Date(pB[1], pB[0]-1, 1);
-                });
-                const monthNames = ["Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho", "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"];
-                
-                filterMesOp.innerHTML = '<option value="ALL">Todos os Meses</option>';
-                allMeses.forEach(mStr => {
-                    const p = mStr.split('/');
-                    const mesIdx = parseInt(p[0]) - 1;
-                    const nomeMes = monthNames[mesIdx] + '/' + p[1].substring(2);
-                    filterMesOp.insertAdjacentHTML('beforeend', `<option value="${mStr}">${nomeMes}</option>`);
-                });
-                
-                filterMesOp.value = 'ALL';
-            }
-            if(filterTransp) {
-                const transps = [...new Set(window.fullHistoricoDataOp.map(d => d.transportadora))].filter(Boolean).sort();
-                filterTransp.innerHTML = '<option value="ALL">TODAS AS TRANSPORTADORAS</option>';
-                transps.forEach(t => filterTransp.insertAdjacentHTML('beforeend', `<option value="${t}">${t}</option>`));
-            }
-
-            window.atualizarPainelOperacional();
-        }
-    } catch(e) { console.error("Erro operacionais:", e); }
-};
-
-window.parseDateTime = function(dateVal) {
-    if (!dateVal) return null;
-    const str = String(dateVal).trim();
-    if (str === 'Desconhecida') return null;
-
-    let baseDate = null;
-    if (str.includes('/')) {
-        const parts = str.split(' ')[0].split('/');
-        if (parts.length >= 3) {
-            let year = parseInt(parts[2], 10);
-            if (year < 100) year += 2000;
-            baseDate = new Date(year, parseInt(parts[1], 10) - 1, parseInt(parts[0], 10));
-        }
-    } else if (str.includes('-')) { baseDate = new Date(str); }
-
-    if (!baseDate || isNaN(baseDate.getTime())) return null;
-    baseDate.setHours(0, 0, 0, 0);
-    return baseDate;
-};
-
-window.formatarHorasMinutos = function(horasDecimais) {
-    if (horasDecimais === null || horasDecimais === undefined || isNaN(horasDecimais) || horasDecimais <= 0) return '-';
-    let horas = Math.floor(horasDecimais);
-    let minutos = Math.round((horasDecimais - horas) * 60);
-    if (minutos === 60) { horas += 1; minutos = 0; }
-    if (horas === 0 && minutos === 0) return '0m';
-    if (horas === 0) return `${minutos}m`;
-    if (minutos === 0) return `${horas}h`;
-    return `${horas}h ${minutos.toString().padStart(2, '0')}m`;
-};
 
 window.atualizarElementoTempo = function(idElemento, mediaReal, metaData) {
     const el = document.getElementById(idElemento);
@@ -477,7 +40,8 @@ window.atualizarElementoTempo = function(idElemento, mediaReal, metaData) {
 
 window.calcStats = function(dataArr) {
     const viagens = dataArr.length;
-    const vol = dataArr.reduce((s,d) => s + (parseFloat(String(d.volumeReal).replace(',','.'))||0), 0);
+    // Puxa o volume já tratado livre do bug do milhar
+    const vol = dataArr.reduce((s,d) => s + window.toNumberOp(window.getCampoOp(d, ['volumeReal', 'pesoLiquido'])), 0);
     const medVol = viagens > 0 ? vol / viagens : 0;
 
     const validCiclos = dataArr.filter(d => d.cicloHoras > 0);
@@ -493,15 +57,16 @@ window.calcStats = function(dataArr) {
     const validFilaFab = dataArr.filter(d => d.filaFabricaHoras > 0);
     const medFilaFab = validFilaFab.length > 0 ? validFilaFab.reduce((s,d) => s + d.filaFabricaHoras, 0) / validFilaFab.length : 0;
 
-    const medAsfalto = viagens > 0 ? dataArr.reduce((s, d) => s + (d.distanciaAsfalto || 0), 0) / viagens : 0;
-    const medTerra = viagens > 0 ? dataArr.reduce((s, d) => s + (d.distanciaTerra || 0), 0) / viagens : 0;
+    const medAsfalto = viagens > 0 ? dataArr.reduce((s, d) => s + window.toNumberOp(d.distanciaAsfalto), 0) / viagens : 0;
+    const medTerra = viagens > 0 ? dataArr.reduce((s, d) => s + window.toNumberOp(d.distanciaTerra), 0) / viagens : 0;
+    
+    const validRpv = dataArr.filter(d => d.rpv !== null && window.toNumberOp(d.rpv) > 0);
+    const medRpv = validRpv.length > 0 ? validRpv.reduce((s, d) => s + window.toNumberOp(d.rpv), 0) / validRpv.length : 0;
 
-    return { volTotal: vol, medVol, medCiclo, medFilaCpo, medCarreg, medFilaFab, medAsfalto, medTerra };
+    return { volTotal: vol, medVol, medCiclo, medFilaCpo, medCarreg, medFilaFab, medAsfalto, medTerra, medRpv };
 };
 
-// =========================================================
-// ATUALIZAÇÃO PRINCIPAL DO PAINEL OPERACIONAL
-// =========================================================
+// MOTOR PRINCIPAL
 window.atualizarPainelOperacional = function() {
     const dataRef = document.getElementById('opDatePicker') ? document.getElementById('opDatePicker').value : null;
     const filterMesOp = document.getElementById('filterMesOp');
@@ -572,16 +137,10 @@ window.atualizarPainelOperacional = function() {
     window.metaViagensCalculada = 0;
     let diasConsideradosCalc = 1;
 
-    // ========================================================================
-    // CÁLCULO EXATO DE META E DISPONIBILIDADE BASEADO NA MANUTENÇÃO E VEÍCULOS
-    // ========================================================================
+    // === CÁLCULO EXATO DE META E DISPONIBILIDADE BASEADO NA MANUTENÇÃO ===
     if (elMetaTexto && window.frotasParaMeta && window.osParaMeta) {
         
-        const frotasAtivas = window.frotasParaMeta.filter(f => 
-            f.status === 'Ativo' && 
-            f.categoria && 
-            f.categoria.toUpperCase() === 'TRITREM'
-        );
+        const frotasAtivas = window.frotasParaMeta.filter(f => f.status === 'Ativo' && f.categoria && f.categoria.toUpperCase() === 'TRITREM');
         
         let dataInicioCalc = new Date(); dataInicioCalc.setHours(0,0,0,0);
         let dataFimCalc = new Date(); dataFimCalc.setHours(23,59,59,999);
@@ -625,12 +184,11 @@ window.atualizarPainelOperacional = function() {
 
         window.diasConsideradosGlobais = diasConsideradosCalc;
 
-        // >> A LÓGICA DE OURO DA SERRANA (IDÊNTICA AOS INDICADORES) <<
         let inicioPeriodo = new Date(dataInicioCalc);
         inicioPeriodo.setHours(0, 0, 0, 0);
 
         let fimDia = new Date(inicioPeriodo);
-        fimDia.setDate(fimDia.getDate() + 1); // 00:00:00 do dia seguinte = exatas 24h
+        fimDia.setDate(fimDia.getDate() + 1); 
 
         let agora = new Date();
         let isHoje = inicioPeriodo.toDateString() === agora.toDateString();
@@ -670,10 +228,9 @@ window.atualizarPainelOperacional = function() {
                     });
                     
                     todasOSCavalo.forEach(os => {
-                        // Aplica o Fuso DB Nativo
                         let dtAbertura = os.data_abertura ? window.corrigirDataSupabaseLocal(os.data_abertura) : null;
                         let dtInicioM = os.data_inicio_manutencao ? window.corrigirDataSupabaseLocal(os.data_inicio_manutencao) : null;
-                        let osInicio = dtAbertura || dtInicioM; // Prioriza a abertura
+                        let osInicio = dtAbertura || dtInicioM; 
                         if (!osInicio) return;
                         
                         let osFim = os.data_conclusao ? window.corrigirDataSupabaseLocal(os.data_conclusao) : agora;
@@ -682,7 +239,6 @@ window.atualizarPainelOperacional = function() {
                         const overlapInicio = inicioValido > inicioPeriodo ? inicioValido : inicioPeriodo;
                         const overlapFim = osFim < fimParaCalculo ? osFim : fimParaCalculo;
                         
-                        // SOMA CONTÍNUA DAS O.S. (Matemática Oficial sem mesclar)
                         if (overlapInicio < overlapFim) {
                             manutencaoCavalo += (overlapFim.getTime() - overlapInicio.getTime());
                         }
@@ -737,18 +293,22 @@ window.atualizarPainelOperacional = function() {
         } else { elMetaTexto.classList.add('hidden'); if(elIconeMeta) elIconeMeta.innerHTML = ''; }
     } else { if(elMetaTexto) elMetaTexto.classList.add('hidden'); if(elIconeMeta) elIconeMeta.innerHTML = ''; }
 
-    // ========================================================================
-    // CÁLCULOS PRINCIPAIS - RPV E PBTC (COM REGRAS DE SLA DO CONTRATO)
-    // ========================================================================
+    // === CÁLCULOS PRINCIPAIS RPV / PBTC COM FORMATAÇÃO BLINDADA ===
 
-    const totalPesoKg = cardsData.reduce((s, x) => {
-        let p = x.peso_na_entrada || 0;
-        return s + (parseFloat(String(p).replace(',', '.')) || 0);
-    }, 0);
+    const totalPesoKg = cardsData.reduce((s, x) => s + window.toNumberOp(x.peso_na_entrada), 0);
     const mediaPbtc = totalViagens > 0 ? (totalPesoKg / 1000) / totalViagens : 0;
     
-    const validRpv = cardsData.filter(d => d.rpv !== null && d.rpv > 0);
-    const mediaRPV = validRpv.length > 0 ? validRpv.reduce((sum, r) => sum + r.rpv, 0) / validRpv.length : 0;
+    const validRpv = cardsData.filter(d => d.rpv !== null && window.toNumberOp(d.rpv) > 0);
+    const mediaRPV = validRpv.length > 0 ? validRpv.reduce((sum, r) => sum + window.toNumberOp(r.rpv), 0) / validRpv.length : 0;
+
+    const dataC1Rpv = cardsData.filter(d => window.getFrenteDaViagem(d) === 'C1' && window.isSerranaTransp(d));
+    const dataC2Rpv = cardsData.filter(d => window.getFrenteDaViagem(d) === 'C2' && window.isSerranaTransp(d));
+
+    const validRpvC1 = dataC1Rpv.filter(d => d.rpv !== null && window.toNumberOp(d.rpv) > 0);
+    const mediaRpvC1 = validRpvC1.length > 0 ? validRpvC1.reduce((sum, r) => sum + window.toNumberOp(r.rpv), 0) / validRpvC1.length : 0;
+
+    const validRpvC2 = dataC2Rpv.filter(d => d.rpv !== null && window.toNumberOp(d.rpv) > 0);
+    const mediaRpvC2 = validRpvC2.length > 0 ? validRpvC2.reduce((sum, r) => sum + window.toNumberOp(r.rpv), 0) / validRpvC2.length : 0;
 
     let reqPbtc = 74.0;
     if (mediaRPV <= 700 && mediaRPV > 0) reqPbtc = 71.0;
@@ -759,28 +319,35 @@ window.atualizarPainelOperacional = function() {
 
     const elRpv = document.getElementById('mediaRPV');
     if (elRpv) {
-        let rpvStr = mediaRPV > 0 ? mediaRPV.toLocaleString('pt-PT', {maximumFractionDigits: 2}) : "0";
+        let rpvC1Str = mediaRpvC1 > 0 ? mediaRpvC1.toLocaleString('pt-PT', {maximumFractionDigits: 2}) : "0";
+        let rpvC2Str = mediaRpvC2 > 0 ? mediaRpvC2.toLocaleString('pt-PT', {maximumFractionDigits: 2}) : "0";
+        
+        let displayHtml = `<div class="flex flex-col text-[18px] leading-tight justify-center mr-2">
+                               <span>F5: ${rpvC1Str}</span>
+                               <span>F6: ${rpvC2Str}</span>
+                           </div>`;
+                           
         const pSub = elRpv.parentElement.nextElementSibling; 
 
         if (mediaRPV > 0) {
             if (slaAtendido) {
-                elRpv.className = "text-[32px] font-extrabold text-emerald-400 leading-none m-0 transition-all drop-shadow-md";
-                elRpv.innerHTML = `${rpvStr} <i class="fas fa-check-circle text-[20px] ml-2" title="SLA Atendido (PBTC >= ${reqPbtc}t)"></i>`;
+                elRpv.className = "flex items-center font-extrabold text-emerald-400 m-0 transition-all drop-shadow-md";
+                elRpv.innerHTML = `${displayHtml} <i class="fas fa-check-circle text-[28px]" title="SLA Atendido (PBTC >= ${reqPbtc}t)"></i>`;
                 if(pSub && pSub.tagName === 'P') {
                     pSub.innerText = `SLA OK (Alvo PBTC: ${reqPbtc}t)`;
                     pSub.className = "text-[11px] font-bold mt-1 m-0 text-emerald-500";
                 }
             } else {
-                elRpv.className = "text-[32px] font-extrabold text-rose-500 leading-none m-0 transition-all drop-shadow-md";
-                elRpv.innerHTML = `${rpvStr} <i class="fas fa-exclamation-circle text-[20px] ml-2" title="SLA Não Atendido (Faltou PBTC >= ${reqPbtc}t)"></i>`;
+                elRpv.className = "flex items-center font-extrabold text-rose-500 m-0 transition-all drop-shadow-md";
+                elRpv.innerHTML = `${displayHtml} <i class="fas fa-exclamation-circle text-[28px]" title="SLA Não Atendido (Faltou PBTC >= ${reqPbtc}t)"></i>`;
                 if(pSub && pSub.tagName === 'P') {
                     pSub.innerText = `SLA PENDENTE (Falta PBTC: ${reqPbtc}t)`;
                     pSub.className = "text-[11px] font-bold mt-1 m-0 text-rose-500";
                 }
             }
         } else {
-            elRpv.className = "text-[32px] font-extrabold text-white leading-none m-0 transition-all";
-            elRpv.innerText = "0";
+            elRpv.className = "flex items-center font-extrabold text-white m-0 transition-all";
+            elRpv.innerHTML = displayHtml;
             if(pSub && pSub.tagName === 'P') {
                 pSub.innerText = "kg / m³";
                 pSub.className = "text-[10px] font-bold text-white mt-1 m-0";
@@ -806,9 +373,9 @@ window.atualizarPainelOperacional = function() {
     const elPbtc = document.getElementById('totalPesoLiq');
     if (elPbtc) elPbtc.innerHTML = `<span class="${pbtcCor}">${mediaPbtc.toLocaleString('pt-PT', {maximumFractionDigits:1})} t</span>${pbtcIcone}`;
 
-    // ========================================================================
+    // === CÁLCULO DE VOLUMES E DISTÂNCIAS ===
 
-    const totalVol = cardsData.reduce((s,x)=>s+(parseFloat(String(x.volumeReal).replace(',','.'))||0), 0);
+    const totalVol = cardsData.reduce((s,x) => s + window.toNumberOp(window.getCampoOp(x, ['volumeReal', 'pesoLiquido'])), 0);
     const mediaVol = totalViagens > 0 ? (totalVol / totalViagens) : 0;
     
     let elMediaVol = document.getElementById('mediaVolumeViagem');
@@ -866,8 +433,8 @@ window.atualizarPainelOperacional = function() {
         }
     }
 
-    const mediaAsfalto = totalViagens > 0 ? cardsData.reduce((s, r) => s + (r.distanciaAsfalto||0), 0) / totalViagens : 0;
-    const mediaTerra = totalViagens > 0 ? cardsData.reduce((s, r) => s + (r.distanciaTerra||0), 0) / totalViagens : 0;
+    const mediaAsfalto = totalViagens > 0 ? cardsData.reduce((s, r) => s + window.toNumberOp(r.distanciaAsfalto), 0) / totalViagens : 0;
+    const mediaTerra = totalViagens > 0 ? cardsData.reduce((s, r) => s + window.toNumberOp(r.distanciaTerra), 0) / totalViagens : 0;
     const mediaDistTotal = mediaAsfalto + mediaTerra;
 
     if(document.getElementById('mediaDistancia')) document.getElementById('mediaDistancia').innerText = mediaDistTotal.toLocaleString('pt-PT', {maximumFractionDigits:2}) + ' km';
@@ -891,13 +458,15 @@ window.atualizarPainelOperacional = function() {
     window.atualizarElementoTempo('tempoCarregamento', mediaTempoCarregamento, window.metaCargaDecimal);
     window.atualizarElementoTempo('filaFabrica', mediaFilaFabrica, window.metaFilaFabricaDecimal);
 
+    // === GERAÇÃO DA TABELA COMPARATIVO POR CENÁRIOS ===
     const tbodyComp = document.getElementById('comparativoBody');
     if (tbodyComp) {
-        const dataC1 = filteredGlobal.filter(d => window.checkLoader(d, window.serranaFrente05Loaders) && window.isSerranaTransp(d));
-        const dataC2 = filteredGlobal.filter(d => window.checkLoader(d, window.serranaFrente06Loaders) && window.isSerranaTransp(d));
-        const dataASN = filteredGlobal.filter(d => window.checkLoader(d, window.serranaLoaders, 'GSR') && !window.isSerranaTransp(d));
-        const dataC3 = filteredGlobal.filter(d => window.checkLoader(d, window.reflorestarLoaders, 'GRB') && window.isSerranaTransp(d));
-        const dataC4 = filteredGlobal.filter(d => window.checkLoader(d, window.jslLoaders, 'GSL') && window.isSerranaTransp(d));
+        
+        const dataC1 = filteredGlobal.filter(d => window.getFrenteDaViagem(d) === 'C1' && window.isSerranaTransp(d));
+        const dataC2 = filteredGlobal.filter(d => window.getFrenteDaViagem(d) === 'C2' && window.isSerranaTransp(d));
+        const dataASN = filteredGlobal.filter(d => ['C1','C2'].includes(window.getFrenteDaViagem(d)) && !window.isSerranaTransp(d));
+        const dataC3 = filteredGlobal.filter(d => window.getFrenteDaViagem(d) === 'C3' && window.isSerranaTransp(d));
+        const dataC4 = filteredGlobal.filter(d => window.getFrenteDaViagem(d) === 'C4' && window.isSerranaTransp(d));
         
         const dataGlobalExato = [...new Set([...dataC1, ...dataC2, ...dataASN, ...dataC3, ...dataC4])];
 
@@ -937,6 +506,15 @@ window.atualizarPainelOperacional = function() {
                 <td class="px-6 py-4 font-mono text-white text-[16px] font-bold text-right">${stGlobal.volTotal.toLocaleString('pt-PT',{maximumFractionDigits:1})} m³</td>
             </tr>
             <tr class="hover:bg-slate-800/30 transition-colors border-t border-slate-700/50">
+                <td class="px-6 py-4 font-bold text-slate-300 text-[12px] uppercase tracking-wider"><i class="fas fa-weight-hanging text-rose-400 w-5"></i> RPV Médio</td>
+                <td class="px-6 py-4 font-mono text-white text-[16px] font-bold text-right">${stC1.medRpv.toLocaleString('pt-PT',{maximumFractionDigits:2})}</td>
+                <td class="px-6 py-4 font-mono text-white text-[16px] font-bold text-right">${stC2.medRpv.toLocaleString('pt-PT',{maximumFractionDigits:2})}</td>
+                <td class="px-6 py-4 font-mono text-white text-[16px] font-bold text-right">${stASN.medRpv.toLocaleString('pt-PT',{maximumFractionDigits:2})}</td>
+                <td class="px-6 py-4 font-mono text-white text-[16px] font-bold text-right">${stC3.medRpv.toLocaleString('pt-PT',{maximumFractionDigits:2})}</td>
+                <td class="px-6 py-4 font-mono text-white text-[16px] font-bold text-right">${stC4.medRpv.toLocaleString('pt-PT',{maximumFractionDigits:2})}</td>
+                <td class="px-6 py-4 font-mono text-white text-[16px] font-bold text-right">${stGlobal.medRpv.toLocaleString('pt-PT',{maximumFractionDigits:2})}</td>
+            </tr>
+            <tr class="hover:bg-slate-800/30 transition-colors border-t border-slate-700/50">
                 <td class="px-6 py-4 font-bold text-slate-300 text-[12px] uppercase tracking-wider"><i class="fas fa-stopwatch text-blue-400 w-5"></i> Ciclo Médio Total</td>
                 <td class="px-6 py-4 font-mono text-white text-[16px] font-bold text-right">${window.formatarHorasMinutos(stC1.medCiclo)}</td>
                 <td class="px-6 py-4 font-mono text-white text-[16px] font-bold text-right">${window.formatarHorasMinutos(stC2.medCiclo)}</td>
@@ -969,42 +547,4 @@ window.atualizarPainelOperacional = function() {
     if (window.atualizarGraficosOperacionais) {
         window.atualizarGraficosOperacionais(cardsData, filteredGlobal);
     }
-};
-
-window.initNovoDashboardOperacional = async function() {
-    if(typeof Chart === 'undefined') {
-        setTimeout(window.initNovoDashboardOperacional, 50);
-        return; 
-    }
-
-    Chart.defaults.color = '#94a3b8';
-    Chart.defaults.borderColor = 'rgba(255, 255, 255, 0.05)';
-    Chart.defaults.font.family = "'Inter', sans-serif";
-
-    window.setupOperacionalFilters();
-    window.setQuickFilterOpUI('D-1'); 
-    
-    await window.carregarConfigGruas();
-    await window.carregarMetasGlobais();
-
-    window.loadManutencaoDataForMeta().finally(() => {
-        window.loadOperacionalData();
-    });
-    
-    if(document.getElementById('data-mural-setor')) {
-        document.getElementById('data-mural-setor').value = new Date().toISOString().split('T')[0];
-    }
-    if (typeof window.carregarMuralSetor === 'function') window.carregarMuralSetor();
-    if (typeof window.carregarFrotaSupabase === 'function') window.carregarFrotaSupabase();
-};
-
-window.exportarParaExcelOp = function() {
-    if (!window.fullHistoricoDataOp || window.fullHistoricoDataOp.length === 0) {
-        alert("Sem dados para exportar.");
-        return;
-    }
-    const ws = XLSX.utils.json_to_sheet(window.fullHistoricoDataOp);
-    const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, "Base");
-    XLSX.writeFile(wb, "Base_Operacional.xlsx");
 };
