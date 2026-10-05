@@ -26,7 +26,8 @@ window.carregarDadosManutencao = async function() {
             window.ordensServico = [];
         } else {
             console.log(`[OS Painel SUCESSO] ${osData?.length || 0} ordens de serviço carregadas!`);
-            window.ordensServico = osData || [];
+            // FILTRO DE FILIAL: Considerar apenas filial_id = 1
+            window.ordensServico = (osData || []).filter(item => String(item.filial_id) === '1');
         }
 
         const { data: frotaData, error: frotaError } = await supabaseManutencao
@@ -39,7 +40,8 @@ window.carregarDadosManutencao = async function() {
             window.frotasManutencao = [];
         } else {
             console.log(`[OS Painel SUCESSO] ${frotaData?.length || 0} frotas carregadas!`);
-            window.frotasManutencao = frotaData || [];
+            // FILTRO DE FILIAL: Considerar apenas filial_id = 1
+            window.frotasManutencao = (frotaData || []).filter(item => String(item.filial_id) === '1');
         }
     } catch (error) { 
         console.error("[OS Painel ERRO CRÍTICO] Falha severa ao carregar dados da manutenção:", error); 
@@ -218,7 +220,7 @@ window.renderizarRelatorioGerencialOS = function() {
     Object.keys(porPrioridade).forEach(p => {
         const qtd = porPrioridade[p];
         const percent = osManutencao.length > 0 ? (qtd / osManutencao.length) * 100 : 0;
-        htmlPrio += `<div style="margin-bottom: 12px;"><div style="display: flex; justify-content: space-between; margin-bottom: 4px; font-size: 0.85rem; color: #e2e8f0;"><span>Prioridade <strong>${p}</strong></span><span>${qtd} ocorrências</span></div><div style="background: rgba(255,255,255,0.1); border-radius: 4px; height: 10px; overflow: hidden;"><div style="background: ${colorsPri[p]}; width: ${percent}%; height: 100%;"></div></div></div>`;
+        htmlPrio += `<div style="margin-bottom: 12px;"><div style="display: flex; justify-content: space-between; margin-bottom: 4px; font-size: 0.85rem; color: #e2e8f0;"><span>Prioridade <strong>${p}</strong></span><span>${qtd} ocorrências</span></div><div style="background: rgba(255,255,255,0.1); border-radius: 4px; height: 10px; overflow: hidden;"><div style="background: ${colorsPri[p]}; width:${percent}%; height: 100%;"></div></div></div>`;
     });
     const elPrio = document.getElementById('graficoPrioridadeOS');
     if(elPrio) elPrio.innerHTML = htmlPrio || '<p style="color:#94a3b8;">Sem dados.</p>';

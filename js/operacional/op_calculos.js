@@ -75,6 +75,9 @@ window.atualizarPainelOperacional = function() {
     const activeT = filterTransp ? filterTransp.value : 'ALL';
 
     const filteredGlobal = window.fullHistoricoDataOp.filter(d => {
+        // FILTRO EXTRA DE GARANTIA: Apenas dados da Filial 1
+        if (String(d.filial_id) !== '1') return false;
+
         const parsed = window.parseDateTime(d.dataDaBaseExcel);
         if(!parsed) return false;
 
@@ -140,7 +143,8 @@ window.atualizarPainelOperacional = function() {
     // === CÁLCULO EXATO DE META E DISPONIBILIDADE BASEADO NA MANUTENÇÃO ===
     if (elMetaTexto && window.frotasParaMeta && window.osParaMeta) {
         
-        const frotasAtivas = window.frotasParaMeta.filter(f => f.status === 'Ativo' && f.categoria && f.categoria.toUpperCase() === 'TRITREM');
+        // FILTRO EXTRA DE GARANTIA: Apenas frotas da Filial 1 contam para a DM / Meta
+        const frotasAtivas = window.frotasParaMeta.filter(f => f.status === 'Ativo' && f.categoria && f.categoria.toUpperCase() === 'TRITREM' && String(f.filial_id) === '1');
         
         let dataInicioCalc = new Date(); dataInicioCalc.setHours(0,0,0,0);
         let dataFimCalc = new Date(); dataFimCalc.setHours(23,59,59,999);

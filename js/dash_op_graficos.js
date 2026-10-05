@@ -2,7 +2,7 @@
 // MÓDULO 1: GRÁFICOS, LEADERBOARDS E EXPORTAÇÃO (OPERACIONAL)
 // =========================================================
 
-// Função que pega toda a base e filtra SOMENTE pelo mês corrente real e pela transportadora selecionada
+// Função que pega toda a base e filtra SOMENTE pelo mês corrente real, filial e pela transportadora selecionada
 function obterDadosMesAtualParaGraficos() {
     if (!window.fullHistoricoDataOp || window.fullHistoricoDataOp.length === 0) return [];
     
@@ -14,6 +14,9 @@ function obterDadosMesAtualParaGraficos() {
     const activeT = filterTransp ? filterTransp.value : 'ALL';
 
     const dadosMesAtual = window.fullHistoricoDataOp.filter(d => {
+        // FILTRO DE FILIAL: Considerar apenas filial_id = 1
+        if (String(d.filial_id) !== '1') return false;
+
         const parsed = window.parseDateTime ? window.parseDateTime(d.dataDaBaseExcel) : null;
         if (!parsed) return false;
         
@@ -159,9 +162,12 @@ window.renderTransporteChart = function(data) {
 };
 
 window.renderLeaderboards = function(data, diasConsiderados = 1) {
+    // FILTRO DE FILIAL: Considerar apenas filial_id = 1
+    const dadosFiltrados = data.filter(d => String(d.filial_id) === '1');
     const pMap = new Map();
+    
     // O Leaderboard continua obedecendo aos filtros de dia/semana (data) que o usuário escolheu
-    data.forEach(d => {
+    dadosFiltrados.forEach(d => {
         const pl = d.placa || 'N/A';
         const volNum = parseFloat(String(d.volumeReal).replace(',', '.')) || 0;
         if(!pMap.has(pl)) pMap.set(pl, {p: pl, t: d.transportadora||'-', vol: 0, v: 0, ciclos: 0, cCount: 0});

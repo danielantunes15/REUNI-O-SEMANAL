@@ -130,7 +130,8 @@ window.carregarFrotaSupabase = async function() {
         const db = window.getGlobalDB(); 
         const { data, error } = await db.from('frota_pendencias').select('*').order('data_criacao', { ascending: false });
         if (error) throw error;
-        window.frotaPendenciasData = data || [];
+        // FILTRO DE FILIAL: Considerar apenas filial_id = 1
+        window.frotaPendenciasData = (data || []).filter(item => String(item.filial_id) === '1');
         window.renderizarTabelaFrota();
     } catch (e) { console.error("Erro ao carregar frota:", e); }
 };

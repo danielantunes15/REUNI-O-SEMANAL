@@ -106,7 +106,7 @@ window.formatarHorasMinutos = function(horasDecimais) {
     if (horas === 0 && minutos === 0) return '0m';
     if (horas === 0) return `${minutos}m`;
     if (minutos === 0) return `${horas}h`;
-    return `${horas}h ${minutos.toString().padStart(2, '0')}m`;
+    return `${horas}h${minutos.toString().padStart(2, '0')}m`;
 };
 
 window.parseMetaTempo = function(val) {
@@ -140,7 +140,7 @@ window.getFrenteDaViagem = function(d) {
     // 2. Fallback: Lê as colunas para associar como no Produção-Frota (Fazenda/UP)
     const upRaw = String(window.getCampoOp(d, ['up', 'fazenda', 'horto'])).trim().toUpperCase();
     const frenteRaw = String(window.getCampoOp(d, ['frente'])).trim().toUpperCase();
-    const txtInfo = `${frenteRaw} ${upRaw} ${gruaRaw}`;
+    const txtInfo = `${frenteRaw} ${upRaw}${gruaRaw}`;
 
     if (txtInfo.includes('FRENTE 5') || txtInfo.includes('ALCOBAÇA') || txtInfo.includes('ALCOBACA')) return 'C1';
     if (txtInfo.includes('FRENTE 6') || txtInfo.includes('PORTELA')) return 'C2';
@@ -182,7 +182,7 @@ window.carregarConfigGruasOp = async function() {
                         if(cod) window.gruasCacheMap.set(cod, { ordem: ord, frente: row.frente });
                     });
                 }
-                if (row.frente && ord) { window.frentesNomes[ord] = `${ord}: ${row.frente}`; }
+                if (row.frente && ord) { window.frentesNomes[ord] = `${ord}:${row.frente}`; }
             });
             const thC1 = document.getElementById('th_c1'); if(thC1) thC1.innerHTML = `<i class="fas fa-star mr-1"></i> ${window.frentesNomes['C1'] || 'Frente 05'}`;
             const thC2 = document.getElementById('th_c2'); if(thC2) thC2.innerHTML = `<i class="fas fa-star mr-1"></i> ${window.frentesNomes['C2'] || 'Frente 06'}`;
@@ -257,8 +257,9 @@ window.loadManutencaoDataForMeta = async function() {
             frotasResp = await client.from('cadastro_frota').select('*').limit(2000);
         }
 
-        if (osResp.data) window.osParaMeta = osResp.data;
-        if (frotasResp.data) window.frotasParaMeta = frotasResp.data;
+        // FILTRO DE FILIAL: Apenas filial 1 para a base de metas e manutenção
+        if (osResp.data) window.osParaMeta = osResp.data.filter(item => String(item.filial_id) === '1');
+        if (frotasResp.data) window.frotasParaMeta = frotasResp.data.filter(item => String(item.filial_id) === '1');
     } catch (e) { console.error("Erro dados manutenção:", e); }
 };
 
@@ -301,7 +302,8 @@ window.loadOperacionalData = async function() {
         if(historico && historico.length > 0) {
             historico = historico.filter(d => {
                 const motorista = String(d.motorista || '').toUpperCase();
-                return !motorista.includes('JULIO CESAR ALMEIDA NUNES') && motorista !== '-';
+                // FILTRO DE FILIAL: Considerar apenas histórico de viagens da filial 1
+                return !motorista.includes('JULIO CESAR ALMEIDA NUNES') && motorista !== '-' && String(d.filial_id) === '1';
             });
             window.fullHistoricoDataOp = historico.reverse();
             window.normalizarCiclos(window.fullHistoricoDataOp);
