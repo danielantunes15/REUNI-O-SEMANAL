@@ -274,6 +274,9 @@
             }
 
             if (opData.length > 0) {
+                // FILTRO DE FILIAL: Apenas dados da filial_id = 1
+                opData = opData.filter(item => String(item.filial_id) === '1');
+                
                 window.normalizarCiclos(opData);
 
                 const fOp = opData.filter(d => {
@@ -330,11 +333,17 @@
                 }
                 if (!data || data.length < stepOs) fetchMoreOs = false;
             }
+            
+            if (osData.length > 0) {
+                // FILTRO DE FILIAL: Apenas dados da filial_id = 1
+                osData = osData.filter(item => String(item.filial_id) === '1');
+            }
 
             const { data: frotasData } = await supaFrota.from('frotas_manutencao').select('*').limit(5000);
             
             if (osData && frotasData) {
-                let frotasTritrem = frotasData.filter(f => (f.status || '').toUpperCase() === 'ATIVO' && (f.categoria || '').toUpperCase() === 'TRITREM');
+                // FILTRO DE FILIAL: Apenas frotas da filial_id = 1
+                let frotasTritrem = frotasData.filter(f => (f.status || '').toUpperCase() === 'ATIVO' && (f.categoria || '').toUpperCase() === 'TRITREM' && String(f.filial_id) === '1');
 
                 const inicioDia = new Date(ontem);
                 const fimDia = new Date(ontem);
