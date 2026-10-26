@@ -500,17 +500,12 @@ window.renderizarGraficoEvolucaoDMDiaria = function() {
     } catch(e) { console.error("[Dash Graficos ERRO CRÍTICO] na Evolução Diária Geral:", e); }
 };
 
-
-// =========================================================================
-// NOVO: RANKING EXCLUSIVO DO MÊS ATUAL COM MODAL DE DETALHES DA PLACA
-// =========================================================================
 window.renderizarRankingCavalos = function() {
     const container = document.getElementById('rankingCavalosOS');
     if(!container) { console.warn('[Dash Graficos] Div id="rankingCavalosOS" não encontrada.'); return; }
 
     const os = window.ordensServico || [];
     
-    // Força o período para o início e fim do mês vigente (independente do filtro global da tela)
     const agora = new Date();
     const inicioMes = new Date(agora.getFullYear(), agora.getMonth(), 1, 0, 0, 0);
     const fimMes = new Date(agora.getFullYear(), agora.getMonth() + 1, 0, 23, 59, 59, 999);
@@ -526,7 +521,6 @@ window.renderizarRankingCavalos = function() {
         let dtAbertura = o.data_abertura ? window.tratarFusoDB(o.data_abertura) : null;
         if(!dtAbertura) return;
         
-        // Verifica se a O.S. está dentro do mês atual
         if(dtAbertura >= inicioMes && dtAbertura <= fimMes) {
             const placaFormatada = String(o.placa).trim().toUpperCase();
             contagem[placaFormatada] = (contagem[placaFormatada] || 0) + 1;
@@ -544,7 +538,6 @@ window.renderizarRankingCavalos = function() {
         const placa = item[0], qtd = item[1];
         let cor = index === 0 ? '#ef4444' : index === 1 ? '#f97316' : index === 2 ? '#facc15' : '#3b82f6';
         
-        // Transformamos o card em clicável para abrir o modal de histórico
         return `
         <div onclick="abrirModalHistoricoPlaca('${placa}')" style="display: flex; justify-content: space-between; align-items: center; background: rgba(0,0,0,0.2); padding: 12px 15px; margin-bottom: 8px; border-radius: 8px; border-left: 4px solid ${cor}; cursor: pointer; transition: all 0.2s;" onmouseover="this.style.background='rgba(255,255,255,0.1)'" onmouseout="this.style.background='rgba(0,0,0,0.2)'" title="Clique para ver todas as O.S. deste veículo no mês">
             <div style="display: flex; align-items: center; gap: 10px;">
@@ -559,6 +552,55 @@ window.renderizarRankingCavalos = function() {
     }).join('');
 };
 
+window.renderizarRankingMotoristas = function() {
+    const container = document.getElementById('rankingMotoristasOS');
+    if(!container) { console.warn('[Dash Graficos] Div id="rankingMotoristasOS" não encontrada.'); return; }
+
+    const os = window.ordensServico || [];
+    
+    const agora = new Date();
+    const inicioMes = new Date(agora.getFullYear(), agora.getMonth(), 1, 0, 0, 0);
+    const fimMes = new Date(agora.getFullYear(), agora.getMonth() + 1, 0, 23, 59, 59, 999);
+    
+    const contagem = {};
+
+    os.forEach(o => {
+        let isOSInativa = (o.inativa === 1 || o.inativa === '1' || o.inativa === true);
+        if (isOSInativa) return;
+        if (!o.motorista || o.motorista.trim() === '-' || o.motorista.trim() === '') return;
+        if (o.status === 'Agendada' || o.status === 'Cancelada' || o.tipo === 'Cavalo Disponível S/ Carreta') return;
+        
+        let dtAbertura = o.data_abertura ? window.tratarFusoDB(o.data_abertura) : null;
+        if(!dtAbertura) return;
+        
+        if(dtAbertura >= inicioMes && dtAbertura <= fimMes) {
+            const motorista = String(o.motorista).trim().toUpperCase();
+            contagem[motorista] = (contagem[motorista] || 0) + 1;
+        }
+    });
+
+    const top5 = Object.entries(contagem).sort((a,b) => b[1] - a[1]).slice(0, 5);
+    
+    if(top5.length === 0) {
+        container.innerHTML = '<p style="color:#94a3b8; text-align:center; padding: 20px;">Nenhum registro neste mês vigente.</p>';
+        return;
+    }
+
+    container.innerHTML = top5.map((item, index) => {
+        const nome = item[0], qtd = item[1];
+        let cor = index === 0 ? '#ef4444' : index === 1 ? '#f97316' : index === 2 ? '#facc15' : '#10b981';
+        
+        return `
+        <div style="display: flex; justify-content: space-between; align-items: center; background: rgba(0,0,0,0.2); padding: 12px 15px; margin-bottom: 8px; border-radius: 8px; border-left: 4px solid ${cor}; transition: all 0.2s;">
+            <div style="display: flex; align-items: center; gap: 10px;">
+                <span style="font-size: 1.2rem; font-weight: bold; color: ${cor};">#${index+1}</span>
+                <span style="font-size: 0.95rem; font-weight: bold; color: white; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 160px;" title="${nome}">${nome}</span>
+            </div>
+            <div style="font-size: 1.2rem; font-weight: 900; color: white;">${qtd} <span style="font-size: 0.8rem; font-weight: normal; color: #94a3b8;">O.S.</span></div>
+        </div>`;
+    }).join('');
+};
+
 window.abrirModalHistoricoPlaca = function(placaBusca) {
     const os = window.ordensServico || [];
     
@@ -566,7 +608,6 @@ window.abrirModalHistoricoPlaca = function(placaBusca) {
     const inicioMes = new Date(agora.getFullYear(), agora.getMonth(), 1, 0, 0, 0);
     const fimMes = new Date(agora.getFullYear(), agora.getMonth() + 1, 0, 23, 59, 59, 999);
     
-    // Filtra todas as O.S deste caminhão no mês atual
     const historicoPlaca = os.filter(o => {
         let isOSInativa = (o.inativa === 1 || o.inativa === '1' || o.inativa === true);
         if (isOSInativa) return false;
@@ -579,12 +620,12 @@ window.abrirModalHistoricoPlaca = function(placaBusca) {
         if(!dtAbertura) return false;
         
         return (dtAbertura >= inicioMes && dtAbertura <= fimMes);
-    }).sort((a, b) => window.tratarFusoDB(b.data_abertura) - window.tratarFusoDB(a.data_abertura)); // Mais recentes primeiro
+    }).sort((a, b) => window.tratarFusoDB(b.data_abertura) - window.tratarFusoDB(a.data_abertura)); 
 
     let htmlTabela = '';
     
     if (historicoPlaca.length === 0) {
-        htmlTabela = '<tr><td colspan="4" style="text-align: center; padding: 20px; color: #94a3b8;">Nenhum dado encontrado para esta placa no mês atual.</td></tr>';
+        htmlTabela = '<tr><td colspan="5" style="text-align: center; padding: 20px; color: #94a3b8;">Nenhum dado encontrado para esta placa no mês atual.</td></tr>';
     } else {
         htmlTabela = historicoPlaca.map(o => {
             let dataStr = '--/--/----';
@@ -596,8 +637,9 @@ window.abrirModalHistoricoPlaca = function(placaBusca) {
             return `
                 <tr style="border-bottom: 1px solid rgba(255,255,255,0.05); background: rgba(0,0,0,0.1);">
                     <td style="padding: 12px; color: #fff; font-weight: bold; white-space: nowrap;">#${o.numero_os || o.id}</td>
-                    <td style="padding: 12px; color: #94a3b8;">${dataStr}</td>
-                    <td style="padding: 12px; color: #3b82f6; font-weight: bold;">${o.tipo || 'Não Definido'}</td>
+                    <td style="padding: 12px; color: #94a3b8; white-space: nowrap;">${dataStr}</td>
+                    <td style="padding: 12px; color: #3b82f6; font-weight: bold; white-space: nowrap;">${o.tipo || 'Não Definido'}</td>
+                    <td style="padding: 12px; color: #10b981; font-weight: bold; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 120px;" title="${o.motorista || '-'}">${o.motorista || '-'}</td>
                     <td style="padding: 12px; color: #cbd5e1; font-size: 0.85rem;">${o.problema || o.observacoes || 'Sem descrição.'}</td>
                 </tr>
             `;
@@ -606,7 +648,7 @@ window.abrirModalHistoricoPlaca = function(placaBusca) {
 
     const modalHtml = `
         <div id="modalRankingPlaca" style="position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.8); backdrop-filter: blur(5px); z-index: 9999; display: flex; align-items: center; justify-content: center;">
-            <div style="background: #1e293b; border: 1px solid #3b82f6; border-radius: 12px; width: 90%; max-width: 900px; max-height: 85vh; display: flex; flex-direction: column; box-shadow: 0 10px 30px rgba(0,0,0,0.5);">
+            <div style="background: #1e293b; border: 1px solid #3b82f6; border-radius: 12px; width: 95%; max-width: 1000px; max-height: 85vh; display: flex; flex-direction: column; box-shadow: 0 10px 30px rgba(0,0,0,0.5);">
                 
                 <div style="padding: 15px 20px; border-bottom: 1px solid rgba(255,255,255,0.1); display: flex; justify-content: space-between; align-items: center; background: rgba(59,130,246,0.1); border-radius: 12px 12px 0 0;">
                     <h3 style="color: #fff; margin: 0; font-size: 1.2rem; display: flex; align-items: center; gap: 10px;">
@@ -621,9 +663,10 @@ window.abrirModalHistoricoPlaca = function(placaBusca) {
                     <table style="width: 100%; border-collapse: collapse; text-align: left;">
                         <thead style="background: rgba(0,0,0,0.3);">
                             <tr>
-                                <th style="padding: 12px; color: #94a3b8; text-transform: uppercase; font-size: 0.8rem; font-weight: bold;">Nº O.S</th>
-                                <th style="padding: 12px; color: #94a3b8; text-transform: uppercase; font-size: 0.8rem; font-weight: bold;">Abertura</th>
-                                <th style="padding: 12px; color: #94a3b8; text-transform: uppercase; font-size: 0.8rem; font-weight: bold;">Classificação</th>
+                                <th style="padding: 12px; color: #94a3b8; text-transform: uppercase; font-size: 0.8rem; font-weight: bold; white-space: nowrap;">Nº O.S</th>
+                                <th style="padding: 12px; color: #94a3b8; text-transform: uppercase; font-size: 0.8rem; font-weight: bold; white-space: nowrap;">Abertura</th>
+                                <th style="padding: 12px; color: #94a3b8; text-transform: uppercase; font-size: 0.8rem; font-weight: bold; white-space: nowrap;">Classificação</th>
+                                <th style="padding: 12px; color: #94a3b8; text-transform: uppercase; font-size: 0.8rem; font-weight: bold; white-space: nowrap;">Motorista</th>
                                 <th style="padding: 12px; color: #94a3b8; text-transform: uppercase; font-size: 0.8rem; font-weight: bold;">Descrição do Problema</th>
                             </tr>
                         </thead>
@@ -637,7 +680,6 @@ window.abrirModalHistoricoPlaca = function(placaBusca) {
         </div>
     `;
 
-    // Injeta o modal no body (se já houver um, remove antes)
     const modalAntigo = document.getElementById('modalRankingPlaca');
     if (modalAntigo) modalAntigo.remove();
     document.body.insertAdjacentHTML('beforeend', modalHtml);
