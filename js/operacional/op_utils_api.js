@@ -69,18 +69,16 @@ window.parseDateTime = function(dateVal) {
     return baseDate;
 };
 
-// FIX: Blindagem contra o erro de formatação de volume do Excel ("1.234,50" ou "48.5")
 window.toNumberOp = function(val) {
     if (val === null || val === undefined || val === '') return 0;
     if (typeof val === 'number') return val;
     let str = String(val).replace('R$', '').trim();
     
     if (str.includes('.') && str.includes(',')) {
-        str = str.replace(/\./g, '').replace(',', '.'); // Formato brasileiro 1.234,50
+        str = str.replace(/\./g, '').replace(',', '.'); 
     } else if (str.includes(',')) {
-        str = str.replace(',', '.'); // Apenas virgula 48,5
+        str = str.replace(',', '.'); 
     }
-    // Se tiver apenas ponto (48.5), já está no formato correto para parseFloat
     
     let num = parseFloat(str);
     return isNaN(num) ? 0 : num;
@@ -132,12 +130,10 @@ window.parseMetaTempo = function(val) {
 window.getFrenteDaViagem = function(d) {
     const gruaRaw = String(window.getCampoOp(d, ['grua', 'equipamento', 'maquina', 'cod_grua', 'codigo_grua'])).trim().toUpperCase().replace(/[-\s]/g, '');
     
-    // 1. Tenta mapear diretamente pela grua (Banco de Dados)
     if (window.gruasCacheMap && window.gruasCacheMap.has(gruaRaw)) {
-        return window.gruasCacheMap.get(gruaRaw).ordem; // 'C1', 'C2', 'C3', 'C4'
+        return window.gruasCacheMap.get(gruaRaw).ordem;
     }
 
-    // 2. Fallback: Lê as colunas para associar como no Produção-Frota (Fazenda/UP)
     const upRaw = String(window.getCampoOp(d, ['up', 'fazenda', 'horto'])).trim().toUpperCase();
     const frenteRaw = String(window.getCampoOp(d, ['frente'])).trim().toUpperCase();
     const txtInfo = `${frenteRaw} ${upRaw}${gruaRaw}`;
@@ -250,14 +246,13 @@ window.carregarMetasGlobais = async function() {
 window.loadManutencaoDataForMeta = async function() {
     try {
         const client = window.supabaseClientLocal; 
-        const osResp = await client.from('ordens_servico').select('*').neq('status', 'Agendada').order('data_abertura', { ascending: false }).limit(5000);
+        const osResp = await client.from('ordens_servico').select('*').neq('status', 'Agendada').order('data_abertura', { ascending: false }).limit(3000);
         let frotasResp = await client.from('frotas_manutencao').select('*').limit(2000);
         
         if (!frotasResp.data || frotasResp.data.length === 0) {
             frotasResp = await client.from('cadastro_frota').select('*').limit(2000);
         }
 
-        // FILTRO DE FILIAL: Apenas filial 1 para a base de metas e manutenção
         if (osResp.data) window.osParaMeta = osResp.data.filter(item => String(item.filial_id) === '1');
         if (frotasResp.data) window.frotasParaMeta = frotasResp.data.filter(item => String(item.filial_id) === '1');
     } catch (e) { console.error("Erro dados manutenção:", e); }
@@ -288,23 +283,51 @@ window.normalizarCiclos = function(dataArr) {
 window.loadOperacionalData = async function() {
     try {
         let historico = [];
-        let from = 0;
-        const step = 1000;
-        let fetchMore = true;
         
-        while (fetchMore) {
-            const { data, error } = await window.supabaseClientLocal.from('historico_viagens').select('*').range(from, from + step - 1);
-            if (error) break;
-            if (data && data.length > 0) { historico = historico.concat(data); from += step; }
-            if (!data || data.length < step) fetchMore = false;
+        // 1. Pega o número total exato de registros na tabela
+        const { count, error: countErr } = await window.supabaseClientLocal
+            .from('historico_viagens')
+            .select('*', { count: 'exact', head: true });
+        
+        if (count && count > 0) {
+            // 2. Dispara TODAS as requisições (de 1000 em 1000) SIMULTANEAMENTE!
+            // Isso substitui a fila demorada de 3 minutos por um download rápido paralelo.
+            const promises = [];
+            for (let i = 0; i < count; i += 1000) {
+                promises.push(
+                    window.supabaseClientLocal
+                        .from('historico_viagens')
+                        .select('*')
+                        .range(i, i + 999)
+                );
+            }
+            
+            // O Promise.all aguarda todas as buscas terminarem e preserva a ordem cronológica original da tabela
+            const resultados = await Promise.all(promises);
+            resultados.forEach(res => {
+                if (res.data) historico = historico.concat(res.data);
+            });
+            
+        } else {
+            // Fallback de segurança idêntico ao formato original caso o count falhe
+            let from = 0;
+            let fetchMore = true;
+            while (fetchMore) {
+                const { data, error } = await window.supabaseClientLocal.from('historico_viagens').select('*').range(from, from + 999);
+                if (error) break;
+                if (data && data.length > 0) { historico = historico.concat(data); from += 1000; }
+                if (!data || data.length < 1000) fetchMore = false;
+            }
         }
-        
+
         if(historico && historico.length > 0) {
+            // Filtros de filial e motorista aplicados na memória para evitar o Erro 400 da API
             historico = historico.filter(d => {
                 const motorista = String(d.motorista || '').toUpperCase();
-                // FILTRO DE FILIAL: Considerar apenas histórico de viagens da filial 1
                 return !motorista.includes('JULIO CESAR ALMEIDA NUNES') && motorista !== '-' && String(d.filial_id) === '1';
             });
+            
+            // Reverte para que os dados mais novos fiquem no topo
             window.fullHistoricoDataOp = historico.reverse();
             window.normalizarCiclos(window.fullHistoricoDataOp);
         }
@@ -344,6 +367,7 @@ window.loadOperacionalData = async function() {
                 filterTransp.innerHTML = '<option value="ALL">TODAS AS TRANSPORTADORAS</option>';
                 transps.forEach(t => filterTransp.insertAdjacentHTML('beforeend', `<option value="${t}">${t}</option>`));
             }
+            // Chama a atualização do painel agora com os dados completos e instantâneos
             if (typeof window.atualizarPainelOperacional === 'function') window.atualizarPainelOperacional();
         }
     } catch(e) { console.error("Erro operacionais:", e); }

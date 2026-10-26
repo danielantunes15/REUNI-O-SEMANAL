@@ -97,10 +97,17 @@ window.initNovoDashboardOperacional = async function() {
     if (typeof window.carregarConfigGruasOp === 'function') await window.carregarConfigGruasOp();
     if (typeof window.carregarMetasGlobais === 'function') await window.carregarMetasGlobais();
 
+    // Promessas executadas de forma paralela para acelerar o carregamento
+    const tasks = [];
     if (typeof window.loadManutencaoDataForMeta === 'function') {
-        window.loadManutencaoDataForMeta().finally(() => {
-            if (typeof window.loadOperacionalData === 'function') window.loadOperacionalData();
-        });
+        tasks.push(window.loadManutencaoDataForMeta());
+    }
+    if (typeof window.loadOperacionalData === 'function') {
+        tasks.push(window.loadOperacionalData());
+    }
+    
+    if (tasks.length > 0) {
+        await Promise.all(tasks);
     }
     
     if(document.getElementById('data-mural-setor')) {
