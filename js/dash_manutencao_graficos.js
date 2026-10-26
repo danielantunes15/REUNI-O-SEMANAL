@@ -575,6 +575,10 @@ window.renderizarRankingMotoristas = function() {
         
         if(dtAbertura >= inicioMes && dtAbertura <= fimMes) {
             const motorista = String(o.motorista).trim().toUpperCase();
+            
+            // Ignorar N/A e valores que não representam motoristas reais
+            if (motorista.includes('N/A') || motorista.includes('APENAS GO') || motorista.includes('NAO INFORMADO')) return;
+            
             contagem[motorista] = (contagem[motorista] || 0) + 1;
         }
     });
@@ -591,12 +595,15 @@ window.renderizarRankingMotoristas = function() {
         let cor = index === 0 ? '#ef4444' : index === 1 ? '#f97316' : index === 2 ? '#facc15' : '#10b981';
         
         return `
-        <div style="display: flex; justify-content: space-between; align-items: center; background: rgba(0,0,0,0.2); padding: 12px 15px; margin-bottom: 8px; border-radius: 8px; border-left: 4px solid ${cor}; transition: all 0.2s;">
+        <div onclick="abrirModalHistoricoMotorista('${nome.replace(/'/g, "\\'")}')" style="display: flex; justify-content: space-between; align-items: center; background: rgba(0,0,0,0.2); padding: 12px 15px; margin-bottom: 8px; border-radius: 8px; border-left: 4px solid ${cor}; cursor: pointer; transition: all 0.2s;" onmouseover="this.style.background='rgba(255,255,255,0.1)'" onmouseout="this.style.background='rgba(0,0,0,0.2)'" title="Clique para ver todas as O.S. abertas por este motorista no mês">
             <div style="display: flex; align-items: center; gap: 10px;">
                 <span style="font-size: 1.2rem; font-weight: bold; color: ${cor};">#${index+1}</span>
-                <span style="font-size: 0.95rem; font-weight: bold; color: white; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 160px;" title="${nome}">${nome}</span>
+                <span style="font-size: 0.95rem; font-weight: bold; color: white;">${nome}</span>
             </div>
-            <div style="font-size: 1.2rem; font-weight: 900; color: white;">${qtd} <span style="font-size: 0.8rem; font-weight: normal; color: #94a3b8;">O.S.</span></div>
+            <div style="display: flex; align-items: center; gap: 10px;">
+                <div style="font-size: 1.2rem; font-weight: 900; color: white;">${qtd} <span style="font-size: 0.8rem; font-weight: normal; color: #94a3b8;">O.S.</span></div>
+                <i class="fas fa-search-plus" style="color: ${cor}; opacity: 0.7;"></i>
+            </div>
         </div>`;
     }).join('');
 };
@@ -639,7 +646,7 @@ window.abrirModalHistoricoPlaca = function(placaBusca) {
                     <td style="padding: 12px; color: #fff; font-weight: bold; white-space: nowrap;">#${o.numero_os || o.id}</td>
                     <td style="padding: 12px; color: #94a3b8; white-space: nowrap;">${dataStr}</td>
                     <td style="padding: 12px; color: #3b82f6; font-weight: bold; white-space: nowrap;">${o.tipo || 'Não Definido'}</td>
-                    <td style="padding: 12px; color: #10b981; font-weight: bold; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 120px;" title="${o.motorista || '-'}">${o.motorista || '-'}</td>
+                    <td style="padding: 12px; color: #10b981; font-weight: bold; white-space: nowrap;">${o.motorista || '-'}</td>
                     <td style="padding: 12px; color: #cbd5e1; font-size: 0.85rem;">${o.problema || o.observacoes || 'Sem descrição.'}</td>
                 </tr>
             `;
@@ -648,7 +655,7 @@ window.abrirModalHistoricoPlaca = function(placaBusca) {
 
     const modalHtml = `
         <div id="modalRankingPlaca" style="position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.8); backdrop-filter: blur(5px); z-index: 9999; display: flex; align-items: center; justify-content: center;">
-            <div style="background: #1e293b; border: 1px solid #3b82f6; border-radius: 12px; width: 95%; max-width: 1000px; max-height: 85vh; display: flex; flex-direction: column; box-shadow: 0 10px 30px rgba(0,0,0,0.5);">
+            <div style="background: #1e293b; border: 1px solid #3b82f6; border-radius: 12px; width: 95%; max-width: 1400px; max-height: 85vh; display: flex; flex-direction: column; box-shadow: 0 10px 30px rgba(0,0,0,0.5);">
                 
                 <div style="padding: 15px 20px; border-bottom: 1px solid rgba(255,255,255,0.1); display: flex; justify-content: space-between; align-items: center; background: rgba(59,130,246,0.1); border-radius: 12px 12px 0 0;">
                     <h3 style="color: #fff; margin: 0; font-size: 1.2rem; display: flex; align-items: center; gap: 10px;">
@@ -685,6 +692,89 @@ window.abrirModalHistoricoPlaca = function(placaBusca) {
     document.body.insertAdjacentHTML('beforeend', modalHtml);
 };
 
+window.abrirModalHistoricoMotorista = function(motoristaBusca) {
+    const os = window.ordensServico || [];
+    
+    const agora = new Date();
+    const inicioMes = new Date(agora.getFullYear(), agora.getMonth(), 1, 0, 0, 0);
+    const fimMes = new Date(agora.getFullYear(), agora.getMonth() + 1, 0, 23, 59, 59, 999);
+    
+    const historicoMotorista = os.filter(o => {
+        let isOSInativa = (o.inativa === 1 || o.inativa === '1' || o.inativa === true);
+        if (isOSInativa) return false;
+        
+        const mot = String(o.motorista || '').trim().toUpperCase();
+        if (mot !== motoristaBusca.toUpperCase()) return false;
+        if (o.status === 'Agendada' || o.status === 'Cancelada' || o.tipo === 'Cavalo Disponível S/ Carreta') return false;
+        
+        let dtAbertura = o.data_abertura ? window.tratarFusoDB(o.data_abertura) : null;
+        if(!dtAbertura) return false;
+        
+        return (dtAbertura >= inicioMes && dtAbertura <= fimMes);
+    }).sort((a, b) => window.tratarFusoDB(b.data_abertura) - window.tratarFusoDB(a.data_abertura)); 
+
+    let htmlTabela = '';
+    
+    if (historicoMotorista.length === 0) {
+        htmlTabela = '<tr><td colspan="5" style="text-align: center; padding: 20px; color: #94a3b8;">Nenhum dado encontrado para este motorista no mês atual.</td></tr>';
+    } else {
+        htmlTabela = historicoMotorista.map(o => {
+            let dataStr = '--/--/----';
+            if (o.data_abertura) {
+                const dt = window.tratarFusoDB(o.data_abertura);
+                dataStr = `${String(dt.getDate()).padStart(2,'0')}/${String(dt.getMonth()+1).padStart(2,'0')} - ${String(dt.getHours()).padStart(2,'0')}:${String(dt.getMinutes()).padStart(2,'0')}`;
+            }
+            
+            return `
+                <tr style="border-bottom: 1px solid rgba(255,255,255,0.05); background: rgba(0,0,0,0.1);">
+                    <td style="padding: 12px; color: #fff; font-weight: bold; white-space: nowrap;">#${o.numero_os || o.id}</td>
+                    <td style="padding: 12px; color: #94a3b8; white-space: nowrap;">${dataStr}</td>
+                    <td style="padding: 12px; color: #3b82f6; font-weight: bold; white-space: nowrap;">${o.tipo || 'Não Definido'}</td>
+                    <td style="padding: 12px; color: #facc15; font-weight: bold; white-space: nowrap;">${o.placa || o.veiculo || o.cavalo || '-'}</td>
+                    <td style="padding: 12px; color: #cbd5e1; font-size: 0.85rem;">${o.problema || o.observacoes || 'Sem descrição.'}</td>
+                </tr>
+            `;
+        }).join('');
+    }
+
+    const modalHtml = `
+        <div id="modalRankingMotorista" style="position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.8); backdrop-filter: blur(5px); z-index: 9999; display: flex; align-items: center; justify-content: center;">
+            <div style="background: #1e293b; border: 1px solid #10b981; border-radius: 12px; width: 95%; max-width: 1400px; max-height: 85vh; display: flex; flex-direction: column; box-shadow: 0 10px 30px rgba(0,0,0,0.5);">
+                
+                <div style="padding: 15px 20px; border-bottom: 1px solid rgba(255,255,255,0.1); display: flex; justify-content: space-between; align-items: center; background: rgba(16,185,129,0.1); border-radius: 12px 12px 0 0;">
+                    <h3 style="color: #fff; margin: 0; font-size: 1.2rem; display: flex; align-items: center; gap: 10px;">
+                        <i class="fas fa-user-hard-hat" style="color: #10b981;"></i> O.S. Abertas pelo Motorista (Mês Atual) - <span style="color: #10b981; font-weight: 900; font-size: 1.4rem;">${motoristaBusca}</span>
+                    </h3>
+                    <button onclick="document.getElementById('modalRankingMotorista').remove()" style="background: transparent; border: none; color: #94a3b8; font-size: 1.5rem; cursor: pointer; transition: 0.2s;" onmouseover="this.style.color='#ef4444'" onmouseout="this.style.color='#94a3b8'">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+                
+                <div style="padding: 20px; overflow-y: auto; flex: 1;" class="custom-scrollbar">
+                    <table style="width: 100%; border-collapse: collapse; text-align: left;">
+                        <thead style="background: rgba(0,0,0,0.3);">
+                            <tr>
+                                <th style="padding: 12px; color: #94a3b8; text-transform: uppercase; font-size: 0.8rem; font-weight: bold; white-space: nowrap;">Nº O.S</th>
+                                <th style="padding: 12px; color: #94a3b8; text-transform: uppercase; font-size: 0.8rem; font-weight: bold; white-space: nowrap;">Abertura</th>
+                                <th style="padding: 12px; color: #94a3b8; text-transform: uppercase; font-size: 0.8rem; font-weight: bold; white-space: nowrap;">Classificação</th>
+                                <th style="padding: 12px; color: #94a3b8; text-transform: uppercase; font-size: 0.8rem; font-weight: bold; white-space: nowrap;">Veículo / Placa</th>
+                                <th style="padding: 12px; color: #94a3b8; text-transform: uppercase; font-size: 0.8rem; font-weight: bold;">Descrição do Problema</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${htmlTabela}
+                        </tbody>
+                    </table>
+                </div>
+                
+            </div>
+        </div>
+    `;
+
+    const modalAntigo = document.getElementById('modalRankingMotorista');
+    if (modalAntigo) modalAntigo.remove();
+    document.body.insertAdjacentHTML('beforeend', modalHtml);
+};
 
 window.renderizarOcorrenciasTipoBarra = function() {
     const container = document.getElementById('graficoOcorrenciasTipoBarra');
