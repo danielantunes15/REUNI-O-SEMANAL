@@ -16,20 +16,17 @@ window.renderizarGraficoStatusFrotaHorario = function() {
         let dataBase = new Date(); 
         let ehHoje = true;
 
-        // Puxa o filtro global para saber qual é o dia atual configurado na tela
         const datasGlobais = typeof window.getDatasFiltroGlobal === 'function' ? window.getDatasFiltroGlobal() : null;
         const inputData = document.getElementById('filtroDataEspecificaHoraria');
 
-        // Sincronização Inteligente: Força a data do filtro global se ele mudou ou se o input está vazio
         if (datasGlobais && inputData && (!inputData.value || window.ultimoFiltroGlobalHorario !== window.filtroGlobalAtual)) {
-            dataBase = new Date(datasGlobais.inicio); // Pega a data base do filtro global
-            window.ultimoFiltroGlobalHorario = window.filtroGlobalAtual; // Salva o estado atual
+            dataBase = new Date(datasGlobais.inicio);
+            window.ultimoFiltroGlobalHorario = window.filtroGlobalAtual;
             
             const mesStr = String(dataBase.getMonth() + 1).padStart(2, '0');
             const diaStr = String(dataBase.getDate()).padStart(2, '0');
             inputData.value = `${dataBase.getFullYear()}-${mesStr}-${diaStr}`;
         } else if (inputData && inputData.value) {
-            // Se o usuário mexeu no campinho de data manual do gráfico, usamos a data dele
             const partesData = inputData.value.split('-');
             if(partesData.length === 3) {
                 dataBase = new Date(partesData[0], partesData[1] - 1, partesData[2]);
@@ -41,7 +38,6 @@ window.renderizarGraficoStatusFrotaHorario = function() {
         const labelsX = [], dadosBarraAtivos = [], dadosBarraManut = [], dadosBarraSOS = [];
         let horaLimite = ehHoje ? agora.getHours() : 23;
 
-        // Gerar os dados para o Gráfico de Barras Horário
         for (let i = 0; i <= horaLimite; i++) {
             const inicioHora = new Date(dataBase.getFullYear(), dataBase.getMonth(), dataBase.getDate(), i, 0, 0, 0);
             const fimHora = new Date(dataBase.getFullYear(), dataBase.getMonth(), dataBase.getDate(), i, 59, 59, 999);
@@ -69,7 +65,7 @@ window.renderizarGraficoStatusFrotaHorario = function() {
                 todasOSCavalo.forEach(os => {
                     let dtAbertura = os.data_abertura ? window.tratarFusoDB(os.data_abertura) : null;
                     let dtInicioM = os.data_inicio_manutencao ? window.tratarFusoDB(os.data_inicio_manutencao) : null;
-                    let osInicio = dtAbertura || dtInicioM; // Prioriza Abertura
+                    let osInicio = dtAbertura || dtInicioM;
                     if (!osInicio) return;
                     
                     let osFim = os.data_conclusao ? window.tratarFusoDB(os.data_conclusao) : agora;
@@ -97,9 +93,6 @@ window.renderizarGraficoStatusFrotaHorario = function() {
             dadosBarraAtivos.push(qtdAtivos); dadosBarraManut.push(qtdEmManutencao); dadosBarraSOS.push(qtdEmSOS);
         }
 
-        // =========================================================================
-        // CÁLCULO EXATO (EM MILISSEGUNDOS) PARA OS KPIs DO DIA E TOTAIS DE O.S.
-        // =========================================================================
         let inicioDia = new Date(dataBase.getFullYear(), dataBase.getMonth(), dataBase.getDate(), 0, 0, 0, 0);
         let fimDia = new Date(dataBase.getFullYear(), dataBase.getMonth(), dataBase.getDate(), 23, 59, 59, 999);
         
@@ -164,7 +157,6 @@ window.renderizarGraficoStatusFrotaHorario = function() {
                 }
             });
 
-            // Mesclar para não duplicar punição de O.S Simultânea (Cálculo Ouro)
             let tempoGastoManut = 0;
             if (intervalosManut.length > 0) {
                 intervalosManut.sort((a,b) => a[0] - b[0]);
@@ -198,7 +190,6 @@ window.renderizarGraficoStatusFrotaHorario = function() {
         let dispNoDiaMs = totalMsDisponivelDia - msManutencaoDia - msSOSDia;
         if (dispNoDiaMs < 0) dispNoDiaMs = 0;
         
-        // Mantendo idêntico ao Operacional - Média Real Arredondada
         let kpiAtivosInt = totalMsDisponivelDia > 0 ? Math.round(dispNoDiaMs / msTotalDia) : 0;
         let kpiManutInt = totalManutDia; 
         let kpiSOSInt = totalSOSDia;     
@@ -385,7 +376,7 @@ window.renderizarGraficoEvolucaoDMDiaria = function() {
                     todasOSCavalo.forEach(os => {
                         let dtAbertura = os.data_abertura ? window.tratarFusoDB(os.data_abertura) : null;
                         let dtInicioM = os.data_inicio_manutencao ? window.tratarFusoDB(os.data_inicio_manutencao) : null;
-                        let osInicio = dtAbertura || dtInicioM; // Prioriza data_abertura = Cálculo de Ouro
+                        let osInicio = dtAbertura || dtInicioM; 
                         if (!osInicio) return;
                         
                         let osFim = os.data_conclusao ? window.tratarFusoDB(os.data_conclusao) : new Date(); 
@@ -399,7 +390,6 @@ window.renderizarGraficoEvolucaoDMDiaria = function() {
                         }
                     });
 
-                    // Soma as manutenções MESCLANDO intervalos pra não punir dobrado O.S. concorrente
                     let manutencaoCavalo = 0;
                     if (manutencaoIntervals.length > 0) {
                         manutencaoIntervals.sort((a,b) => a[0] - b[0]);
@@ -433,7 +423,6 @@ window.renderizarGraficoEvolucaoDMDiaria = function() {
             atual.setDate(atual.getDate() + 1);
         }
 
-        // Calculando KPIs menores acima do gráfico
         let mediaDMPeriodo = countDiasDM > 0 ? (sumPercentDM / countDiasDM).toFixed(1) : 0;
         let miniTotalOS = 0, miniConcluidas = 0, miniTempoMs = 0, miniOsComTempo = 0;
 
@@ -511,12 +500,21 @@ window.renderizarGraficoEvolucaoDMDiaria = function() {
     } catch(e) { console.error("[Dash Graficos ERRO CRÍTICO] na Evolução Diária Geral:", e); }
 };
 
+
+// =========================================================================
+// NOVO: RANKING EXCLUSIVO DO MÊS ATUAL COM MODAL DE DETALHES DA PLACA
+// =========================================================================
 window.renderizarRankingCavalos = function() {
     const container = document.getElementById('rankingCavalosOS');
     if(!container) { console.warn('[Dash Graficos] Div id="rankingCavalosOS" não encontrada.'); return; }
 
     const os = window.ordensServico || [];
-    const { inicio, fim } = window.getDatasFiltroGlobal();
+    
+    // Força o período para o início e fim do mês vigente (independente do filtro global da tela)
+    const agora = new Date();
+    const inicioMes = new Date(agora.getFullYear(), agora.getMonth(), 1, 0, 0, 0);
+    const fimMes = new Date(agora.getFullYear(), agora.getMonth() + 1, 0, 23, 59, 59, 999);
+    
     const contagem = {};
 
     os.forEach(o => {
@@ -528,30 +526,123 @@ window.renderizarRankingCavalos = function() {
         let dtAbertura = o.data_abertura ? window.tratarFusoDB(o.data_abertura) : null;
         if(!dtAbertura) return;
         
-        if(dtAbertura >= inicio && dtAbertura <= fim) {
-            contagem[o.placa] = (contagem[o.placa] || 0) + 1;
+        // Verifica se a O.S. está dentro do mês atual
+        if(dtAbertura >= inicioMes && dtAbertura <= fimMes) {
+            const placaFormatada = String(o.placa).trim().toUpperCase();
+            contagem[placaFormatada] = (contagem[placaFormatada] || 0) + 1;
         }
     });
 
     const top5 = Object.entries(contagem).sort((a,b) => b[1] - a[1]).slice(0, 5);
+    
     if(top5.length === 0) {
-        container.innerHTML = '<p style="color:#94a3b8; text-align:center; padding: 20px;">Nenhuma ocorrência no período.</p>';
+        container.innerHTML = '<p style="color:#94a3b8; text-align:center; padding: 20px;">Nenhuma ocorrência neste mês vigente.</p>';
         return;
     }
 
     container.innerHTML = top5.map((item, index) => {
         const placa = item[0], qtd = item[1];
         let cor = index === 0 ? '#ef4444' : index === 1 ? '#f97316' : index === 2 ? '#facc15' : '#3b82f6';
+        
+        // Transformamos o card em clicável para abrir o modal de histórico
         return `
-        <div style="display: flex; justify-content: space-between; align-items: center; background: rgba(0,0,0,0.2); padding: 12px 15px; margin-bottom: 8px; border-radius: 8px; border-left: 4px solid ${cor};">
+        <div onclick="abrirModalHistoricoPlaca('${placa}')" style="display: flex; justify-content: space-between; align-items: center; background: rgba(0,0,0,0.2); padding: 12px 15px; margin-bottom: 8px; border-radius: 8px; border-left: 4px solid ${cor}; cursor: pointer; transition: all 0.2s;" onmouseover="this.style.background='rgba(255,255,255,0.1)'" onmouseout="this.style.background='rgba(0,0,0,0.2)'" title="Clique para ver todas as O.S. deste veículo no mês">
             <div style="display: flex; align-items: center; gap: 10px;">
                 <span style="font-size: 1.2rem; font-weight: bold; color: ${cor};">#${index+1}</span>
                 <span style="font-size: 1.1rem; font-weight: bold; color: white;">${placa}</span>
             </div>
-            <div style="font-size: 1.2rem; font-weight: 900; color: white;">${qtd} <span style="font-size: 0.8rem; font-weight: normal; color: #94a3b8;">O.S.</span></div>
+            <div style="display: flex; align-items: center; gap: 10px;">
+                <div style="font-size: 1.2rem; font-weight: 900; color: white;">${qtd} <span style="font-size: 0.8rem; font-weight: normal; color: #94a3b8;">O.S.</span></div>
+                <i class="fas fa-search-plus" style="color: ${cor}; opacity: 0.7;"></i>
+            </div>
         </div>`;
     }).join('');
 };
+
+window.abrirModalHistoricoPlaca = function(placaBusca) {
+    const os = window.ordensServico || [];
+    
+    const agora = new Date();
+    const inicioMes = new Date(agora.getFullYear(), agora.getMonth(), 1, 0, 0, 0);
+    const fimMes = new Date(agora.getFullYear(), agora.getMonth() + 1, 0, 23, 59, 59, 999);
+    
+    // Filtra todas as O.S deste caminhão no mês atual
+    const historicoPlaca = os.filter(o => {
+        let isOSInativa = (o.inativa === 1 || o.inativa === '1' || o.inativa === true);
+        if (isOSInativa) return false;
+        
+        const p = String(o.placa || o.placa_cavalo || o.veiculo || o.cavalo || '').trim().toUpperCase();
+        if (p !== placaBusca) return false;
+        if (o.status === 'Agendada' || o.status === 'Cancelada' || o.tipo === 'Cavalo Disponível S/ Carreta') return false;
+        
+        let dtAbertura = o.data_abertura ? window.tratarFusoDB(o.data_abertura) : null;
+        if(!dtAbertura) return false;
+        
+        return (dtAbertura >= inicioMes && dtAbertura <= fimMes);
+    }).sort((a, b) => window.tratarFusoDB(b.data_abertura) - window.tratarFusoDB(a.data_abertura)); // Mais recentes primeiro
+
+    let htmlTabela = '';
+    
+    if (historicoPlaca.length === 0) {
+        htmlTabela = '<tr><td colspan="4" style="text-align: center; padding: 20px; color: #94a3b8;">Nenhum dado encontrado para esta placa no mês atual.</td></tr>';
+    } else {
+        htmlTabela = historicoPlaca.map(o => {
+            let dataStr = '--/--/----';
+            if (o.data_abertura) {
+                const dt = window.tratarFusoDB(o.data_abertura);
+                dataStr = `${String(dt.getDate()).padStart(2,'0')}/${String(dt.getMonth()+1).padStart(2,'0')} - ${String(dt.getHours()).padStart(2,'0')}:${String(dt.getMinutes()).padStart(2,'0')}`;
+            }
+            
+            return `
+                <tr style="border-bottom: 1px solid rgba(255,255,255,0.05); background: rgba(0,0,0,0.1);">
+                    <td style="padding: 12px; color: #fff; font-weight: bold; white-space: nowrap;">#${o.numero_os || o.id}</td>
+                    <td style="padding: 12px; color: #94a3b8;">${dataStr}</td>
+                    <td style="padding: 12px; color: #3b82f6; font-weight: bold;">${o.tipo || 'Não Definido'}</td>
+                    <td style="padding: 12px; color: #cbd5e1; font-size: 0.85rem;">${o.problema || o.observacoes || 'Sem descrição.'}</td>
+                </tr>
+            `;
+        }).join('');
+    }
+
+    const modalHtml = `
+        <div id="modalRankingPlaca" style="position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.8); backdrop-filter: blur(5px); z-index: 9999; display: flex; align-items: center; justify-content: center;">
+            <div style="background: #1e293b; border: 1px solid #3b82f6; border-radius: 12px; width: 90%; max-width: 900px; max-height: 85vh; display: flex; flex-direction: column; box-shadow: 0 10px 30px rgba(0,0,0,0.5);">
+                
+                <div style="padding: 15px 20px; border-bottom: 1px solid rgba(255,255,255,0.1); display: flex; justify-content: space-between; align-items: center; background: rgba(59,130,246,0.1); border-radius: 12px 12px 0 0;">
+                    <h3 style="color: #fff; margin: 0; font-size: 1.2rem; display: flex; align-items: center; gap: 10px;">
+                        <i class="fas fa-truck-monster" style="color: #3b82f6;"></i> Histórico de O.S. no Mês Atual - <span style="color: #3b82f6; font-weight: 900; font-size: 1.4rem;">${placaBusca}</span>
+                    </h3>
+                    <button onclick="document.getElementById('modalRankingPlaca').remove()" style="background: transparent; border: none; color: #94a3b8; font-size: 1.5rem; cursor: pointer; transition: 0.2s;" onmouseover="this.style.color='#ef4444'" onmouseout="this.style.color='#94a3b8'">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+                
+                <div style="padding: 20px; overflow-y: auto; flex: 1;" class="custom-scrollbar">
+                    <table style="width: 100%; border-collapse: collapse; text-align: left;">
+                        <thead style="background: rgba(0,0,0,0.3);">
+                            <tr>
+                                <th style="padding: 12px; color: #94a3b8; text-transform: uppercase; font-size: 0.8rem; font-weight: bold;">Nº O.S</th>
+                                <th style="padding: 12px; color: #94a3b8; text-transform: uppercase; font-size: 0.8rem; font-weight: bold;">Abertura</th>
+                                <th style="padding: 12px; color: #94a3b8; text-transform: uppercase; font-size: 0.8rem; font-weight: bold;">Classificação</th>
+                                <th style="padding: 12px; color: #94a3b8; text-transform: uppercase; font-size: 0.8rem; font-weight: bold;">Descrição do Problema</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${htmlTabela}
+                        </tbody>
+                    </table>
+                </div>
+                
+            </div>
+        </div>
+    `;
+
+    // Injeta o modal no body (se já houver um, remove antes)
+    const modalAntigo = document.getElementById('modalRankingPlaca');
+    if (modalAntigo) modalAntigo.remove();
+    document.body.insertAdjacentHTML('beforeend', modalHtml);
+};
+
 
 window.renderizarOcorrenciasTipoBarra = function() {
     const container = document.getElementById('graficoOcorrenciasTipoBarra');
