@@ -31,7 +31,7 @@ window.salvarDadosRH = async function(msgId = 'msg-rh-1', isSilent = false) {
         mural_avisos: JSON.stringify(window.listasRH.avisos_rh || []),
         mural_liberacoes: JSON.stringify(window.listasRH.liberacoes_rh || []),
         
-        mural_aniversariantes: null, // Deixamos NULO pois agora usamos a tabela própria "rh_aniversariantes"
+        mural_aniversariantes: null, // Deixamos NULO pois agora usamos a tabela própria rh_colaboradores
         mural_calendario: document.getElementById('input-calendario-rh')?.value || null
     };
     
@@ -133,10 +133,35 @@ window.carregarDadosRH = async function() {
         }
         if(document.getElementById('val-vagas')) document.getElementById('val-vagas').innerText = totalVagas;
 
-        // 3. CARREGA OS ANIVERSARIANTES DA NOVA TABELA
-        const { data: anivs } = await _supa.from('rh_aniversariantes').select('*').order('dia', { ascending: true });
-        if(typeof window.gerarAniversariantesVisual === 'function') window.gerarAniversariantesVisual(anivs || []);
-        if(typeof window.renderizarTabelaAniversariantes === 'function') window.renderizarTabelaAniversariantes(anivs || []);
+        // 3. CARREGA OS ANIVERSARIANTES AUTOMATICAMENTE DA TABELA rh_colaboradores
+        const { data: colabs } = await _supa.from('rh_colaboradores')
+            .select('nome, data_nascimento, funcao')
+            .eq('filial_id', 1)
+            .eq('status', 'Ativo')
+            .not('data_nascimento', 'is', null);
+
+        let listaAnivsFormatada = [];
+        if (colabs) {
+            colabs.forEach(c => {
+                const partes = c.data_nascimento.split('-'); // Quebra o formato YYYY-MM-DD
+                if (partes.length === 3) {
+                    listaAnivsFormatada.push({
+                        nome: c.nome,
+                        setor: c.funcao || 'Não informado', // Usa a função como setor no mural
+                        dia: parseInt(partes[2], 10),
+                        mes: parseInt(partes[1], 10)
+                    });
+                }
+            });
+            // Ordena a exibição por dia
+            listaAnivsFormatada.sort((a, b) => a.dia - b.dia);
+        }
+
+        // Renderiza no dashboard principal automaticamente
+        if(typeof window.gerarAniversariantesVisual === 'function') window.gerarAniversariantesVisual(listaAnivsFormatada);
+        
+        // Passa a lista nova para a tela de lançamentos para simples conferência visual
+        if(typeof window.renderizarTabelaAniversariantes === 'function') window.renderizarTabelaAniversariantes(listaAnivsFormatada);
 
         window.rhCarregado = true;
 
