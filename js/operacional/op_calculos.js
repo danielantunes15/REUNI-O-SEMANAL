@@ -193,7 +193,7 @@ window.atualizarPainelOperacional = function() {
 
         let agora = new Date();
         let fimParaCalculo = new Date(dataFimCalc);
-        if (fimParaCalculo > agora) fimParaCalculo = agora; // Não calcular meta de horas futuras de hoje
+        if (fimParaCalculo > agora) fimParaCalculo = agora; 
 
         let msTotalPeriodo = fimParaCalculo.getTime() - inicioPeriodo.getTime();
         if (msTotalPeriodo <= 0) msTotalPeriodo = 86400000;
@@ -203,6 +203,22 @@ window.atualizarPainelOperacional = function() {
         let metaTotalViagens = 0;
 
         let totalFrotaBase = frotasAtivas.length > 0 ? frotasAtivas.length : ((window.metasGlobaisObj && window.metasGlobaisObj.tamanho_frota) ? window.metasGlobaisObj.tamanho_frota : 0);
+
+        // OTIMIZAÇÃO DE PERFORMANCE: Mapeamento em memória para evitar travamentos
+        const osMap = new Map();
+        if (window.osParaMeta && window.osParaMeta.length > 0) {
+            window.osParaMeta.forEach(o => {
+                let isOSInativa = (o.inativa === 1 || o.inativa === '1' || o.inativa === true);
+                if (isOSInativa) return;
+                const status = o.status ? o.status.trim().toUpperCase() : '';
+                if (status === 'CANCELADA' || status === 'AGENDADA') return;
+                if (o.tipo && o.tipo.toUpperCase() === 'CAVALO DISPONÍVEL S/ CARRETA') return;
+                
+                const placaOS = (o.placa || o.placa_cavalo || o.veiculo || o.cavalo || '').trim().toUpperCase().replace(/-/g, '');
+                if (!osMap.has(placaOS)) osMap.set(placaOS, []);
+                osMap.get(placaOS).push(o);
+            });
+        }
 
         if (frotasAtivas.length > 0) {
             frotasAtivas.forEach(frota => {
@@ -217,16 +233,8 @@ window.atualizarPainelOperacional = function() {
                 const placaFrotaNorm = (frota.cavalo || frota.placa || frota.placa_cavalo || '').trim().toUpperCase().replace(/-/g, '');
                 let manutencaoCavalo = 0;
 
-                if (placaFrotaNorm && tempoDisp > 0 && window.osParaMeta && window.osParaMeta.length > 0) {
-                    const todasOSCavalo = window.osParaMeta.filter(o => {
-                        let isOSInativa = (o.inativa === 1 || o.inativa === '1' || o.inativa === true);
-                        if (isOSInativa) return false;
-                        const status = o.status ? o.status.trim().toUpperCase() : '';
-                        if (status === 'CANCELADA' || status === 'AGENDADA') return false;
-                        if (o.tipo && o.tipo.toUpperCase() === 'CAVALO DISPONÍVEL S/ CARRETA') return false;
-                        const placaOS = (o.placa || o.placa_cavalo || o.veiculo || o.cavalo || '').trim().toUpperCase().replace(/-/g, '');
-                        return placaOS === placaFrotaNorm;
-                    });
+                if (placaFrotaNorm && tempoDisp > 0) {
+                    const todasOSCavalo = osMap.get(placaFrotaNorm) || [];
                     
                     todasOSCavalo.forEach(os => {
                         let dtAbertura = os.data_abertura ? window.corrigirDataSupabaseLocal(os.data_abertura) : null;
@@ -274,13 +282,13 @@ window.atualizarPainelOperacional = function() {
             let atingiuMeta = totalViagens >= window.metaViagensCalculada;
             let corMetaStr = atingiuMeta ? 'text-emerald-400' : 'text-rose-500';
 
+            // ATUALIZAÇÃO VISUAL: Fonte ajustada e padronizada (11px) e alinhamento espaçado.
             elMetaTexto.innerHTML = `
-                <span class="${corDm} font-bold text-[12px]" title="Disponibilidade Mecânica Real e Média de Veículos Disponíveis">DM: ${percentDM.toFixed(2)}% (${mediaVeiculosDispStr})</span> 
-                <span class="text-slate-600 mx-[6px]">|</span> 
-                <span class="${corMetaStr} font-bold text-[12px]" title="Meta ajustada pela DM">META: ${window.metaViagensCalculada}</span>
+                <span class="${corDm}" title="Disponibilidade Mecânica Real e Média de Veículos Disponíveis">DM: ${percentDM.toFixed(1)}% (${mediaVeiculosDispStr})</span> 
+                <span class="${corMetaStr}" title="Meta ajustada pela DM">META: ${window.metaViagensCalculada.toLocaleString('pt-BR')}</span>
             `;
             elMetaTexto.classList.remove('hidden');
-            elMetaTexto.className = "mt-auto pt-3 border-t border-slate-700/50 flex items-center uppercase tracking-wider block whitespace-nowrap overflow-hidden text-ellipsis";
+            elMetaTexto.className = "mt-auto pt-3 border-t border-slate-700/50 flex items-center justify-between w-full font-bold text-[11px] uppercase tracking-wider";
             
             if (window.metaViagensCalculada > 0) {
                 if (atingiuMeta) {
