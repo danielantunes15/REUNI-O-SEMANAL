@@ -92,7 +92,7 @@ window.initNovoDashboardOperacional = async function() {
     Chart.defaults.font.family = "'Inter', sans-serif";
 
     window.setupOperacionalFilters();
-    window.setQuickFilterOpUI('D-1'); 
+    window.setQuickFilterOpUI('D-7'); 
     
     if (typeof window.carregarConfigGruasOp === 'function') await window.carregarConfigGruasOp();
     if (typeof window.carregarMetasGlobais === 'function') await window.carregarMetasGlobais();

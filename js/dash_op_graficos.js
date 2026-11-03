@@ -2,41 +2,6 @@
 // MÓDULO 1: GRÁFICOS, LEADERBOARDS E EXPORTAÇÃO (OPERACIONAL)
 // =========================================================
 
-// Função que pega toda a base e filtra SOMENTE pelo mês corrente real, filial e pela transportadora selecionada
-function obterDadosMesAtualParaGraficos() {
-    if (!window.fullHistoricoDataOp || window.fullHistoricoDataOp.length === 0) return [];
-    
-    const hoje = new Date();
-    const mesAtual = hoje.getMonth();
-    const anoAtual = hoje.getFullYear();
-
-    const filterTransp = document.getElementById('filterTransportadora');
-    const activeT = filterTransp ? filterTransp.value : 'ALL';
-
-    const dadosMesAtual = window.fullHistoricoDataOp.filter(d => {
-        // FILTRO DE FILIAL: Considerar apenas filial_id = 1
-        if (String(d.filial_id) !== '1') return false;
-
-        const parsed = window.parseDateTime ? window.parseDateTime(d.dataDaBaseExcel) : null;
-        if (!parsed) return false;
-        
-        // Mantém apenas os dados do mês atual e ano atual
-        if (parsed.getMonth() !== mesAtual || parsed.getFullYear() !== anoAtual) {
-            return false;
-        }
-
-        // Respeita o filtro de Transportadora caso selecionado
-        const mTransp = activeT === 'ALL' || d.transportadora === activeT;
-        return mTransp;
-    });
-
-    // Mantém o mesmo padrão de visualização geral (Geral = Filtro Serrana)
-    if (activeT === 'ALL' && typeof window.isSerranaTransp === 'function') {
-        return dadosMesAtual.filter(d => window.isSerranaTransp(d));
-    }
-    return dadosMesAtual;
-}
-
 window.renderCarregamentoChart = function(data) {
     const ctxCarreg = document.getElementById('evolucaoCarregamentoChart');
     if(!ctxCarreg) return;
@@ -45,11 +10,8 @@ window.renderCarregamentoChart = function(data) {
     if (existingChart != undefined) { existingChart.destroy(); }
     if (window.chartCarregamento) window.chartCarregamento.destroy();
     
-    // USA OS DADOS FORÇADOS DO MÊS ATUAL, IGNORANDO O ARGUMENTO "data" QUE VEM DO FILTRO
-    const dadosMesAtual = obterDadosMesAtualParaGraficos();
-
     // FILTRO C1 SERRANA: Apenas nossas gruas (GSR) e nossa frota
-    const dataC1 = dadosMesAtual.filter(d => {
+    const dataC1 = data.filter(d => {
         if(window.checkLoader && window.serranaLoaders && window.isSerranaTransp) {
             return window.checkLoader(d, window.serranaLoaders, 'GSR') && window.isSerranaTransp(d);
         }
@@ -111,11 +73,8 @@ window.renderTransporteChart = function(data) {
     if (existingChart != undefined) { existingChart.destroy(); }
     if (window.chartTransporte) window.chartTransporte.destroy();
     
-    // USA OS DADOS FORÇADOS DO MÊS ATUAL, IGNORANDO O ARGUMENTO "data" QUE VEM DO FILTRO
-    const dadosMesAtual = obterDadosMesAtualParaGraficos();
-
     const dailyMap = new Map();
-    dadosMesAtual.forEach(d => {
+    data.forEach(d => {
         const dt = d.dataDaBaseExcel;
         if (!dt || dt === 'Desconhecida') return;
         if (!dailyMap.has(dt)) dailyMap.set(dt, 0);

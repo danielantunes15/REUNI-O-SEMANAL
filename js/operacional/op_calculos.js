@@ -191,13 +191,10 @@ window.atualizarPainelOperacional = function() {
         let inicioPeriodo = new Date(dataInicioCalc);
         inicioPeriodo.setHours(0, 0, 0, 0);
 
-        let fimDia = new Date(inicioPeriodo);
-        fimDia.setDate(fimDia.getDate() + 1); 
-
         let agora = new Date();
-        let isHoje = inicioPeriodo.toDateString() === agora.toDateString();
+        let fimParaCalculo = new Date(dataFimCalc);
+        if (fimParaCalculo > agora) fimParaCalculo = agora; // Não calcular meta de horas futuras de hoje
 
-        let fimParaCalculo = isHoje ? agora : fimDia;
         let msTotalPeriodo = fimParaCalculo.getTime() - inicioPeriodo.getTime();
         if (msTotalPeriodo <= 0) msTotalPeriodo = 86400000;
 
