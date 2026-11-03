@@ -10,69 +10,69 @@
 <div class="content-panel" style="margin-bottom: 25px; border-left: 5px solid #0ea5e9; background: rgba(15, 23, 42, 0.8); border-radius: 12px; overflow: hidden; box-shadow: 0 4px 6px rgba(0,0,0,0.3);">
     <div style="padding: 15px 20px; border-bottom: 1px solid rgba(255,255,255,0.05); display: flex; justify-content: space-between; align-items: center;">
         <h3 class="nav-label" style="font-size: 1rem; color: white; margin: 0;">
-            <i class="fas fa-chart-pie" style="color: #0ea5e9;"></i> DESEMPENHO OPERACIONAL E MANUTENÇÃO <span id="label-d1-data" style="color: var(--text-dim); font-size: 0.8rem; margin-left: 10px;">(D-1: Calculando...)</span>
+            <i class="fas fa-chart-pie" style="color: #0ea5e9;"></i> DESEMPENHO OPERACIONAL E MANUTENÇÃO <span id="label-d7-data" style="color: var(--text-dim); font-size: 0.8rem; margin-left: 10px;">(D-7: Calculando...)</span>
         </h3>
-        <span id="status-load-d1" style="font-size: 0.8rem; color: var(--amarelo); font-weight: bold;"><i class="fas fa-sync fa-spin"></i> Buscando dados...</span>
+        <span id="status-load-d7" style="font-size: 0.8rem; color: var(--amarelo); font-weight: bold;"><i class="fas fa-sync fa-spin"></i> Buscando dados...</span>
     </div>
     <div style="padding: 20px; background: rgba(0,0,0,0.2);">
-        <h4 style="color: #10b981; font-size: 0.85rem; margin-bottom: 15px; text-transform: uppercase; font-weight: 800;"><i class="fas fa-truck"></i> Operacional (D-1)</h4>
+        <h4 style="color: #10b981; font-size: 0.85rem; margin-bottom: 15px; text-transform: uppercase; font-weight: 800;"><i class="fas fa-truck"></i> Operacional (D-7)</h4>
         <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 15px;">
             <div style="background: rgba(255,255,255,0.03); padding: 12px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.05); text-align: center;">
                 <div style="color: var(--text-dim); font-size: 0.7rem; font-weight: bold; text-transform: uppercase;">Viagens</div>
-                <div id="d1-viagens" style="color: white; font-size: 1.5rem; font-weight: 900; margin-top: 5px;">0</div>
+                <div id="d7-viagens" style="color: white; font-size: 1.5rem; font-weight: 900; margin-top: 5px;">0</div>
             </div>
             <div style="background: rgba(255,255,255,0.03); padding: 12px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.05); text-align: center;">
                 <div style="color: var(--text-dim); font-size: 0.7rem; font-weight: bold; text-transform: uppercase;">Média PBTC</div>
-                <div id="d1-pbtc" style="color: #0ea5e9; font-size: 1.5rem; font-weight: 900; margin-top: 5px;">0 t</div>
+                <div id="d7-pbtc" style="color: #0ea5e9; font-size: 1.5rem; font-weight: 900; margin-top: 5px;">0 t</div>
             </div>
             <div style="background: rgba(255,255,255,0.03); padding: 12px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.05); text-align: center;">
                 <div style="color: var(--text-dim); font-size: 0.7rem; font-weight: bold; text-transform: uppercase;">Média Vol.</div>
-                <div id="d1-med-vol" style="color: #8b5cf6; font-size: 1.5rem; font-weight: 900; margin-top: 5px;">0 m³</div>
+                <div id="d7-med-vol" style="color: #8b5cf6; font-size: 1.5rem; font-weight: 900; margin-top: 5px;">0 m³</div>
             </div>
             <div style="background: rgba(255,255,255,0.03); padding: 12px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.05); text-align: center;">
                 <div style="color: var(--text-dim); font-size: 0.7rem; font-weight: bold; text-transform: uppercase;">Vol. Total</div>
-                <div id="d1-vol-tot" style="color: #f59e0b; font-size: 1.5rem; font-weight: 900; margin-top: 5px;">0 m³</div>
+                <div id="d7-vol-tot" style="color: #f59e0b; font-size: 1.5rem; font-weight: 900; margin-top: 5px;">0 m³</div>
             </div>
             <div style="background: rgba(255,255,255,0.03); padding: 12px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.05); text-align: center;">
                 <div style="color: var(--text-dim); font-size: 0.7rem; font-weight: bold; text-transform: uppercase;">Dist. Média</div>
-                <div id="d1-dist" style="color: #10b981; font-size: 1.5rem; font-weight: 900; margin-top: 5px;">0 km</div>
+                <div id="d7-dist" style="color: #10b981; font-size: 1.5rem; font-weight: 900; margin-top: 5px;">0 km</div>
             </div>
             <div style="background: rgba(255,255,255,0.03); padding: 12px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.05); text-align: center;">
                 <div style="color: var(--text-dim); font-size: 0.7rem; font-weight: bold; text-transform: uppercase;">Ciclo Médio</div>
-                <div id="d1-ciclo" style="color: #ef4444; font-size: 1.5rem; font-weight: 900; margin-top: 5px;">0h 0m</div>
+                <div id="d7-ciclo" style="color: #ef4444; font-size: 1.5rem; font-weight: 900; margin-top: 5px;">0h 0m</div>
             </div>
             <div style="background: rgba(255,255,255,0.03); padding: 12px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.05); text-align: center;">
                 <div style="color: var(--text-dim); font-size: 0.7rem; font-weight: bold; text-transform: uppercase;">T. Campo</div>
-                <div id="d1-campo" style="color: white; font-size: 1.5rem; font-weight: 900; margin-top: 5px;">0h 0m</div>
+                <div id="d7-campo" style="color: white; font-size: 1.5rem; font-weight: 900; margin-top: 5px;">0h 0m</div>
             </div>
             <div style="background: rgba(255,255,255,0.03); padding: 12px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.05); text-align: center;">
                 <div style="color: var(--text-dim); font-size: 0.7rem; font-weight: bold; text-transform: uppercase;">T. Carga</div>
-                <div id="d1-carga" style="color: white; font-size: 1.5rem; font-weight: 900; margin-top: 5px;">0h 0m</div>
+                <div id="d7-carga" style="color: white; font-size: 1.5rem; font-weight: 900; margin-top: 5px;">0h 0m</div>
             </div>
             <div style="background: rgba(255,255,255,0.03); padding: 12px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.05); text-align: center;">
                 <div style="color: var(--text-dim); font-size: 0.7rem; font-weight: bold; text-transform: uppercase;">T. Fábrica</div>
-                <div id="d1-fabrica" style="color: white; font-size: 1.5rem; font-weight: 900; margin-top: 5px;">0h 0m</div>
+                <div id="d7-fabrica" style="color: white; font-size: 1.5rem; font-weight: 900; margin-top: 5px;">0h 0m</div>
             </div>
         </div>
     </div>
     <div style="padding: 20px; border-top: 1px solid rgba(255,255,255,0.05);">
-        <h4 style="color: #f59e0b; font-size: 0.85rem; margin-bottom: 15px; text-transform: uppercase; font-weight: 800;"><i class="fas fa-tools"></i> Manutenção (D-1)</h4>
+        <h4 style="color: #f59e0b; font-size: 0.85rem; margin-bottom: 15px; text-transform: uppercase; font-weight: 800;"><i class="fas fa-tools"></i> Manutenção (D-7)</h4>
         <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 15px;">
             <div style="background: rgba(255,255,255,0.03); padding: 15px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.05); text-align: center; border-bottom: 3px solid #10b981;">
                 <div style="color: var(--text-dim); font-size: 0.75rem; font-weight: bold; text-transform: uppercase;">Média DM Geral</div>
-                <div id="d1-dm" style="color: #10b981; font-size: 2rem; font-weight: 900; margin-top: 5px;">0%</div>
+                <div id="d7-dm" style="color: #10b981; font-size: 2rem; font-weight: 900; margin-top: 5px;">0%</div>
             </div>
             <div style="background: rgba(255,255,255,0.03); padding: 15px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.05); text-align: center; border-bottom: 3px solid #3b82f6;">
                 <div style="color: var(--text-dim); font-size: 0.75rem; font-weight: bold; text-transform: uppercase;">Média Disponíveis</div>
-                <div id="d1-ativos" style="color: white; font-size: 2rem; font-weight: 900; margin-top: 5px;">0</div>
+                <div id="d7-ativos" style="color: white; font-size: 2rem; font-weight: 900; margin-top: 5px;">0</div>
             </div>
             <div style="background: rgba(255,255,255,0.03); padding: 15px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.05); text-align: center; border-bottom: 3px solid #ef4444;">
-                <div style="color: var(--text-dim); font-size: 0.75rem; font-weight: bold; text-transform: uppercase;">Total de O.S. (D-1)</div>
-                <div id="d1-manut" style="color: #ef4444; font-size: 2rem; font-weight: 900; margin-top: 5px;">0</div>
+                <div style="color: var(--text-dim); font-size: 0.75rem; font-weight: bold; text-transform: uppercase;">Total de O.S. (D-7)</div>
+                <div id="d7-manut" style="color: #ef4444; font-size: 2rem; font-weight: 900; margin-top: 5px;">0</div>
             </div>
             <div style="background: rgba(255,255,255,0.03); padding: 15px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.05); text-align: center; border-bottom: 3px solid #8b5cf6;">
                 <div style="color: var(--text-dim); font-size: 0.75rem; font-weight: bold; text-transform: uppercase;">Tempo Médio O.S.</div>
-                <div id="d1-tmos" style="color: #8b5cf6; font-size: 2rem; font-weight: 900; margin-top: 5px;">0h 0m</div>
+                <div id="d7-tmos" style="color: #8b5cf6; font-size: 2rem; font-weight: 900; margin-top: 5px;">0h 0m</div>
             </div>
         </div>
     </div>
@@ -136,7 +136,32 @@
 </div>
 
 <script>
-    // --- FUNÇÕES UTILITÁRIAS ---
+    // --- FUNÇÕES UTILITÁRIAS PARA OS CÁLCULOS EXATOS ---
+    window.toNumberOp = function(val) {
+        if (val === null || val === undefined || val === '') return 0;
+        if (typeof val === 'number') return val;
+        let str = String(val).replace('R$', '').trim();
+        if (str.includes('.') && str.includes(',')) {
+            str = str.replace(/\./g, '').replace(',', '.'); 
+        } else if (str.includes(',')) {
+            str = str.replace(',', '.'); 
+        }
+        let num = parseFloat(str);
+        return isNaN(num) ? 0 : num;
+    };
+
+    window.getCampoOp = function(obj, possiveisNomes) {
+        if (!obj) return '';
+        const chavesReais = Object.keys(obj);
+        for (let nomeProcurado of possiveisNomes) {
+            const chaveEncontrada = chavesReais.find(k => k.toLowerCase() === nomeProcurado.toLowerCase());
+            if (chaveEncontrada && obj[chaveEncontrada] !== null && obj[chaveEncontrada] !== undefined) {
+                return obj[chaveEncontrada];
+            }
+        }
+        return '';
+    };
+
     window.formatarDataBR = function(dataIso) {
         if (!dataIso) return '';
         const [ano, mes, dia] = dataIso.split('-');
@@ -187,7 +212,6 @@
         return baseDate;
     };
 
-    // NOVO: Lê a data bruta como horário local ignorando o fuso que o banco carimbou
     window.tratarFusoDB = function(dateStr) {
         if (!dateStr || dateStr === 'null' || dateStr === 'undefined') return null;
         let str = String(dateStr).trim();
@@ -200,7 +224,20 @@
         return isNaN(d.getTime()) ? null : d;
     };
 
-    // --- FUNÇÕES DE FILTRAGEM SEGURAS ---
+    // NOVO: Função do dashboard.js que trata e normaliza datas vazias ou em formatos estranhos
+    window.normalizarDataPainel = function(dStr) {
+        if (!dStr || dStr === 'Desconhecida' || dStr === 'null') return 'Desconhecida';
+        let s = String(dStr).trim().split(' ')[0].split('T')[0]; 
+        if (s.includes('-')) {
+            const p = s.split('-'); 
+            if (p.length === 3) {
+                if (p[0].length === 4) return `${p[2]}/${p[1]}/${p[0]}`; 
+                if (p[2].length === 4) return `${p[0]}/${p[1]}/${p[2]}`; 
+            }
+        }
+        return s; 
+    };
+
     window.isSerranaTransp = function(d) {
         let valTransp = String(d.transportadora || d['Nome da Transportadora'] || d.nomeTransportadora || '').toUpperCase().replace(/\s+/g, '');
         if (valTransp.includes('SERRANALOG') || valTransp.includes('SERRANA')) return true;
@@ -237,34 +274,36 @@
         });
     };
 
-    // --- LÓGICA DE GESTÃO DO D-1 E MURAIS ---
-    window.carregarResumoD1EMurais = async function() {
-        const statEl = document.getElementById('status-load-d1');
+    // --- LÓGICA DE GESTÃO DO D-7 E MURAIS ---
+    window.carregarResumoD7EMurais = async function() {
+        const statEl = document.getElementById('status-load-d7');
         
         if (!window.supabaseClientGlobal) {
             window.supabaseClientGlobal = supabase.createClient(SUPABASE_CONFIG.url, SUPABASE_CONFIG.key);
         }
         const supaGlobal = window.supabaseClientGlobal;
-        const supaFrota = window.supabaseClientGlobal; 
         
         const hoje = new Date();
-        const ontem = new Date(hoje);
-        ontem.setDate(hoje.getDate() - 1);
-        ontem.setHours(0,0,0,0);
+        const fimData = new Date(hoje);
+        fimData.setHours(23,59,59,999);
         
-        const d1Iso = ontem.toISOString().split('T')[0];
-        const d1StrBR = `${String(ontem.getDate()).padStart(2,'0')}/${String(ontem.getMonth()+1).padStart(2,'0')}/${ontem.getFullYear()}`;
-        document.getElementById('label-d1-data').innerText = `(D-1: ${d1StrBR})`;
+        const inicioData = new Date(hoje);
+        inicioData.setDate(hoje.getDate() - 7); // Alterado para buscar os mesmos 8 dias do dashboard (Hoje - 7 até Hoje)
+        inicioData.setHours(0,0,0,0);
+        
+        const d7InicioStrBR = `${String(inicioData.getDate()).padStart(2,'0')}/${String(inicioData.getMonth()+1).padStart(2,'0')}/${inicioData.getFullYear()}`;
+        const d7FimStrBR = `${String(fimData.getDate()).padStart(2,'0')}/${String(fimData.getMonth()+1).padStart(2,'0')}/${fimData.getFullYear()}`;
+        document.getElementById('label-d7-data').innerText = `(D-7: ${d7InicioStrBR} até ${d7FimStrBR})`;
 
         try {
-            // ================= 1. OPERACIONAL D-1 =================
+            // ================= 1. OPERACIONAL D-7 =================
             let opData = [];
             let from = 0;
             const step = 1000;
             let fetchMore = true;
             
             while (fetchMore) {
-                const { data, error } = await supaFrota.from('historico_viagens').select('*').range(from, from + step - 1);
+                const { data, error } = await supaGlobal.from('historico_viagens').select('*').range(from, from + step - 1);
                 if (error) break;
                 if (data && data.length > 0) {
                     opData = opData.concat(data);
@@ -274,58 +313,78 @@
             }
 
             if (opData.length > 0) {
-                // FILTRO DE FILIAL: Apenas dados da filial_id = 1
-                opData = opData.filter(item => String(item.filial_id) === '1');
                 
+                // LÓGICA DE RECUPERAÇÃO DE DATAS FALTANTES (IGUAL AO DASHBOARD.JS)
+                opData = opData.map(d => {
+                    let dataExcelFormatada = d.dataDaBaseExcel;
+                    if (!dataExcelFormatada || dataExcelFormatada === 'Desconhecida' || dataExcelFormatada === 'null') {
+                        if (d.data_saida_patio) {
+                            dataExcelFormatada = String(d.data_saida_patio).split(' ')[0]; 
+                        } else if (d.created_at) {
+                            dataExcelFormatada = String(d.created_at).split('T')[0];
+                        }
+                    }
+                    dataExcelFormatada = window.normalizarDataPainel(dataExcelFormatada);
+                    return { ...d, dataDaBaseExcelFormatada: dataExcelFormatada };
+                });
+
+                // FILTRO DE FILIAL E NORMALIZAÇÃO
+                opData = opData.filter(item => String(item.filial_id) === '1');
                 window.normalizarCiclos(opData);
 
                 const fOp = opData.filter(d => {
                     const motorista = String(d.motorista || '').toUpperCase();
                     if(motorista.includes('JULIO CESAR ALMEIDA NUNES') || motorista === '-') return false;
                     
-                    let pDate = window.parseDateTime(d.dataDaBaseExcel || d.data || d.Data);
-                    
-                    if(pDate && pDate.getTime() === ontem.getTime()) {
+                    let pDate = window.parseDateTime(d.dataDaBaseExcelFormatada); // Puxa da data recém processada
+                    if(pDate && pDate.getTime() >= inicioData.getTime() && pDate.getTime() <= fimData.getTime()) {
                         return window.isSerranaTransp(d);
                     }
                     return false;
                 });
 
                 const viagens = fOp.length;
-                const volTot = fOp.reduce((s,d) => s + (parseFloat(String(d.volumeReal).replace(',','.'))||0), 0);
-                const pTotKg = fOp.reduce((s,d) => s + (parseFloat(String(d.pesoLiquido).replace(',','.'))||0), 0);
+                
+                const volTot = fOp.reduce((sum, r) => sum + window.toNumberOp(window.getCampoOp(r, ['volumeReal', 'pesoLiquido'])), 0);
+                
+                let pTotKg = 0;
+                fOp.forEach(d => {
+                    let pBruto = window.toNumberOp(d.peso_na_entrada || d.peso_bruto || 0);
+                    if (pBruto > 0 && pBruto <= 150) pBruto = pBruto * 1000; 
+                    pTotKg += pBruto;
+                });
                 
                 const medPbtc = viagens > 0 ? (pTotKg / 1000) / viagens : 0;
                 const medVol = viagens > 0 ? volTot / viagens : 0;
                 
-                const medAsfalto = viagens > 0 ? fOp.reduce((s, d) => s + (d.distanciaAsfalto || 0), 0) / viagens : 0;
-                const medTerra = viagens > 0 ? fOp.reduce((s, d) => s + (d.distanciaTerra || 0), 0) / viagens : 0;
+                const medAsfalto = viagens > 0 ? fOp.reduce((s, d) => s + window.toNumberOp(d.distanciaAsfalto || d.distancia_asfalto), 0) / viagens : 0;
+                const medTerra = viagens > 0 ? fOp.reduce((s, d) => s + window.toNumberOp(d.distanciaTerra || d.distancia_chao), 0) / viagens : 0;
                 const distMed = medAsfalto + medTerra;
 
                 const calcMed = (arr, field) => {
-                    const v = arr.filter(x => x[field] > 0);
-                    return v.length > 0 ? v.reduce((s,x) => s + x[field], 0) / v.length : 0;
+                    const v = arr.filter(x => window.toNumberOp(x[field]) > 0);
+                    return v.length > 0 ? v.reduce((s,x) => s + window.toNumberOp(x[field]), 0) / v.length : 0;
                 };
 
-                document.getElementById('d1-viagens').innerText = viagens;
-                document.getElementById('d1-pbtc').innerText = medPbtc.toLocaleString('pt-PT', {maximumFractionDigits:1}) + ' t';
-                document.getElementById('d1-med-vol').innerText = medVol.toLocaleString('pt-PT', {maximumFractionDigits:1}) + ' m³';
-                document.getElementById('d1-vol-tot').innerText = volTot.toLocaleString('pt-PT', {maximumFractionDigits:1}) + ' m³';
-                document.getElementById('d1-dist').innerText = distMed.toLocaleString('pt-PT', {maximumFractionDigits:1}) + ' km';
-                document.getElementById('d1-ciclo').innerText = window.formatarHorasMinutos(calcMed(fOp, 'cicloHoras'));
-                document.getElementById('d1-campo').innerText = window.formatarHorasMinutos(calcMed(fOp, 'filaCampoHoras'));
-                document.getElementById('d1-carga').innerText = window.formatarHorasMinutos(calcMed(fOp, 'tempoCarregamentoHoras'));
-                document.getElementById('d1-fabrica').innerText = window.formatarHorasMinutos(calcMed(fOp, 'filaFabricaHoras'));
+                document.getElementById('d7-viagens').innerText = viagens.toLocaleString('pt-PT');
+                document.getElementById('d7-pbtc').innerText = medPbtc.toLocaleString('pt-PT', {maximumFractionDigits:1}) + ' t';
+                document.getElementById('d7-med-vol').innerText = medVol.toLocaleString('pt-PT', {maximumFractionDigits:1}) + ' m³';
+                document.getElementById('d7-vol-tot').innerText = volTot.toLocaleString('pt-PT', {maximumFractionDigits:1}) + ' m³';
+                document.getElementById('d7-dist').innerText = distMed.toLocaleString('pt-PT', {maximumFractionDigits:1}) + ' km';
+                document.getElementById('d7-ciclo').innerText = window.formatarHorasMinutos(calcMed(fOp, 'cicloHoras'));
+                document.getElementById('d7-campo').innerText = window.formatarHorasMinutos(calcMed(fOp, 'filaCampoHoras'));
+                document.getElementById('d7-carga').innerText = window.formatarHorasMinutos(calcMed(fOp, 'tempoCarregamentoHoras'));
+                document.getElementById('d7-fabrica').innerText = window.formatarHorasMinutos(calcMed(fOp, 'filaFabricaHoras'));
             }
 
-            // ================= 2. MANUTENÇÃO D-1 (CÁLCULO EXATO COM FUSO E MESCLAGEM) =================
+            // ================= 2. MANUTENÇÃO D-7 =================
             let osData = [];
             let fromOs = 0;
             const stepOs = 1000;
             let fetchMoreOs = true;
             
             while (fetchMoreOs) {
-                const { data, error } = await supaFrota.from('ordens_servico').select('*').range(fromOs, fromOs + stepOs - 1);
+                const { data, error } = await supaGlobal.from('ordens_servico').select('*').range(fromOs, fromOs + stepOs - 1);
                 if (error) break;
                 if (data && data.length > 0) {
                     osData = osData.concat(data);
@@ -335,117 +394,106 @@
             }
             
             if (osData.length > 0) {
-                // FILTRO DE FILIAL: Apenas dados da filial_id = 1
                 osData = osData.filter(item => String(item.filial_id) === '1');
             }
 
-            const { data: frotasData } = await supaFrota.from('frotas_manutencao').select('*').limit(5000);
+            const { data: frotasData } = await supaGlobal.from('frotas_manutencao').select('*').limit(5000);
             
             if (osData && frotasData) {
-                // FILTRO DE FILIAL: Apenas frotas da filial_id = 1
                 let frotasTritrem = frotasData.filter(f => (f.status || '').toUpperCase() === 'ATIVO' && (f.categoria || '').toUpperCase() === 'TRITREM' && String(f.filial_id) === '1');
-
-                const inicioDia = new Date(ontem);
-                const fimDia = new Date(ontem);
-                fimDia.setHours(23, 59, 59, 999);
                 
-                let msTotalDia = 24 * 60 * 60 * 1000;
-                let somaDispNoDiaMs = 0;
-                let totalMsExistenciaPeriodo = 0;
-                let totalOSDia = 0;
-
-                frotasTritrem.forEach(frota => {
-                    let frotaInicioStr = frota.data_inicial ? frota.data_inicial.split('T')[0] : '2026-04-01';
-                    let parts = frotaInicioStr.split('-');
-                    let dtEntradaVeiculo = new Date(parts[0], parts[1]-1, parts[2], 0, 0, 0);
-                    
-                    let overlapDispInicio = dtEntradaVeiculo > inicioDia ? dtEntradaVeiculo : inicioDia;
-                    let tempoDisp = 0;
-                    if (overlapDispInicio < fimDia) {
-                        tempoDisp = (fimDia - overlapDispInicio);
-                    }
-
-                    const placaFrotaNorm = (frota.cavalo || frota.placa || frota.placa_cavalo || '').trim().toUpperCase().replace(/-/g, '');
-                    let manutencaoIntervals = [];
-
-                    const todasOSCavalo = osData.filter(o => {
-                        let isOSInativa = (o.inativa === 1 || o.inativa === '1' || o.inativa === true);
-                        if (isOSInativa) return false;
-                        const placaOS = (o.placa || o.placa_cavalo || o.veiculo || o.cavalo || '').trim().toUpperCase().replace(/-/g, '');
-                        return placaOS === placaFrotaNorm && o.status !== 'Agendada' && o.status !== 'Cancelada' && o.tipo !== 'Cavalo Disponível S/ Carreta';
-                    });
-                    
-                    todasOSCavalo.forEach(os => {
-                        let dtAbertura = os.data_abertura ? window.tratarFusoDB(os.data_abertura) : null;
-                        let dtInicioM = os.data_inicio_manutencao ? window.tratarFusoDB(os.data_inicio_manutencao) : null;
-                        let osInicio = dtAbertura || dtInicioM; // Prioriza data_abertura = Cálculo de Ouro
-                        if (!osInicio) return;
-                        
-                        let osFim = os.data_conclusao ? window.tratarFusoDB(os.data_conclusao) : new Date(); 
-                        
-                        let inicioValido = osInicio > dtEntradaVeiculo ? osInicio : dtEntradaVeiculo;
-                        const overlapInicio = inicioValido > inicioDia ? inicioValido : inicioDia;
-                        const overlapFim = osFim < fimDia ? osFim : fimDia;
-                        
-                        if (overlapInicio < overlapFim) { 
-                            manutencaoIntervals.push([overlapInicio.getTime(), overlapFim.getTime()]);
-                            totalOSDia++;
-                        }
-                    });
-
-                    // Mescla os intervalos
-                    let manutencaoCavalo = 0;
-                    if (manutencaoIntervals.length > 0) {
-                        manutencaoIntervals.sort((a,b) => a[0] - b[0]);
-                        let merged = [manutencaoIntervals[0]];
-                        for (let i = 1; i < manutencaoIntervals.length; i++) {
-                            let last = merged[merged.length - 1];
-                            let current = manutencaoIntervals[i];
-                            if (current[0] <= last[1]) last[1] = Math.max(last[1], current[1]);
-                            else merged.push(current);
-                        }
-                        merged.forEach(iv => manutencaoCavalo += (iv[1] - iv[0]));
-                    }
-
-                    let dispNoDiaMs = tempoDisp - manutencaoCavalo;
-                    if (dispNoDiaMs < 0) dispNoDiaMs = 0;
-
-                    somaDispNoDiaMs += dispNoDiaMs;
-                    totalMsExistenciaPeriodo += tempoDisp;
-                });
-
-                let percentDM = totalMsExistenciaPeriodo > 0 ? (somaDispNoDiaMs / totalMsExistenciaPeriodo) * 100 : 0;
-                if (percentDM > 100) percentDM = 100;
-                let mediaVeiculosDisp = totalMsExistenciaPeriodo > 0 ? Math.round(somaDispNoDiaMs / msTotalDia) : 0;
-
-                // KPI Tempo Médio
-                let osTempoMs = 0;
-                let qtdOsTempo = 0;
-                let cavalosValidos = frotasTritrem.map(f => (f.cavalo || f.placa || '').trim().toUpperCase().replace(/-/g, ''));
-
+                let msTotal7Dias = (fimData - inicioData); 
+                if (msTotal7Dias <= 0) msTotal7Dias = 1;
+                
+                let cavalosValidos = frotasTritrem.map(f => (f.cavalo || f.placa || f.placa_cavalo || '').trim().toUpperCase().replace(/-/g, ''));
+                
+                let totalOSPeriodo = 0, osTempoMs = 0, qtdOsTempo = 0;
+                
                 osData.forEach(os => {
                     let isOSInativa = (os.inativa === 1 || os.inativa === '1' || os.inativa === true);
                     if (isOSInativa) return;
                     
                     const placaOS = (os.placa || os.placa_cavalo || os.veiculo || os.cavalo || '').trim().toUpperCase().replace(/-/g, '');
                     if (!placaOS || !cavalosValidos.includes(placaOS)) return;
-                    if (os.status === 'Agendada' || os.status === 'Cancelada' || os.tipo === 'Cavalo Disponível S/ Carreta') return;
+                    if (os.status === 'Agendada' || os.tipo === 'Cavalo Disponível S/ Carreta') return;
                     
                     let dtAbertura = os.data_abertura ? window.tratarFusoDB(os.data_abertura) : null;
                     if (!dtAbertura) return;
                     
-                    let dtConclusao = os.data_conclusao ? window.tratarFusoDB(os.data_conclusao) : new Date();
+                    let dtConclusao = os.data_conclusao ? window.tratarFusoDB(os.data_conclusao) : hoje;
                     
-                    if (dtAbertura <= fimDia && dtConclusao >= inicioDia) {
-                        const st = (os.status || '').toUpperCase();
-                        if (st === 'CONCLUÍDA' || st === 'CONCLUIDA' || st === 'RESOLVIDO') {
+                    // CONTAGEM EXATA IGUAL AO CORE DO DASHBOARD DE MANUTENÇÃO (SOBREPOSIÇÃO)
+                    if (dtAbertura <= fimData && dtConclusao >= inicioData) {
+                        totalOSPeriodo++;
+                        const statusUpper = (os.status || '').toUpperCase();
+                        if (statusUpper === 'CONCLUÍDA' || statusUpper === 'CONCLUIDA' || statusUpper === 'RESOLVIDO') {
                             if (os.data_abertura && os.data_conclusao) {
-                                osTempoMs += (dtConclusao - dtAbertura);
+                                let dtConclusaoCalc = window.tratarFusoDB(os.data_conclusao);
+                                osTempoMs += (dtConclusaoCalc - dtAbertura);
                                 qtdOsTempo++;
                             }
                         }
                     }
                 });
+
+                let msManutencaoComum = 0, msSOS = 0, totalMsExistenciaPeriodo = 0;
+
+                frotasTritrem.forEach(frota => {
+                    let frotaInicioStr = frota.data_inicial ? frota.data_inicial.split('T')[0] : '2026-04-01';
+                    let parts = frotaInicioStr.split('-');
+                    let dtEntradaVeiculo = new Date(parts[0], parts[1]-1, parts[2], 0, 0, 0);
+                    
+                    let overlapDispInicio = dtEntradaVeiculo > inicioData ? dtEntradaVeiculo : inicioData;
+                    let tempoDisp = 0;
+                    if (overlapDispInicio < fimData) {
+                        tempoDisp = (fimData - overlapDispInicio);
+                        totalMsExistenciaPeriodo += tempoDisp;
+                    }
+
+                    const placaFrotaNorm = (frota.cavalo || frota.placa || frota.placa_cavalo || '').trim().toUpperCase().replace(/-/g, '');
+
+                    const todasOSCavalo = osData.filter(o => {
+                        let isOSInativa = (o.inativa === 1 || o.inativa === '1' || o.inativa === true);
+                        if (isOSInativa) return false;
+                        const pOS = (o.placa || o.placa_cavalo || o.veiculo || o.cavalo || '').trim().toUpperCase().replace(/-/g, '');
+                        const st = (o.status || '').toUpperCase();
+                        return pOS === placaFrotaNorm && st !== 'AGENDADA' && st !== 'CANCELADA' && o.tipo !== 'Cavalo Disponível S/ Carreta';
+                    });
+                    
+                    todasOSCavalo.forEach(os => {
+                        let dtAbertura = os.data_abertura ? window.tratarFusoDB(os.data_abertura) : null;
+                        let dtInicioM = os.data_inicio_manutencao ? window.tratarFusoDB(os.data_inicio_manutencao) : null;
+                        let osInicio = dtAbertura || dtInicioM; 
+                        if (!osInicio) return;
+                        
+                        let osFim = os.data_conclusao ? window.tratarFusoDB(os.data_conclusao) : hoje; 
+                        
+                        let inicioValido = osInicio > dtEntradaVeiculo ? osInicio : dtEntradaVeiculo;
+                        let overlapInicio = inicioValido > inicioData ? inicioValido : inicioData;
+                        const overlapFim = osFim < fimData ? osFim : fimData;
+                        
+                        if (overlapInicio < overlapFim) { 
+                            const tempoParado = overlapFim - overlapInicio;
+                            const tipoOS = (os.tipo || '').toUpperCase();
+                            const descOS = (os.problema || os.observacoes || '').toUpperCase();
+                            const prioridadeOS = (os.prioridade || '').toUpperCase();
+
+                            if (tipoOS.includes('S.O.S') || tipoOS.includes('SOS') || tipoOS.includes('SOCORRO') || descOS.includes('S.O.S') || descOS.includes('SOS') || descOS.includes('SOCORRO') || prioridadeOS.includes('EMERGÊNCIA')) {
+                                msSOS += tempoParado;
+                            } else {
+                                msManutencaoComum += tempoParado;
+                            }
+                        }
+                    });
+                });
+
+                let msManutTotal = msManutencaoComum + msSOS;
+                let dispNoPeriodoMs = totalMsExistenciaPeriodo - msManutTotal;
+                if (dispNoPeriodoMs < 0) dispNoPeriodoMs = 0;
+
+                let percentDM = totalMsExistenciaPeriodo > 0 ? (dispNoPeriodoMs / totalMsExistenciaPeriodo) * 100 : 0;
+                if (percentDM > 100) percentDM = 100;
+                let mediaVeiculosDisp = totalMsExistenciaPeriodo > 0 ? Math.round(dispNoPeriodoMs / msTotal7Dias) : 0;
 
                 let tmosStr = '0h 0m';
                 if(qtdOsTempo > 0) {
@@ -455,10 +503,10 @@
                     tmosStr = `${hrs}h ${mins}m`;
                 }
 
-                document.getElementById('d1-dm').innerText = percentDM.toFixed(2) + '%';
-                document.getElementById('d1-ativos').innerText = mediaVeiculosDisp;
-                document.getElementById('d1-manut').innerText = totalOSDia;
-                document.getElementById('d1-tmos').innerText = tmosStr;
+                document.getElementById('d7-dm').innerText = percentDM.toFixed(2) + '%';
+                document.getElementById('d7-ativos').innerText = mediaVeiculosDisp;
+                document.getElementById('d7-manut').innerText = totalOSPeriodo;
+                document.getElementById('d7-tmos').innerText = tmosStr;
             }
 
             // ================= 3. MURAIS GLOBAIS =================
@@ -513,7 +561,7 @@
             setTimeout(() => statEl.innerText = '', 3000);
 
         } catch (e) {
-            console.error("Erro D-1:", e);
+            console.error("Erro D-7:", e);
             statEl.innerHTML = `<i class="fas fa-times-circle" style="color: var(--vermelho);"></i> Erro ao carregar dados`;
         }
     };
@@ -725,11 +773,11 @@
             const dataHoje = new Date().toLocaleDateString('pt-BR');
             const horaAtual = new Date().toLocaleTimeString('pt-BR').slice(0, 5);
             
-            const opViagens = document.getElementById('d1-viagens').innerText;
-            const opPbtc = document.getElementById('d1-pbtc').innerText;
-            const opVol = document.getElementById('d1-med-vol').innerText;
-            const manDm = document.getElementById('d1-dm').innerText;
-            const manAtivos = document.getElementById('d1-ativos').innerText;
+            const opViagens = document.getElementById('d7-viagens').innerText;
+            const opPbtc = document.getElementById('d7-pbtc').innerText;
+            const opVol = document.getElementById('d7-med-vol').innerText;
+            const manDm = document.getElementById('d7-dm').innerText;
+            const manAtivos = document.getElementById('d7-ativos').innerText;
 
             const buildPdfMural = (title, arr) => {
                 let html = `<div style="margin-bottom: 15px; background: #ffffff; padding: 10px; border: 1px solid #333; border-radius: 4px;">
@@ -763,7 +811,7 @@
                 </div>
 
                 <div style="margin-bottom: 25px;">
-                    <h3 style="color: #000; font-size: 16px; margin-bottom: 10px; text-transform: uppercase; border-bottom: 1px solid #000; padding-bottom: 5px;">1. Destaques D-1</h3>
+                    <h3 style="color: #000; font-size: 16px; margin-bottom: 10px; text-transform: uppercase; border-bottom: 1px solid #000; padding-bottom: 5px;">1. Destaques D-7</h3>
                     <div style="display: flex; justify-content: space-between; background: #fff; padding: 15px; border-radius: 4px; border: 1px solid #333;">
                         <div style="text-align: center;">
                             <div style="font-size: 11px; color: #333; font-weight: bold; text-transform: uppercase;">Viagens (Op)</div>
@@ -916,7 +964,7 @@
     };
 
     setTimeout(() => {
-        window.carregarResumoD1EMurais();
+        window.carregarResumoD7EMurais();
         window.carregarKanbanDash();
     }, 300);
 </script>
