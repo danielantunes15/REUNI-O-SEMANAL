@@ -4,7 +4,7 @@
 // =================================================================
 console.log('[Dash Core] Inicializando dash_manutencao_core.js');
 
-window.filtroGlobalAtual = 'd1';
+window.filtroGlobalAtual = 'd7';
 
 // NOVO: Lê a data bruta como horário local ignorando o fuso que o banco carimbou
 window.tratarFusoDB = function(dateStr) {
@@ -52,14 +52,17 @@ window.getDatasFiltroGlobal = function() {
     inicio.setHours(0,0,0,0);
     fim.setHours(23,59,59,999);
 
+    // CORREÇÃO: Alinhado exatamente com o cálculo do relatorio_gerencial (Hoje + X dias passados)
     if (tipo === 'd1') {
-        inicio.setDate(inicio.getDate() - 1); fim.setDate(fim.getDate() - 1);
+        // d1 = Apenas o dia de hoje (já setado como inicio e fim acima)
     } else if (tipo === 'd2') {
-        inicio.setDate(inicio.getDate() - 2); fim.setDate(fim.getDate() - 2);
+        inicio.setDate(inicio.getDate() - 1);
     } else if (tipo === 'd3') {
-        inicio.setDate(inicio.getDate() - 3); fim.setDate(fim.getDate() - 3);
+        inicio.setDate(inicio.getDate() - 2);
     } else if (tipo === 'd7') {
-        inicio.setDate(inicio.getDate() - 7); fim.setDate(fim.getDate() - 7);
+        inicio.setDate(inicio.getDate() - 6);
+    } else if (tipo === 'd30') {
+        inicio.setDate(inicio.getDate() - 29);
     } else if (tipo === 'data_especifica') {
         const val = document.getElementById('filtroDataGlobalEspecifica')?.value;
         if(val) {
@@ -249,13 +252,15 @@ window.atualizarKPIsGlobais = function() {
             
             let dtConclusao = os.data_conclusao ? window.tratarFusoDB(os.data_conclusao) : agora;
             
+            // CORREÇÃO: Lógica idêntica ao relatorio_gerencial (Sobreposição entre a OS e o Período)
             if (dtAbertura <= fim && dtConclusao >= inicio) {
                 totalOS++;
                 const statusUpper = (os.status || '').toUpperCase();
                 if (statusUpper === 'CONCLUÍDA' || statusUpper === 'CONCLUIDA' || statusUpper === 'RESOLVIDO') {
                     concluidasOS++;
                     if (os.data_abertura && os.data_conclusao) { 
-                        msTotalTempo += (dtConclusao - dtAbertura);
+                        let dtConclusaoCalc = window.tratarFusoDB(os.data_conclusao);
+                        msTotalTempo += (dtConclusaoCalc - dtAbertura);
                         osComTempo++;
                     }
                 } else {
@@ -317,7 +322,7 @@ window.atualizarKPIsGlobais = function() {
             todasOSCavalo.forEach(os => {
                 let dtAbertura = os.data_abertura ? window.tratarFusoDB(os.data_abertura) : null;
                 let dtInicioM = os.data_inicio_manutencao ? window.tratarFusoDB(os.data_inicio_manutencao) : null;
-                let osInicio = dtAbertura || dtInicioM; // Prioriza abertura
+                let osInicio = dtAbertura || dtInicioM; 
                 if (!osInicio) return;
                 
                 let osFim = os.data_conclusao ? window.tratarFusoDB(os.data_conclusao) : agora;
@@ -326,7 +331,6 @@ window.atualizarKPIsGlobais = function() {
                 let overlapInicio = inicioValido > inicio ? inicioValido : inicio;
                 const overlapFim = osFim < fimParaCalculo ? osFim : fimParaCalculo;
                 
-                // Soma de forma contínua a inatividade real
                 if (overlapInicio < overlapFim) {
                     const tempoParado = overlapFim - overlapInicio;
                     const tipoOS = (os.tipo || '').toUpperCase();
@@ -374,6 +378,13 @@ window.initDashManutencao = function() {
         animacaoCss.innerHTML = `@keyframes piscar { 0% { opacity: 1; } 50% { opacity: 0.4; color: #fca5a5; } 100% { opacity: 1; } }`;
         document.head.appendChild(animacaoCss);
     }
+
+    setTimeout(() => {
+        const botoes = document.querySelectorAll('#botoesFiltroGlobal .btn-filter-periodo');
+        botoes.forEach(b => b.classList.remove('active'));
+        const btnD7 = Array.from(botoes).find(b => (b.getAttribute('onclick') || '').includes('d7') || b.textContent.includes('D-7'));
+        if(btnD7) btnD7.classList.add('active');
+    }, 100);
 
     if (typeof window.carregarDadosManutencao === 'function') {
         window.carregarDadosManutencao().then(() => {
